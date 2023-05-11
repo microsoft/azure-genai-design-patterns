@@ -68,7 +68,7 @@ Hallunications are prompt responses that are not based on facts or differ contex
  A specific role assignment helps to reduce hallucination. For example, you can say in your prompt: "you are one of the best historians in the world" or "you are a 
  brilliant professor," followed by your question. 
 
-**Greedy Problem**
+**Reasoning**
 
  AS LLM reasoning capabilities are growing the greedy problem and Hallucinations are decreasing, however we need to ask the model to solve the problem by asking to 
  provide the steps
