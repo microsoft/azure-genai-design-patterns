@@ -52,9 +52,11 @@ Hallunications are prompt responses that are not based on facts or differ contex
 
 **LLM parameters**
 
-  These are achieved by updating parameter settings of model, these settings effect the model response generation capabilities, for example Temperature parameter which   
-  controls the randomness of output. A high Temperature value can create more Hallucination, we might want to use lower temperature for something like fact-based QA to 
-  encourage more factual and concise responses. For poem generation or other creative tasks, it might be beneficial to increase temperature.
+  These are achieved by updating parameter settings of model, these settings effect the model response generation capabilities, 
+  
+  for example Temperature parameter which controls the randomness of output. A high Temperature value can create more Hallucination, we might want to use lower 
+  temperature for something like fact-based QA to encourage more factual and concise responses. For poem generation or other creative tasks, it might be beneficial to 
+  increase temperature.
 
 **OneShot, Few-Shot Prompting**
 
