@@ -6,7 +6,7 @@ Hallunications are prompt responses that are not based on facts or differ contex
 
 
 # Types of Hallucinations
- **Response Variability
+ **Response Variability**
  
 LLM's have a tendency to generate responses that differ from earlier responses
 for example 
