@@ -23,7 +23,9 @@ Hallunications are prompt responses that are not based on facts or differ contex
 
 **Nonsensical/Irrelevant/information Hallucinations**
 
- Models Hallucinate by providing non-relevant information to the question. for example 
+ Models Hallucinate by providing non-relevant information to the question. 
+ for example 
+ 
  What is the capital of UK
  Capital of UK is London and London is a great musician as well
 
@@ -42,7 +44,9 @@ Hallunications are prompt responses that are not based on facts or differ contex
 # Hallucination Mitigation best practices
 **Input Prompts**
 
- A focused, precise, and clear input prompt will likely generate accurate information, for example instead of asking "what happened in WW1", you can ask , "Summarize the 
+ A focused, precise, and clear input prompt will likely generate accurate information 
+ 
+ for example instead of asking "what happened in WW1", you can ask , "Summarize the 
  significant events in WW1 including causes of conflict"
 
 **LLM parameters**
