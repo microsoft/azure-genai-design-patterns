@@ -14,7 +14,7 @@ Hallunications are prompt responses that are not based on facts or differ contex
 **Reponse conflict/Discrepancy from input Prompt**
 
  LLM generates a response which differs and conflicts from input prompt 
- Write a positive review of product A and model returns "Product A is low quality and after sales service is bad.”
+ for example : Write a positive review of product A and model returns "Product A is low quality and after sales service is bad.”
 
 **Factual errors** 
 
