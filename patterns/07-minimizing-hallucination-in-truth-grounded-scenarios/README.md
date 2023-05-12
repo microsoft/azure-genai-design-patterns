@@ -44,6 +44,23 @@ The mitigation of Hallucination by model by avoiding  non relevant, inconsistent
 [ when does this approach fails or is not recommended ]
 
 ---
-### Pattern 2: (name it)
----
-[ ... ]
+### Pattern 2: (Model Parameters Optimization)
+#### Approach
+
+Optimize Generative AI models parameters like Temperature, Top_p optimziation to guide the output to align to your business servieces goals and also to reduce Hallucination. 
+#### Implementation
+
+Update parameter settings of model which optimize model response generation capabilities, for example optimizing Tempretature parameter which controls the randomness of output. 
+A high Temperature value wil lead model to more Hallucination, use lower temperature for something like fact-based QA to encourage more factual and concise responses. 
+
+#### Performance
+
+The optimized Temperature parameter will lead to actual and concise response leading to token usage, cost, customer experience and costs optimization
+
+#### Strengths
+
+The mitigation of Hallucination by model by avoiding  non relevant, inconsistent or contradictory outcome.
+
+#### Limitations
+
+This is an anti-pattern for use cases where you will like moodel to be creative and focus less on concise resposnes.
