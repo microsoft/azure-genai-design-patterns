@@ -87,7 +87,7 @@ Prompt without Greedy problem forcing the model to reason and think
  ### Pattern 4: (Role Based Prompt Variations)
 #### Approach
 
-Encourage Generative AI models to assign a role while answering the prompts, this approach leads to personalzied output to set of users asking the questions
+Encourage Generative AI models to assign a role while answering the prompts, this approach leads to personalzied output 
 
 #### Implementation
 
