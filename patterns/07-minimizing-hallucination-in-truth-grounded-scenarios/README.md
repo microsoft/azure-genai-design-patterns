@@ -64,3 +64,35 @@ The mitigation of Hallucination by model by avoiding  non relevant, inconsistent
 #### Limitations
 
 This is an anti-pattern for use cases where you will like moodel to be creative and focus less on concise resposnes.
+
+### Pattern 3: (Model Reasoning and Greedy Problem)
+#### Approach
+
+Encourage Generative AI models reasoning capabilities to reduce the greedy problem and Hallucination. 
+
+#### Implementation
+
+AS LLM reasoining capabilities are growing, Hallucinations are decreasing. We need to encourge the model to re-think and re-correct by asking model to provide step by step instructions
+
+for example to solve the below question (1) scenario leads to greedy problem and hallucination, hwover the (2) prompt design asks the model to thin, re-correct and analyze
+
+Prompt with Greedy Problem
+1)When i was 6, my sister was half my age. Noew I'm 70 how old is my sister?
+
+Prompt without Greedy problem forcing the model to reason and think
+
+2)When i was 6, my sister was half my age. Noew I'm 70 how old is my sister? Provide step by step analysis
+
+ 
+
+#### Performance
+
+The Greedy problem resolution will lead to actual and concise response
+
+#### Strengths
+
+The mitigation of Hallucination by model by avoiding  non relevant, inconsistent or contradictory outcome.
+
+#### Limitations
+
+
