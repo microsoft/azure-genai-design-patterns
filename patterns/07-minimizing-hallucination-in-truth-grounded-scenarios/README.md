@@ -84,11 +84,18 @@ Prompt without Greedy problem forcing the model to reason and think
 
 2)When i was 6, my sister was half my age. Noew I'm 70 how old is my sister? Provide step by step analysis
 
- 
+ ### Pattern 4: (Role Based Prompt Variations)
+#### Approach
+
+Encourage Generative AI models to assign a role while answering the prompts, this approach leads to personalzied output to set of users asking the questions
+
+#### Implementation
+
+A specific role assignemnt helps to reduce hallucination. For example, you can say in your prompt: "you are one of the best historian in the world" or "you are a brilliant professor," followed by your question, the dynamic role assignemnt to these users will ensure same model generates a personalized outcome 
 
 #### Performance
 
-The Greedy problem resolution will lead to actual and concise response
+The Hallucination resolution will lead to relevant, consistent or factual outcome aligned to the role who is asking the question
 
 #### Strengths
 
