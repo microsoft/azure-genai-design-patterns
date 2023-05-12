@@ -17,11 +17,13 @@ Huge amounts of data which is prone to noise and errors and can lead to bias,ans
 ## Solution Patterns
 
 ---
-### Pattern 1: (name it)
+### Pattern 1: (Prompt Governance)
 ---
 #### Approach
 
-[ describe the approach ]
+
+A focused, precise, and clear input prompt with specific intructions and guradrails  
+
 
 #### Implementation
 
