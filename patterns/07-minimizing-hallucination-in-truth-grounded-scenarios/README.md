@@ -65,7 +65,7 @@ The mitigation of Hallucination by model by avoiding  non relevant, inconsistent
 
 This is an anti-pattern for use cases where you will like moodel to be creative and focus less on concise resposnes.
 
-### Pattern 3: (Model Reasoning and Greedy Problem)
+### Pattern 3: (Reduce Greedy Problem)
 #### Approach
 
 Encourage Generative AI models reasoning capabilities to reduce the greedy problem and Hallucination. 
