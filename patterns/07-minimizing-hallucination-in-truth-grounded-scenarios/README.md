@@ -72,11 +72,12 @@ Encourage Generative AI models reasoning capabilities to reduce the greedy probl
 
 #### Implementation
 
-AS LLM reasoining capabilities are growing, Hallucinations are decreasing. We need to encourge the model to re-think and re-correct by asking model to provide step by step instructions
+AS LLM reasoining capabilities are growing, Hallucinations are decreasing. We need to encourge the model to re-think and re-correct by asking model to break the resolution in steps
 
-for example to solve the below question (1) scenario leads to greedy problem and hallucination, hwover the (2) prompt design asks the model to thin, re-correct and analyze
+for example to solve the below question, scenario(1) prompt leads to greedy problem and hallucination, howover Scenario(2) prompt design asks the model to think, re-correct and analyze
 
 Prompt with Greedy Problem
+
 1)When i was 6, my sister was half my age. Noew I'm 70 how old is my sister?
 
 Prompt without Greedy problem forcing the model to reason and think
