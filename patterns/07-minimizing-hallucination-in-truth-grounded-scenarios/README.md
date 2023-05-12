@@ -22,7 +22,7 @@ Huge amounts of data which is prone to noise and errors and can lead to bias,ans
 #### Approach
 
 
-A focused, precise, and clear input prompt with specific intructions and guradrails  
+An enterose level prompts standaridised governance, design and policy document with Do's, Dont's, examples relevent to organziation use case and policies need to be created, the promots document focuses on creating, precise, and clear input prompt intructions and guradrails  
 
 
 #### Implementation
