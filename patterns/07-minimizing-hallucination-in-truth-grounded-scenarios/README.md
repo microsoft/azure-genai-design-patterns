@@ -2,7 +2,10 @@
 
 ## Use Cases
 
-[ describe the use cases and typical industry scenarios which match the pattern. the goal is to understand the context in which the pattern is used ]
+Hallunications are prompt responses that are not based on facts or diffr contextualy, these responses can be minor deviations to completely false or divergent outputs.
+
+The Large language models are used to drive customer insights on use cases not limited to Summarization of text, Automated response generation, Content Generation, Code generation, Code Documentation, Semnatic Search with Embeddings, Information Discovery and Knowledge mining. These uses cases drive business value across various vertical use cases and industries including legal, retail, customer services, call center, entertainment, financial, banking and travel industries. 
+Prompt input governance, control and best practices play a significant role in the model output quality and in controlling the model Hallucination
 
 ## Challenges
 
