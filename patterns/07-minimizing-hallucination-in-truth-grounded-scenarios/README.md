@@ -22,24 +22,22 @@ Huge amounts of data which is prone to noise and errors and can lead to bias,ans
 #### Approach
 
 
-An enterose level prompts standaridised governance, design and policy document with Do's, Dont's, examples relevent to organziation use case and policies need to be created, the promots document focuses on creating, precise, and clear input prompt intructions and guradrails  
-
+An enterprise level prompts governance startegy and process development
 
 #### Implementation
 
-[ this does not need to be a fully working implementation, but should provide enough information to understand the approach]
+A Prompt Governance structure and document with Do's, Dont's, examples should be created, the document will focus on creating, precise and clear input prompt intructions and guradrails along with prompts secure development methodologies.
 
-[ provide pseudo code or notebooks, etc. in 'src' directory ]
+for example open ended prompts are one of major causes of Hallucination so, for a company who provides historical events, instaed of askign open ended promprs like "what happened in WW1", you may like to ask , "Summarize the significant events in WW1 including causes of conflit"
 
-[ include architecture diagrams in 'assets' directory as needed to illustrate the approach ]
 
 #### Performance
 
-[ discuss / evaluate the performance of the approach (accuracy, speed, etc.) for instance here, use Rouge() or BERTScore()]
+The focused input prompts with clear instrcutions will lead to a summarized and focused answer which uers will like to see leading to token usage, cost, customer experience and costs optimization
 
 #### Strengths
 
-[ discuss the strengths of the approach ]
+The mitigation of Hallucination by model by avoiding  non relevant, inconsistent or contradictory outcome.
 
 #### Limitations
 
