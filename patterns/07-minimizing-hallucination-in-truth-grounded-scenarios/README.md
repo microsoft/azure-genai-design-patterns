@@ -32,11 +32,11 @@ Open ended prompts are one of major causes of Hallucination so, for a company wh
 
 **Example- 1: Open Ended Prompts**
 
-what happened in World War 1,
+What events happened in World War 1
 
 **Example- 2: Concise, Focused Prompts**
 
-Summarize the significant events in WW1 including causes of conflit
+Summarize the significant events in World War 1 including causes of conflit and the countries most impacted by the war
 
 
 #### Performance
