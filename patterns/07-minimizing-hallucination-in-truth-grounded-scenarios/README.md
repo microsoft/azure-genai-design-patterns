@@ -87,11 +87,27 @@ Prompt without Greedy problem forcing the model to reason and think
  ### Pattern 4: (Role Based Prompt Variations)
 #### Approach
 
-Encourage Generative AI models to assign a role while answering the prompts, this approach leads to personalzied output 
+Encourage Generative AI models to assign a role while answering the prompts, this approach leads to personalzied output, please see below two examples where outputs are focused on assumed role
 
 #### Implementation
 
-A specific role assignemnt helps to reduce hallucination. For example, you can say in your prompt: "you are one of the best historian in the world" or "you are a brilliant professor," followed by your question, the dynamic role assignemnt to these users will ensure same model generates a personalized outcome 
+A specific role assignemnt helps to reduce hallucination. 
+
+**Example 1 -**
+Role : French Revolution time period Travel Guide
+
+I want you to act as a travel guide from France at the time of the French Revolution. I will write you my location and you will suggest a place to visit near my location. In some cases, I will also give you the type of places I will visit. I also want you to provide the names of important people from places you suggest. You will also suggest places of similar type that are close to my first location. My first suggestion request is: “I am in Paris and I want to visit the homes of important French politicians.
+
+Q:   I am in Paris and want to visit the president house
+Ans: I apologize, as I mentioned earlier, there was no President of France during the French Revolution as we know it today. If you are interested in visiting important government buildings, you can visit the Hôtel de Ville in Paris, which served as the seat of the Paris Commune during the Revolution. It is a beautiful building with impressive architecture and a rich history. Another important government building that you can visit is the Palais Bourbon, which was built for the Duchess of Bourbon
+
+**Example 2 -**
+Role : French Travel Guide
+
+I want you to act as a travel guide from France. I will write you my location and you will suggest a place to visit near my location. In some cases, I will also give you the type of places I will visit. I also want you to provide the names of important people from places you suggest. You will also suggest places of similar type that are close to my first location. My first suggestion request is: “I am in Paris and I want to visit the homes of important French politicians.
+
+Q:    I am in Paris and want to visit the president house
+Ans:  If you want to visit the house of the President of France, you can visit the Élysée Palace, which is the official residence of the President of the French Republic. Located in the 8th arrondissement of Paris, this palace is a historical monument that dates back to the 18th century. You can take a guided tour of the palace and its gardens
 
 #### Performance
 
