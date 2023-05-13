@@ -45,6 +45,7 @@ The mitigation of Hallucination by model by avoiding  non relevant, inconsistent
 
 ---
 ### Pattern 2: (Model Parameters Optimization)
+---
 #### Approach
 
 Optimize Generative AI models parameters like Temperature, Top_p optimziation to guide the output to align to your business servieces goals and also to reduce Hallucination. 
@@ -65,7 +66,9 @@ The mitigation of Hallucination by model by avoiding  non relevant, inconsistent
 
 This is an anti-pattern for use cases where you will like moodel to be creative and focus less on concise resposnes.
 
+---
 ### Pattern 3: (Reduce Greedy Problem)
+---
 #### Approach
 
 Encourage Generative AI models reasoning capabilities to reduce the greedy problem and Hallucination. 
@@ -84,7 +87,9 @@ Prompt without Greedy problem forcing the model to reason and think
 
 2)When i was 6, my sister was half my age. Noew I'm 70 how old is my sister? Provide step by step analysis
 
+---
  ### Pattern 4: (Role Based Prompt Variations)
+ ---
 #### Approach
 
 Encourage Generative AI models to assign a role while answering the prompts, this approach leads to personalzied output, please see below two examples where outputs are focused on assumed role
