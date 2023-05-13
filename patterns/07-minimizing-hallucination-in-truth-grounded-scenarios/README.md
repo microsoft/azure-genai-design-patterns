@@ -28,7 +28,15 @@ An enterprise level prompts governance startegy and process development
 
 A Prompt Governance structure and document with Do's, Dont's, examples should be created, the document will focus on creating, precise and clear input prompt intructions and guradrails along with prompts secure development methodologies.
 
-for example open ended prompts are one of major causes of Hallucination so, for a company who provides historical events, instaed of askign open ended promprs like "what happened in WW1", you may like to ask , "Summarize the significant events in WW1 including causes of conflit"
+Open ended prompts are one of major causes of Hallucination so, for a company who provides historical events the below is an example of clear, consise and focused prompt 
+
+**Example- 1: Open Ended Prompts**
+
+what happened in World War 1,
+
+**Example- 2: Concise, Focused Prompts**
+
+Summarize the significant events in WW1 including causes of conflit
 
 
 #### Performance
