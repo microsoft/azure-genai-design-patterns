@@ -79,13 +79,13 @@ AS LLM reasoining capabilities are growing, Hallucinations are decreasing. We ne
 
 for example to solve the below question, scenario(1) prompt leads to greedy problem and hallucination, howover Scenario(2) prompt design asks the model to think, re-correct and analyze resulting in relevant, consistent or factual outcome
 
-Prompt with Greedy Problem
+**Example - 1 : Prompt leading to Greedy Problem**
 
-1)When i was 6, my sister was half my age. Noew I'm 70 how old is my sister?
+When i was 6, my sister was half my age. Noew I'm 70 how old is my sister?
 
-Prompt without Greedy problem forcing the model to reason and think
+**Example 2 : Prompt without Greedy problem forcing the model to reason and think**
 
-2)When i was 6, my sister was half my age. Noew I'm 70 how old is my sister? Provide step by step analysis
+When i was 6, my sister was half my age. Noew I'm 70 how old is my sister? Provide step by step analysis
 
 ---
  ### Pattern 4: (Role Based Prompt Variations)
