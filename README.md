@@ -61,11 +61,10 @@ This section focuses on approaches to optimize costs in your OpenAI based applic
 This section covers scenarios where OpenAI is not the best fit and other approaches should be considered. It covers scale considerations where more traditional AI/ML will be more cost effective as well as hybrid scenarios where OpenAI delegation to other AI/ML models is more appropriate.
 ## Specialized Scenarios
 
-### [Implementation guide to build robust automated analytical application with AOAI ](specialized_scenarios/automating_analytics/README.md)
+### [1. Implementation guide to build robust automated analytical application with AOAI ](specialized_scenarios/automating_analytics/README.md)
 
-### [Implementation guide to build robust Retrieval Augment Generation application with AOAI  ](specialized_scenarios/rag/README.md)
+### [2. Implementation guide to build robust Retrieval Augment Generation application with AOAI  ](specialized_scenarios/rag/README.md)
 
-This section covers scenarios where OpenAI is not the best fit and other approaches should be considered. It covers scale considerations where more traditional AI/ML will be more cost effective as well as hybrid scenarios where OpenAI delegation to other AI/ML models is more appropriate.
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
