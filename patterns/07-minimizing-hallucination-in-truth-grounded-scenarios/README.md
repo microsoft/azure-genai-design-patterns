@@ -49,7 +49,7 @@ The mitigation of Hallucination by model by avoiding  non relevant, inconsistent
 
 #### Limitations
 
-[ when does this approach fails or is not recommended ]
+Avoid using concise promots for use caes like conent genaration where you want the completions to be generalized and craetive,  
 
 ---
 ### Pattern 2: (Model Parameters Optimization)
@@ -61,21 +61,36 @@ Optimize Generative AI models parameters like Temperature, Top_p optimziation to
 
 Update parameter settings of model which optimize model response generation capabilities, Tempretature parameter controls randomness. Lowering the temperature means that the model will produce more repetitive and deterministic responses. Increasing the temperature will result in Hallucination ,more unexpected or creative responses ,lower temperature for something like fact-based QA will lead to factual and concise responses. 
 
-**Example- 1: Temperature 1**
+**Example- 1: Higher Temperature Value**
 
 Q: Contoso made a sale for $50. The raw materials cost $10 and the labor was $20. What was the profit on the sale?
 A: The total cost was $10 + $20. Revenue was $50. Profit is revenue - total cost so the profit was $20
 
-Q: Fabrikam sold 100 widgets for $10 each. However, 30 of the widgets were returned for a full refund. How much money did Fabrikam make? 
-A: Fabrikam sold 100 widgets for $10 each. After the 30 refunds the total amount made is $700.
+Q: Fabrikam sold 100 widgets for $10 each. However, 30 of the widgets were returned for a full refund and 1 with 30% refund. How much money did Fabrikam make, provide step by step instructions? 
+A:
+Step 1: Calculate the total sales
+Total sales = 100 x $10 = $1,000
 
-**Example- 2: Temperarture 0**
+Step 2: Calculate the refund
+Full refund on 30 widgets = 30 x $10 = $300
+Partial refund on 1 widget = 1 x $10 x 0.7 = $7
+Total refund = $300 + $7 = $307
 
+Step 3: Calculate the net profits
+Net profit = Total sales - Total refund
+Net profit = $1,000 - $307 = $693
+
+**Example- 2: Lower Temperarture Value**
 Q: Contoso made a sale for $50. The raw materials cost $10 and the labor was $20. What was the profit on the sale?
 A: The total cost was $10 + $20. Revenue was $50. Profit is revenue - total cost so the profit was $20
 
-Q: Fabrikam sold 100 widgets for $10 each. However, 30 of the widgets were returned for a full refund. How much money did Fabrikam make? 
-A: Fabrikam made $700 from the sale of the 100 widgets. The refund of $300 for the 30 returned widgets brings the total profit to $700.
+Q: Fabrikam sold 100 widgets for $10 each. However, 30 of the widgets were returned for a full refund and 1 with 30% refund. How much money did Fabrikam make, provide step by step instructions? 
+A: Step 1: Calculate the total revenue from the sale of the 100 widgets: 100 x $10 = $1,000
+
+Step 2: Calculate the total refund amount: 30 x $10 = $300 + (1 x $10 x 0.7) = $7
+
+Step 3: Calculate the total profit: $1,000 - $307 = $693
+
 
 #### Performance
 
@@ -87,7 +102,7 @@ The mitigation of Hallucination by model by avoiding  non relevant, inconsistent
 
 #### Limitations
 
-This is an anti-pattern for use cases where you will like moodel to be creative and focus less on concise resposnes.
+Lowering Temperature is an anti-pattern for use cases where you will like moodel to be creative and focus less on concise resposnes.
 
 ---
 ### Pattern 3: (Reduce Greedy Problem)
