@@ -4,14 +4,14 @@
 
 
 
-The Large language models are used to drive customer insights on use cases not limited to Summarization of text, Automated response generation, Content Generation, Code generation, Code Documentation, Semnatic Search with Embeddings, Information Discovery and Knowledge mining. These uses cases drive business value across various vertical use cases and industries including legal, retail, customer services, call center, entertainment, financial, banking and travel industries. 
-Prompt input governance, control and best practices play a significant role in the model output quality and in controlling the model Hallucination
+The Large language models are used to drive customer insights on use cases not limited to Summarization of text, Automated response generation, Content Generation, Code generation, Code Documentation, Semnatic Search with Embeddings, Information Discovery and Knowledge mining. These uses cases drive business value across various  use cases and industries including legal, retail, customer services, call center, entertainment, financial, banking and travel industries. 
+Prompt input governance, control and best practices play a significant role in the model Hallucination
 
 ## Challenges
 
-Hallunications is one of major challenge due to its impact on prompt responses quality and relevance as, models produce ourputs that are not based on facts or differ contextualy from the required outcome, these responses can be minor deviations to desired outcome or can produce completely false or divergent outputs.
+Hallunications is one of major challenge due to its impact on prompt responses quality and relevance, model completions that are not based on facts or differ contextually from the required outcome, these responses can be minor deviations to desired outcome or can produce completely false or divergent outputs.
 
-Huge amounts of data which is prone to noise and errors and can lead to bias,ansence of all the information context in the data, unclear Input prompts can  mislead the model to generate non relevant, inconsistent or contradictory outcome hallucinations.
+Huge amounts of data the LLM are trained on can contain noise, errors, bias and lack of information context. Unclear input prompts can mislead the model to hallucinate leading to non-relevant, inconsistent or contradictory outcomes.
 
 
 ## Solution Patterns
@@ -22,13 +22,11 @@ Huge amounts of data which is prone to noise and errors and can lead to bias,ans
 #### Approach
 
 
-An enterprise level prompts governance startegy and process development
+An enterprise level prompts governance startegy and process development which is aligned to organziation streatgic context
 
 #### Implementation
 
-A Prompt Governance structure and document with Do's, Dont's, examples should be created, the document will focus on creating, precise and clear input prompt intructions and guradrails along with prompts secure development methodologies.
-
-Open ended prompts are one of major causes of Hallucination so, for a company who provides historical events the below is an example of clear, consise and focused prompt 
+A Prompt Governance structure and document should be drafted including Do's, Dont's, and examples of business services use cases.The document must focus on creating precise and clear input prompt intructions, context and prompts secure prompt methodologies.Open ended prompts are one of major causes of Hallucination.
 
 **Example- 1: Open Ended Prompts**
 
@@ -41,25 +39,28 @@ Summarize the significant events in World War 1 including causes of conflit and 
 
 #### Performance
 
-The focused input prompts with clear instrcutions will lead to a summarized and focused answer which uers will like to see leading to token usage, cost, customer experience and costs optimization
+The focused input prompts with clear instrcutions will lead to a summarized and focused answers avoiding high token usage with lower hits to Open AI end point, enhancing customer experience.
 
 #### Strengths
 
-The mitigation of Hallucination by model by avoiding  non relevant, inconsistent or contradictory outcome.
+This approach mitigates Hallucination by avoiding  non relevant, inconsistent or contradictory outcomes.
 
 #### Limitations
 
-Avoid using concise promots for use caes like conent genaration where you want the completions to be generalized and craetive,  
+Avoid using concise promots for use caes like conent genaration where you want the completions to be generalized and craetive.  
 
 ---
 ### Pattern 2: (Model Parameters Optimization)
 ---
 #### Approach
 
-Optimize Generative AI models parameters like Temperature, Top_p optimziation to guide the output to align to your business servieces goals and also to reduce Hallucination. 
+Optimize Generative AI models parameters like Temperature to reduce Hallucination. 
+
 #### Implementation
 
-Update parameter settings of model which optimize model response generation capabilities, Tempretature parameter controls randomness. Lowering the temperature means that the model will produce more repetitive and deterministic responses. Increasing the temperature will result in Hallucination ,more unexpected or creative responses ,lower temperature for something like fact-based QA will lead to factual and concise responses. 
+Update Temperature parameter settings to optimize model response generation capabilities.Tempretature parameter controls randomness in the parameter completions. Lowering the temperature produces more repetitive and deterministic responses.
+
+Increasing the temperature creates more unexpected or creative responses, while lower temperature creates factual and concise responses. 
 
 **Example- 1: Higher Temperature Value**
 
@@ -94,7 +95,7 @@ Step 3: Calculate the total profit: $1,000 - $307 = $693
 
 #### Performance
 
-The optimized Temperature parameter will lead to actual and concise response leading to token usage, cost, customer experience and costs optimization
+The optimized Temperature parameter will lead to actual and concise response leading to enhanced customer experience and costs optimization
 
 #### Strengths
 
@@ -113,9 +114,9 @@ Encourage Generative AI models reasoning capabilities to reduce the greedy probl
 
 #### Implementation
 
-AS LLM reasoining capabilities are growing, Hallucinations are decreasing. We need to encourge the model to re-think and re-correct by asking model to break the resolution in steps
+AS LLM reasoning capabilities are growing, Hallucinations are decreasing. We need to encourge the model to re-think and re-correct by encoursging the model to think and analyse the outcome
 
-for example to solve the below question, Example(1) prompt leads to greedy problem and hallucination, howover Example(2) prompt design asks the model to think, re-correct and analyze resulting in relevant, consistent or factual outcome
+for example to solve the below question, Example(1) prompt leads to greedy problem and hallucination, howover Example(2) prompt design asks the model to think, re-correct and analyze resulting in relevant, consistent and factual outcome
 
 **Example - 1 : Prompt leading to Greedy Problem**
 
@@ -130,11 +131,11 @@ When i was 6, my sister was half my age. Noew I'm 70 how old is my sister? Provi
  ---
 #### Approach
 
-Encourage Generative AI models to assign a role while answering the prompts, this approach leads to personalzied output, please see below two examples where outputs are focused on assumed role
+Encourage Generative AI models to take a role while answering the prompts, this approach leads to personalzied output.
 
 #### Implementation
 
-A specific role assignemnt helps to reduce hallucination. 
+A specific role assignemnt helps to reduce hallucination. The below example generates very different results based on role assignment  
 
 **Role : French Revolution time period Travel Guide**
 
@@ -161,8 +162,12 @@ The Hallucination resolution will lead to relevant, consistent or factual outcom
 
 #### Strengths
 
-The mitigation of Hallucination by model by avoiding  non relevant, inconsistent or contradictory outcome.
+The personalization of conent and mitigation of Hallucination by model by assuming the role leads to avoiding  non relevant, inconsistent or contradictory outcome.
 
 #### Limitations
+
+This is an anti pattern for use cases where we need model to generate genralized and non-personalized outcomes
+
+
 
 
