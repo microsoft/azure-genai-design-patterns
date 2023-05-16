@@ -59,8 +59,23 @@ The mitigation of Hallucination by model by avoiding  non relevant, inconsistent
 Optimize Generative AI models parameters like Temperature, Top_p optimziation to guide the output to align to your business servieces goals and also to reduce Hallucination. 
 #### Implementation
 
-Update parameter settings of model which optimize model response generation capabilities, for example optimizing Tempretature parameter which controls the randomness of output. 
-A high Temperature value wil lead model to more Hallucination, use lower temperature for something like fact-based QA to encourage more factual and concise responses. 
+Update parameter settings of model which optimize model response generation capabilities, Tempretature parameter controls randomness. Lowering the temperature means that the model will produce more repetitive and deterministic responses. Increasing the temperature will result in Hallucination ,more unexpected or creative responses ,lower temperature for something like fact-based QA will lead to factual and concise responses. 
+
+**Example- 1: Temperature 1**
+
+Q: Contoso made a sale for $50. The raw materials cost $10 and the labor was $20. What was the profit on the sale?
+A: The total cost was $10 + $20. Revenue was $50. Profit is revenue - total cost so the profit was $20
+
+Q: Fabrikam sold 100 widgets for $10 each. However, 30 of the widgets were returned for a full refund. How much money did Fabrikam make? 
+A: Fabrikam sold 100 widgets for $10 each. After the 30 refunds the total amount made is $700.
+
+**Example- 2: Temperarture 0**
+
+Q: Contoso made a sale for $50. The raw materials cost $10 and the labor was $20. What was the profit on the sale?
+A: The total cost was $10 + $20. Revenue was $50. Profit is revenue - total cost so the profit was $20
+
+Q: Fabrikam sold 100 widgets for $10 each. However, 30 of the widgets were returned for a full refund. How much money did Fabrikam make? 
+A: Fabrikam made $700 from the sale of the 100 widgets. The refund of $300 for the 30 returned widgets brings the total profit to $700.
 
 #### Performance
 
