@@ -4,12 +4,12 @@
 
 
 
-The Large language models are used to drive customer insights on use cases not limited to Summarization of text, Automated response generation, Content Generation, Code generation, Code Documentation, Semnatic Search with Embeddings, Information Discovery and Knowledge mining. These uses cases drive business value across various  use cases and industries including legal, retail, customer services, call center, entertainment, financial, banking and travel industries. 
+The Large language models are used to drive customer insights on use cases not limited to Summarization of text, Automated response generation, Content Generation, Code generation, Code Documentation, Semnantic Search with Embeddings, Information Discovery and Knowledge mining. These uses cases drive business value across various  use cases and industries including legal, retail, customer services, call center, entertainment, financial, banking and travel industries. 
 Prompt input governance, control and best practices play a significant role in the model Hallucination
 
 ## Challenges
 
-Hallunications is one of major challenge due to its impact on prompt responses quality and relevance, model completions that are not based on facts or differ contextually from the required outcome, these responses can be minor deviations to desired outcome or can produce completely false or divergent outputs.
+Hallunications is one of major challenge due to its impact on prompt responses quality and relevance, model completions that are not based on facts or differ contextually from the required outcome, these responses can be minor deviations to desired outcome or can produce false or divergent outputs.
 
 Huge amounts of data the LLM are trained on can contain noise, errors, bias and lack of information context. Unclear input prompts can mislead the model to hallucinate leading to non-relevant, inconsistent or contradictory outcomes.
 
@@ -22,11 +22,11 @@ Huge amounts of data the LLM are trained on can contain noise, errors, bias and 
 #### Approach
 
 
-An enterprise level prompts governance startegy and process development which is aligned to organziation streatgic context
+An enterprise level prompts governance strategy and process development which is aligned to organization strategic context
 
 #### Implementation
 
-A Prompt Governance structure and document should be drafted including Do's, Dont's, and examples of business services use cases.The document must focus on creating precise and clear input prompt intructions, context and prompts secure prompt methodologies.Open ended prompts are one of major causes of Hallucination.
+A Prompt Governance structure and document should be drafted including Do's, Dont's, and examples of business services use cases.The document must focus on creating precise and clear input prompt instructions, context and prompts secure prompt methodologies.Open ended prompts are one of major causes of Hallucination.
 
 **Example- 1: Open Ended Prompts**
 
@@ -34,20 +34,20 @@ What events happened in World War 1
 
 **Example- 2: Concise, Focused Prompts**
 
-Summarize the significant events in World War 1 including causes of conflit and the countries most impacted by the war
+Summarize the significant events in World War 1 including causes of conflict and the countries most impacted by the war
 
 
 #### Performance
 
-The focused input prompts with clear instrcutions will lead to a summarized and focused answers avoiding high token usage with lower hits to Open AI end point, enhancing customer experience.
+The focused input prompts with clear instructions will lead to a summarized and focused answers avoiding high token usage with lower hits to Open AI end point, enhancing customer experience.
 
 #### Strengths
 
-This approach mitigates Hallucination by avoiding  non relevant, inconsistent or contradictory outcomes.
+This approach mitigates Hallucination by avoiding  non-relevant, inconsistent or contradictory outcomes.
 
 #### Limitations
 
-Avoid using concise promots for use caes like conent genaration where you want the completions to be generalized and craetive.  
+Avoid using concise prompts for use cases like conent generation where you want the completions to be generalized and creative.  
 
 ---
 ### Pattern 2: (Model Parameters Optimization)
@@ -58,7 +58,7 @@ Optimize Generative AI models parameters like Temperature to reduce Hallucinatio
 
 #### Implementation
 
-Update Temperature parameter settings to optimize model response generation capabilities.Tempretature parameter controls randomness in the parameter completions. Lowering the temperature produces more repetitive and deterministic responses.
+Update Temperature parameter settings to optimize model response generation capabilities.Temperature parameter controls randomness in the parameter completions. Lowering the temperature produces more repetitive and deterministic responses.
 
 Increasing the temperature creates more unexpected or creative responses, while lower temperature creates factual and concise responses. 
 
@@ -103,7 +103,7 @@ The mitigation of Hallucination by model by avoiding  non relevant, inconsistent
 
 #### Limitations
 
-Lowering Temperature is an anti-pattern for use cases where you will like moodel to be creative and focus less on concise resposnes.
+Lowering Temperature is an anti-pattern for use cases where you will like moodel to be creative and focus less on concise responses.
 
 ---
 ### Pattern 3: (Reduce Greedy Problem)
@@ -114,28 +114,28 @@ Encourage Generative AI models reasoning capabilities to reduce the greedy probl
 
 #### Implementation
 
-AS LLM reasoning capabilities are growing, Hallucinations are decreasing. We need to encourge the model to re-think and re-correct by encoursging the model to think and analyse the outcome
+AS LLM reasoning capabilities are growing, Hallucinations are decreasing. We need to encourge the model to re-think and re-correct by encouraging the model to think and analyze the outcome
 
-for example to solve the below question, Example(1) prompt leads to greedy problem and hallucination, howover Example(2) prompt design asks the model to think, re-correct and analyze resulting in relevant, consistent and factual outcome
+for example to solve the below question, Example(1) prompt leads to greedy problem and hallucination, however Example(2) prompt design asks the model to think, re-correct and analyze resulting in relevant, consistent and factual outcome
 
 **Example - 1 : Prompt leading to Greedy Problem**
 
-When i was 6, my sister was half my age. Noew I'm 70 how old is my sister?
+When i was 6, my sister was half my age. Now I'm 70 how old is my sister?
 
 **Example 2 : Prompt without Greedy problem forcing the model to reason and think**
 
-When i was 6, my sister was half my age. Noew I'm 70 how old is my sister? Provide step by step analysis
+When i was 6, my sister was half my age. Now I'm 70 how old is my sister? Provide step by step analysis
 
 ---
  ### Pattern 4: (Role Based Prompt Variations)
  ---
 #### Approach
 
-Encourage Generative AI models to take a role while answering the prompts, this approach leads to personalzied output.
+Encourage Generative AI models to take a role while answering the prompts, this approach leads to personalized output.
 
 #### Implementation
 
-A specific role assignemnt helps to reduce hallucination. The below example generates very different results based on role assignment  
+A specific role assignment helps to reduce hallucination. The below example generates very different results based on role assignment  
 
 **Role : French Revolution time period Travel Guide**
 
@@ -162,11 +162,11 @@ The Hallucination resolution will lead to relevant, consistent or factual outcom
 
 #### Strengths
 
-The personalization of conent and mitigation of Hallucination by model by assuming the role leads to avoiding  non relevant, inconsistent or contradictory outcome.
+The personalization of conent and mitigation of Hallucination by model by assuming the role leads to avoiding  non-relevant, inconsistent or contradictory outcome.
 
 #### Limitations
 
-This is an anti pattern for use cases where we need model to generate genralized and non-personalized outcomes
+This is an anti pattern for use cases where we need model to generate generalized and non-personalized outcomes
 
 
 
