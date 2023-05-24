@@ -10,8 +10,8 @@ The Large language models are used to drive summarization of text while maintain
 
 Large Documents (Input text) summarization has below Challenges
 
-**1 ** Input text size and token limitations in GPT models 
-**2 ** Summafrization of Summarization leads to information loss due to mutiple chunks summarizations
+**1** Input text size and token limitations in GPT models 
+**2** Summafrization of Summarization leads to information loss due to mutiple chunks summarizations
 
 
 ## Solution Patterns
