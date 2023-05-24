@@ -104,7 +104,6 @@ Gen AI models can generate abstractive and extractive summarization with the sam
 
 #### Limitations
 
-Non optimized model parameters selection will lead to in-consistent output.
-
+This Pattern must be used with chunking for large size documents (pattern : 1) 
 ---
 
