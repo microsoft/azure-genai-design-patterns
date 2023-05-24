@@ -8,7 +8,7 @@ Document Summarization can be used to summarize Call Center Log Analytics, Custo
 
 ## Challenges
 
-Large Documents (Input text) summarization has below Challenges
+Large Documents summarization has below Challenges
 
 **1 -** Input text size and token limitations in GPT models 
 
