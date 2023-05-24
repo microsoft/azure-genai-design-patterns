@@ -104,6 +104,6 @@ Gen AI models can generate abstractive and extractive summarization with the sam
 
 #### Limitations
 
-This Pattern must be used with chunking for large size documents (pattern : 1) 
+This Pattern must be used post chunking for large size documents
 ---
 
