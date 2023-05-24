@@ -77,7 +77,7 @@ It is highly recommended that depending on the use case scenario, we request the
 Selection of correct Summarization approach to drive Abstractive or Extractive Summarization 
 
 
-**Example- 1: Abstractive Summarization **
+**Example- 1: Abstractive Summarization**
 
 Provide a summary of the text below that captures its main idea.
 
