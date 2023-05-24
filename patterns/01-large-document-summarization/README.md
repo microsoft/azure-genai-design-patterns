@@ -3,15 +3,16 @@
 
 ## Use Cases
 
-The Large language models are used to drive summarization of text while maintainng the document contextual and important information. These documents can be Call Center Log Analytics, Customer Communications, Legal Documents, blogs and other sources of data. Summarizing these documents drive business value in various industries including legal, retail, customer services, call center, entertainment, financial, banking and travel industries. 
+Document Summarization can be used to summarize Call Center Log Analytics, Customer and Agent Communications, Legal Documents and Contracts, blogs, and social media feeds. Summarizing these documents drive business value in various industries including legal, retail, customer services, call center, entertainment, financial, banking and travel industries. 
 
 
 ## Challenges
 
 Large Documents (Input text) summarization has below Challenges
 
-**1** Input text size and token limitations in GPT models 
-**2** Summafrization of Summarization leads to information loss due to mutiple chunks summarizations
+**1 -** Input text size and token limitations in GPT models 
+
+**2-** Summarization of Summarization leads to information loss due to multiple chunks summarizations
 
 
 ## Solution Patterns
@@ -28,34 +29,35 @@ The common approach is to split large documents into chunks do summarization on 
  
 #### Implementation
 
-We will use "Refine" pattern in langchain library to summarize large documents, Refine pattern has the capability to keep relevant context while summarizing multiple chunks.Refine pattern approach works as below
+We will use "Refine" pattern in langchain library to summarize large documents, refine pattern has the capability to keep relevant context while summarizing multiple chunks. Refine pattern approach works as below.
 
-##### Step 1 : Divide the large documents into chunks, the chunk sizes can be drived based on LLM token size limit
-##### Step 2 : Let's assume we have three chunks created, we will pass the Chunk 1 to model for summarization and will get a summarized text of chunk 1
-##### Step 3 : We will pass the Chunk2 to model along with summarized text of Chunk1 and will get the summarized text
-##### Step 4 : We will repeat the process and will pass the Chunk3 to model along with summarized text of step 3
+##### Step 1: Divide the large documents into chunks, the chunk sizes can be derived based on LLM token size limit
+##### Step 2: Let's assume we have three chunks created, we will pass the Chunk 1 to model for summarization and will get a summarized text of chunk 1
+##### Step 3: We will pass the Chunk2 to model along with summarized text of Chunk1 and will get the summarized text
+##### Step 4: We will repeat the process and will pass the Chunk3 to model along with summarized text of step 3
 
-If we look at the steps above, we can see that each step gets the context of the previous step summary, thus keeping the context.Please refer to below github examples
+If we look at the steps above, we can see that each step gets the context of the previous step summary, thus keeping the context. Please refer to below GitHub examples
 
-**Langchain Example **
-Please refer to below github repositories for lanchain examples 
+**Langchain Example**
 
-**1** https://github.com/microsoft/OpenAIWorkshop/blob/main/scenarios/powerapp_and_python/python/Langchain_Summarization.ipynb 
+Please refer to below GitHub repositories for langchain summarization examples 
 
-**2** https://github.com/hwchase17/langchain/tree/master/langchain/chains/summarize
+**1 -** https://github.com/microsoft/OpenAIWorkshop/blob/main/scenarios/powerapp_and_python/python/Langchain_Summarization.ipynb 
+
+**2 -** https://github.com/hwchase17/langchain/tree/master/langchain/chains/summarize
 
 
 #### Performance
 
-This approach can not process the chunks in parallel and is sequential as every step feeds to next step, which results in slow proceesing as compared to parallel chunk processing apprach like MapReduce
+This approach cannot process the chunks in parallel and is sequential as every step feeds to next step, which results in slow processing as compared to parallel chunk processing approach like MapReduce
 
 #### Strengths
 
-Maintainance of context in the summarization
+Maintenance of context in the summarization without loss of information 
 
 #### Limitations
 
-This approach is dependent on ordering of document chunks as information flow starts from first chunk and flows downward
+This approach is dependent on ordering of document chunks as information flows from first chunk and flows downward.
 
 ---
 
@@ -65,14 +67,14 @@ This approach is dependent on ordering of document chunks as information flow st
 ---
 #### Approach
 
-It is highly recomended that depending on the use case scenario, we are requesting the GPT model to consider either Extractive or Abstarctive or mix of both summarization approach.Extractive summarization creates almost identical sentences from the origional text to generate the summary, while Abstractive summarization generates new content in summary while considering all of context in the input text. This apprach can be used after during summarizing the chunk following the Pattern # 1
+It is highly recommended that depending on the use case scenario, we request the GPT model to consider either Extractive or Abstractive or mix of both summarization approach. Extractive summarization creates almost identical sentences from the original text to generate the summary, while Abstractive summarization generates new content in summary while considering all of context in the input text. This approach can be used after summarizing the chunk following the Pattern # 1
 
 
 
 
 #### Implementation
 
-Selection of correct Summarization approach to drive Abstraive or Extractive Summarization 
+Selection of correct Summarization approach to drive Abstractive or Extractive Summarization 
 
 
 **Example- 1: Abstractive Summarization **
@@ -93,15 +95,15 @@ Our competitors range in size from diversified global companies with significant
 
 #### Performance
 
-The correct prompt methodology (Extractive or Abstractive) with clear instructions will lead to a focuses summarized text avoiding high token usage with lower hits to Open AI end point, enhancing customer experience.
+The correct prompt methodology (Extractive or Abstractive) with clear instructions will lead to a summarized text avoiding high token usage with lower hits to Open AI end point, enhancing customer experience.
 
 #### Strengths
 
-Gen AI models can generate abstractive and extactive summarization with the same model thus avoiding  non-relevant, inconsistent or contradictory outcomes.
+Gen AI models can generate abstractive and extractive summarization with the same model thus avoiding non-relevant, inconsistent, or contradictory outcomes.
 
 #### Limitations
 
-Non optimized model parameters selection will lead to in-consistent output
+Non optimized model parameters selection will lead to in-consistent output.
 
 ---
 
