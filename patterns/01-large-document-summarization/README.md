@@ -85,6 +85,7 @@ At Microsoft, we have been on a quest to advance AI beyond existing techniques, 
 
 
 **Example- 2: Extractive Summarization**
+
 Below is an extract from the annual financial report of a company. Extract key financial number (if present), key internal risk factors, and key external risk factors.
 
 # Start of Report
