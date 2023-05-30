@@ -43,7 +43,7 @@ This pattern explains how to how to design a wrapper/plug-in service to enable a
 ### [Pattern 08 - Batch and Real Time Processing](patterns/08-batch-and-real-time-processing/README.md)
 
 This pattern section outlines options to process data as part of an OpenAI data flow for both batch processing and real time. Top considerations are around parallelization, data throuput optimizations, API throttling, error handling, latency and high availability.
-### [Pattern 09 - Code Generation](patterns/09-Code-Generation/README.md)
+### [Pattern 09 - Code Generation](patterns/09-code-generation/README.md)
 
 This pattern discusses best practices to generate or translate code from instruction and context.
 ### [Pattern 10 - UX Considerations to Deal with OpenAI Latency](patterns/10-ux-considerations-to-deal-with-openai-latency/README.md)
