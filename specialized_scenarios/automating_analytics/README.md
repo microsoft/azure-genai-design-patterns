@@ -28,6 +28,7 @@ As ChatGPT is just the brain, we need to wire up inter-system communication
 Build the end user application
 Solution Design
 The following diagram illustrates the overall design of the solution
+    <img width="1159" alt="image" src="media/solution_design.png">
 
 
 ### Solution Design
@@ -54,6 +55,7 @@ Data Sources: SQL or Structured Data is the primary source for data analysis. In
 Agent Implementation: Agents are implemented following the ReAct framework. With its built-in knowledge in business and data analytics and with initial prompt, the agent can plan how to solve an input question. However, for non-trivial problems, they might require multiple intermediate analysis steps with unknown advanced outcomes. Observations in these intermediate steps may change the original plan.
 
 The figure below illustrates this approach
+    <img width="1159" alt="image" src="media/architecture.png">
 
 
 Agent implementation in ReAct framework

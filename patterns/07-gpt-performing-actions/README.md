@@ -1,4 +1,4 @@
-# Complex Output Logic
+# Enabling GPT model to perform actions
 
 ## Use Cases
 

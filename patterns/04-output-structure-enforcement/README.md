@@ -1,4 +1,4 @@
-# Controlled Output Format
+# Output Structure Enforcement
 
 ## Use Cases
 

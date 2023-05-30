@@ -1,4 +1,4 @@
-# Minimizing Hallucination in Truth Grounded Scenarios
+# Complex Instruction Logic
 
 ## Use Cases
 
