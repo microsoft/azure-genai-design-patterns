@@ -33,7 +33,7 @@ This pattern can be implemented using "Map Reduce" pattern in langchain library 
 
 The below flow provides the parallel flow where chunks can be proceesed in parallel with Open AI, this flow is fast and each chunk is processed independetly of other chunks
 
-<img width="453" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/56b41a9e-6917-4222-8f96-208bd477609c">
+<img width="677" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/d199bba2-5a91-4db3-af1a-4c9d6db73f25">
 
 
 
@@ -61,7 +61,7 @@ Loss of information may be possible as each chunk is indpendently processed with
 
 
 
-### Pattern 2: (Chunk Based Summaries with Suquentisl Processing)
+### Pattern 2: (Chunk Based Summaries with Suquential Processing)
 ---
 #### Approach
 
@@ -76,8 +76,7 @@ This pattern can be implemented using "Refine" pattern in langchain library to s
 
 The below flow provides the sequential flow where chunks can be proceesed in sequence with Open AI, each chunk is processed with input of previous chunk
 
-<img width="476" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/6c8ce9d5-dbea-4f14-a79e-2f0de494a2b1">
-
+<img width="725" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/c6b22552-b5f9-44ed-b80e-c561dbd9678f">
 
 **Langchain Example**
 
