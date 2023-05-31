@@ -22,7 +22,7 @@ Large Documents summarization has below Challenges
 ---
 #### Approach
 
-The common approach is to split large documents into chunks do summarization on each chunk, and later group the summarized output of each chunk into a final chunk and, finally, summarize the final chunk. 
+This approach splits large documents into chunks and summarizes each chunk independently,and later the summarized chunks are summarized to get the final summary. 
 
 
 
@@ -43,7 +43,6 @@ Please refer to below GitHub repositories for langchain summarization examples
 
 **1 -** https://github.com/microsoft/OpenAIWorkshop/blob/main/scenarios/powerapp_and_python/python/Langchain_Summarization.ipynb 
 
-**2 -** https://github.com/hwchase17/langchain/tree/master/langchain/chains/summarize
 
 
 #### Performance
@@ -65,10 +64,7 @@ Loss of information may be possible as each chunk is indpendently processed with
 ---
 #### Approach
 
-The common approach is to split large documents into chunks do summarization on each chunk, and later, group the summarize the final chunk
-
-
-
+The common approach is to split large documents into chunks do summarization on each chunk in sequence, and later, summarize the final chunk to get final summary
  
 #### Implementation
 
@@ -84,7 +80,6 @@ Please refer to below GitHub repositories for langchain summarization examples
 
 **1 -** https://github.com/microsoft/OpenAIWorkshop/blob/main/scenarios/powerapp_and_python/python/Langchain_Summarization.ipynb 
 
-**2 -** https://github.com/hwchase17/langchain/tree/master/langchain/chains/summarize
 
 
 #### Performance
