@@ -70,7 +70,7 @@ The common approach is to split large documents into chunks do summarization on 
 
 This pattern can be implemented using "Refine" pattern in langchain library to summarize large documents, "Refine Pattern" pattern has the capability to keep the context of previous chunk summaries thus preventing the loss of information
 
-The below flow provides the sequential flow where chunks can be proceesed in sequence with Open AI, each chunk is processed with input of previous chunk
+The below flow provides the sequential flow where chunks can be proceesed in sequence with Open AI, each chunk is processed with sumamry of previous chunk
 
 <img width="725" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/c6b22552-b5f9-44ed-b80e-c561dbd9678f">
 
