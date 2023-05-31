@@ -47,14 +47,16 @@ Please refer to below GitHub repositories for langchain summarization examples
 
 #### Performance
 
-This approach cannot process the chunks in parallel , which results in fast parallel processing 
+This approach processes the chunks in parallel, thus it is fast as compared to sequential processing pattern
+
 #### Strengths
 
-Fast execution  
+faster processing time 
 
 #### Limitations
 
-Loss of information may be possible as each chunk is indpendently processed with no relation to other chunks summaries.
+Loss of information may be possible as each chunk is indpendently processed with no relation to other chunks summaries.There may be dependencies on the ordering of the documents
+
 
 ---
 
@@ -84,12 +86,14 @@ Please refer to below GitHub repositories for langchain summarization examples
 
 #### Performance
 
-This approach cannot processes the chunks in sequence , which results in slow processing as compared to parallel processing 
+This approach cannot process the chunks in parallel, thus it is slow as compared to parellel processing pattern
+
 #### Strengths
 
-The context is maintained and there is low probability of loss of informatuin during summarization
+The final summary will have more context of orignal document 
+
 #### Limitations
 
-Processing will be slow due to sequential nature of the flow
+The processing will be slow as compared to parelle cunk proceesing 
 
 ---
