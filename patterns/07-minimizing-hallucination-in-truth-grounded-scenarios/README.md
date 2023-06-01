@@ -171,7 +171,7 @@ The personalization of conent and mitigation of Hallucination by model by assumi
 This is an anti pattern for use cases where we need model to generate generalized and non-personalized outcomes
 
 ---
- ### Pattern 5: (Retrieval Augmentation)
+ ### Pattern 5: (Retrieval Augmented Generation)
  ---
 #### Approach
 
