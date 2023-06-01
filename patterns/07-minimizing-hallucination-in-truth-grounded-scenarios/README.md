@@ -175,10 +175,13 @@ This is an anti pattern for use cases where we need model to generate generalize
  ---
 #### Approach
 
-This pattern uses external knowledge base to provide the relevant information (non-parametric knowledge) in input prompt. 
+This pattern uses external knowledge base where we provide the relevant information (non-parametric knowledge) from the knowledge source in the input prompt. This governs and aligns the generative nature of large language model with fact based search from the facts knowledge base which mitigates Hallunicnation problems.
+
 #### Implementation
 
-The below flow demonstartes that input prompt is updated with external knowledge base, thus avoiding complete reliance on model built-in parametric knowledge. This ensures that model is provided the context which is relevant, consistent and factual
+The below flow demonstartes that input prompt is updated with external knowledge base, thus avoiding complete reliance on model built-in parametric knowledge. This ensures that model is provided the context which is relevant, consistent and fact based
+
+
 
 <img width="933" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/384e4855-cb23-41fa-aee6-266b609c79df">
 
