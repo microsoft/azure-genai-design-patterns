@@ -64,7 +64,7 @@ Update Temperature parameter settings to optimize model response generation capa
 Increasing the temperature creates more unexpected or creative responses, while lower temperature creates factual and concise responses. 
 
 **Example- 1: Higher Temperature Value**
-
+```
 Q: Contoso made a sale for $50. The raw materials cost $10 and the labor was $20. What was the profit on the sale?
 A: The total cost was $10 + $20. Revenue was $50. Profit is revenue - total cost so the profit was $20
 
@@ -81,8 +81,9 @@ Total refund = $300 + $7 = $307
 Step 3: Calculate the net profits
 Net profit = Total sales - Total refund
 Net profit = $1,000 - $307 = $693
-
+```
 **Example- 2: Lower Temperarture Value**
+```
 Q: Contoso made a sale for $50. The raw materials cost $10 and the labor was $20. What was the profit on the sale?
 A: The total cost was $10 + $20. Revenue was $50. Profit is revenue - total cost so the profit was $20
 
@@ -93,7 +94,7 @@ Step 2: Calculate the total refund amount: 30 x $10 = $300 + (1 x $10 x 0.7) = $
 
 Step 3: Calculate the total profit: $1,000 - $307 = $693
 
-
+```
 #### Performance
 
 The optimized Temperature parameter will lead to actual and concise response leading to enhanced customer experience and costs optimization
@@ -120,13 +121,13 @@ AS LLM reasoning capabilities are growing, Hallucinations are decreasing. We nee
 for example to solve the below question, Example(1) prompt leads to greedy problem and hallucination, however Example(2) prompt design asks the model to think, re-correct and analyze resulting in relevant, consistent and factual outcome
 
 **Example - 1 : Prompt leading to Greedy Problem**
-
+```
 When i was 6, my sister was half my age. Now I'm 70 how old is my sister?
-
+```
 **Example 2 : Prompt without Greedy problem forcing the model to reason and think**
-
+```
 When i was 6, my sister was half my age. Now I'm 70 how old is my sister? Provide step by step analysis
-
+```
 ---
  ### Pattern 4: (Role Based Prompt Variations)
  ---
@@ -139,24 +140,24 @@ Encourage Generative AI models to take a role while answering the prompts, this 
 A specific role assignment helps to reduce hallucination. The below example generates very different results based on role assignment  
 
 **Role : French Revolution time period Travel Guide**
-
+```
 I want you to act as a travel guide from France at the time of the French Revolution. I will write you my location and you will suggest a place to visit near my location. In some cases, I will also give you the type of places I will visit. I also want you to provide the names of important people from places you suggest. You will also suggest places of similar type that are close to my first location. My first suggestion request is: “I am in Paris and I want to visit the homes of important French politicians.
 
 
 Q:   I am in Paris and want to visit the president house
 
 Ans: I apologize, as I mentioned earlier, there was no President of France during the French Revolution as we know it today. If you are interested in visiting important government buildings, you can visit the Hôtel de Ville in Paris, which served as the seat of the Paris Commune during the Revolution. It is a beautiful building with impressive architecture and a rich history. Another important government building that you can visit is the Palais Bourbon, which was built for the Duchess of Bourbon
-
+```
 
 **Role : French Travel Guide**
-
+```
 I want you to act as a travel guide from France. I will write you my location and you will suggest a place to visit near my location. In some cases, I will also give you the type of places I will visit. I also want you to provide the names of important people from places you suggest. You will also suggest places of similar type that are close to my first location. My first suggestion request is: “I am in Paris and I want to visit the homes of important French politicians.
 
 
 Q:    I am in Paris and want to visit the president house
 
 Ans:  If you want to visit the house of the President of France, you can visit the Élysée Palace, which is the official residence of the President of the French Republic. Located in the 8th arrondissement of Paris, this palace is a historical monument that dates back to the 18th century. You can take a guided tour of the palace and its gardens
-
+```
 #### Performance
 
 The Hallucination resolution will lead to relevant, consistent or factual outcome aligned to the role who is asking the question
