@@ -175,13 +175,12 @@ This is an anti pattern for use cases where we need model to generate generalize
  ---
 #### Approach
 
-Encourage Generative AI models to take a role while answering the prompts, this approach leads to personalized output.
-
+This pattern uses external knowledge base to provide the relevant information (non-parametric knowledge) in input prompt. 
 #### Implementation
 
-A specific role assignment helps to reduce hallucination. The below example generates very different results based on role assignment  
+The below flow demonstartes that input prompt is updated with external knowledge base, thus avoiding complete reliance on model built-in parametric knowledge. This ensures that model is provided the context which is relevant, consistent and factual
 
-<img width="847" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/d768854f-deb9-440b-b002-e1e31dd74625">
+<img width="933" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/384e4855-cb23-41fa-aee6-266b609c79df">
 
 #### Performance
 
@@ -189,11 +188,10 @@ The Hallucination resolution will lead to relevant, consistent or factual outcom
 
 #### Strengths
 
-The personalization of conent and mitigation of Hallucination by model by assuming the role leads to avoiding  non-relevant, inconsistent or contradictory outcome.
+The external and non-parametric knowledge bases reference results in mitigation of Hallucination by avoiding non-relevant, inconsistent or contradictory outcome.
 
 #### Limitations
 
-This is an anti pattern for use cases where we need model to generate generalized and non-personalized outcomes
 
 
 
