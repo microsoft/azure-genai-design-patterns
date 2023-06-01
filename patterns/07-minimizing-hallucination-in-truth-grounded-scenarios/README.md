@@ -170,6 +170,30 @@ The personalization of conent and mitigation of Hallucination by model by assumi
 
 This is an anti pattern for use cases where we need model to generate generalized and non-personalized outcomes
 
+---
+ ### Pattern 5: (Retrieval Augmentation)
+ ---
+#### Approach
+
+Encourage Generative AI models to take a role while answering the prompts, this approach leads to personalized output.
+
+#### Implementation
+
+A specific role assignment helps to reduce hallucination. The below example generates very different results based on role assignment  
+
+<img width="890" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/645c85cb-50c7-4d8f-a7b5-65bf67f703c7">
+
+#### Performance
+
+The Hallucination resolution will lead to relevant, consistent or factual outcome aligned to the role who is asking the question
+
+#### Strengths
+
+The personalization of conent and mitigation of Hallucination by model by assuming the role leads to avoiding  non-relevant, inconsistent or contradictory outcome.
+
+#### Limitations
+
+This is an anti pattern for use cases where we need model to generate generalized and non-personalized outcomes
 
 
 
