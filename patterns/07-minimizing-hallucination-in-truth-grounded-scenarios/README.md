@@ -1,4 +1,4 @@
-# Minimizing Hallucination in Truth Grounded Scenarios
+# Minimizing Hallucination 
 
 ## Use Cases
 
@@ -29,13 +29,14 @@ An enterprise level prompts governance strategy and process development which is
 A Prompt Governance structure and document should be drafted including Do's, Dont's, and examples of business services use cases.The document must focus on creating precise and clear input prompt instructions, context and prompts secure prompt methodologies.Open ended prompts are one of major causes of Hallucination.
 
 **Example- 1: Open Ended Prompts**
-
+```
 What events happened in World War 1
-
+```
 **Example- 2: Concise, Focused Prompts**
 
+```
 Summarize the significant events in World War 1 including causes of conflict and the countries most impacted by the war
-
+```
 
 #### Performance
 
