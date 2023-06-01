@@ -181,7 +181,7 @@ Encourage Generative AI models to take a role while answering the prompts, this 
 
 A specific role assignment helps to reduce hallucination. The below example generates very different results based on role assignment  
 
-<img width="890" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/645c85cb-50c7-4d8f-a7b5-65bf67f703c7">
+<img width="847" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/d768854f-deb9-440b-b002-e1e31dd74625">
 
 #### Performance
 
