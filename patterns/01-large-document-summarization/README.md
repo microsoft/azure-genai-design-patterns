@@ -26,20 +26,14 @@ This approach splits large documents into chunks and summarizes each chunk indep
 
 
 
- 
 #### Implementation
 
-This pattern can be implemented using "Map Reduce" pattern in langchain library to summarize large documents, "Map Reduce" pattern has the capability process multiple chunks in Praelle.The Parallel chunk summarization approach works as below
+This pattern can be implemented to summarize large documents,and has the capability process chunks in parallel.This chunk summarization approach summarizes the document chunks independently, leading to parallel and fast execution of chunks. As you can see from the below flow, the final chunk summary is the summary of the all chunks summaries 
 
-The below flow provides the parallel flow where chunks can be proceesed in parallel with Open AI, this flow is fast and each chunk is processed independetly of other chunks
 
 <img width="677" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/d199bba2-5a91-4db3-af1a-4c9d6db73f25">
 
-
-
-**Langchain Example**
-
-Please refer to below GitHub repositories for langchain summarization examples 
+This pattern can be implemented using langchain library method "Map Reduce".Please refer to below GitHub repository foran example
 
 **1 -** https://github.com/microsoft/OpenAIWorkshop/blob/main/scenarios/powerapp_and_python/python/Langchain_Summarization.ipynb 
 
@@ -51,12 +45,11 @@ This approach processes the chunks in parallel, thus it is fast as compared to s
 
 #### Strengths
 
-faster processing time 
+Faster processing time 
 
 #### Limitations
 
-Loss of information may be possible as each chunk is indpendently processed with no relation to other chunks summaries.There may be dependencies on the ordering of the documents
-
+Loss of information may be possible as each chunk is indpendently processed with no relation to other chunks.There may be dependencies on the ordering of the documents
 
 ---
 
@@ -66,19 +59,19 @@ Loss of information may be possible as each chunk is indpendently processed with
 ---
 #### Approach
 
-The common approach is to split large documents into chunks do summarization on each chunk in sequence, and later, summarize the final chunk to get final summary
+The Sequential chunking approach is to split large documents into chunks where each chunk is processed seuquentialy, processed chunk summary is provided as an input to next chunk 
  
 #### Implementation
 
-This pattern can be implemented using "Refine" pattern in langchain library to summarize large documents, "Refine Pattern" pattern has the capability to keep the context of previous chunk summaries thus preventing the loss of information
+This pattern can be implemented to summarize large documents,and has the capability process chunks in Sequence.The Sequence chunk summarization approach summarizes the document chunks with input from previous chunk, this enables the sumamry to keep context of previous chunk. As you can see from the below flow, the final chunk summary will have context from all previous chunks  
+
 
 The below flow provides the sequential flow where chunks can be proceesed in sequence with Open AI, each chunk is processed with sumamry of previous chunk
 
 <img width="725" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/c6b22552-b5f9-44ed-b80e-c561dbd9678f">
 
-**Langchain Example**
 
-Please refer to below GitHub repositories for langchain summarization examples 
+This pattern can be implemented using langchain library method "Refine".Please refer to below GitHub repository foran example
 
 **1 -** https://github.com/microsoft/OpenAIWorkshop/blob/main/scenarios/powerapp_and_python/python/Langchain_Summarization.ipynb 
 
@@ -90,10 +83,10 @@ This approach cannot process the chunks in parallel, thus it is slow as compared
 
 #### Strengths
 
-The final summary will have more context of orignal document 
+The final summary will have more context of orignal document as each chunk will have the sumamry of previous chunk 
 
 #### Limitations
 
-The processing will be slow as compared to parelle cunk proceesing 
+The processing will be slow as compared to parelle chunk proceesing 
 
 ---
