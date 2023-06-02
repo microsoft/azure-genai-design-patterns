@@ -38,7 +38,13 @@ This pattern covers scenarios where you need the GPT model to follow a complex i
 This patterns covers the ability to use GPT models to drive classification scenarios with  high cardinality of labels which would not fit within the limits of a prompt or would drive high cost of API calls due to their size. It covers techniques involving classification hierarchies with sub-classifications and chaining of prompts to drive the final classification efficiently from a speed, cost and maintenance standpoint.
 ### [Pattern 07 - Enabling GPT model to perform actions ](patterns/07-gpt-performing-actions/README.md)
 
+<<<<<<< HEAD
+### [Pattern 07 - Minimizing Hallucination](patterns/07-minimizing-hallucination-in-truth-grounded-scenarios/README.md)
+
+This patterns covers techniques to reduce hallucination with scenarios where grounded data is provided, including proper handling of missing information and how to handle the situation as part of larger OpenAI workflows.
+=======
 This pattern explains how to how to design a wrapper/plug-in service to enable a GPT model to perform actions on their behalf by interacting with other systems and APIs
+>>>>>>> main
 
 ### [Pattern 08 - Batch and Real Time Processing](patterns/08-batch-and-real-time-processing/README.md)
 
