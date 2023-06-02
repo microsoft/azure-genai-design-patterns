@@ -64,6 +64,13 @@ Discuss use cases where fine-tuning have been most successeful and when to use f
 
 This section focuses on approaches to optimize costs in your OpenAI based applications. The techniques involve picking the right OpenAI models, breaking down tasks into specialized tasks to build the most optimized OpenAI pipelines from a performance and cost standpoint.
 
+
+
+### [Pattern 13 - Minimizing Hallucination](patterns/13- Minimizing Hallucination/README.md)
+
+This section focuses on approaches to optimize costs in your OpenAI based applications. The techniques involve picking the right OpenAI models, breaking down tasks into specialized tasks to build the most optimized OpenAI 
+
+
 ### [Pattern 20 - Scenarios Where OpenAI is Not the Best Fit](patterns/20-scenarios-where-openai-is-not-the-best-fit/README.md)
 
 This section covers scenarios where OpenAI is not the best fit and other approaches should be considered. It covers scale considerations where more traditional AI/ML will be more cost effective as well as hybrid scenarios where OpenAI delegation to other AI/ML models is more appropriate.
