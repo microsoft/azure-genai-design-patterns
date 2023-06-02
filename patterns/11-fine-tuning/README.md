@@ -1,4 +1,4 @@
-# Retrieval Augmented Generation (RAG)
+# Fine-Tuning Scenarios and Best Practices
 
 ## Use Cases
 
