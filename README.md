@@ -40,7 +40,7 @@ The challenges lies in the ability to generate the output in a consistent manner
 
 This patterns covers the ability to use GPT models to drive classification scenarios with very high cardinality of labels which would not fit within the limits of a prompt or would drive high cost of API calls due to their size. It covers techniques involving classification hierarchies with sub-classifications and chaining of prompts to drive the final classification efficiently from a speed, cost and maintenance standpoint.
 
-### [Pattern 07 - Minimizing Hallucination in Truth Grounded Scenarios](patterns/07-minimizing-hallucination-in-truth-grounded-scenarios/README.md)
+### [Pattern 07 - Minimizing Hallucination](patterns/07-minimizing-hallucination-in-truth-grounded-scenarios/README.md)
 
 This patterns covers techniques to reduce hallucination with scenarios where grounded data is provided, including proper handling of missing information and how to handle the situation as part of larger OpenAI workflows.
 
