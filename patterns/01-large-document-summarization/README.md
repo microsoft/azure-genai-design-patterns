@@ -35,7 +35,7 @@ This pattern can be implemented to summarize large documents,and has the capabil
 
 This pattern can be implemented using langchain library method "Map Reduce".Please refer to below GitHub repository foran example
 
-**1 -** https://github.com/microsoft/OpenAIWorkshop/blob/main/scenarios/powerapp_and_python/python/Langchain_Summarization.ipynb 
+https://github.com/microsoft/OpenAIWorkshop/blob/main/scenarios/powerapp_and_python/python/Langchain_Summarization.ipynb 
 
 
 
@@ -73,7 +73,7 @@ The below flow provides the sequential flow where chunks can be proceesed in seq
 
 This pattern can be implemented using langchain library method "Refine".Please refer to below GitHub repository foran example
 
-**1 -** https://github.com/microsoft/OpenAIWorkshop/blob/main/scenarios/powerapp_and_python/python/Langchain_Summarization.ipynb 
+https://github.com/microsoft/OpenAIWorkshop/blob/main/scenarios/powerapp_and_python/python/Langchain_Summarization.ipynb 
 
 
 
