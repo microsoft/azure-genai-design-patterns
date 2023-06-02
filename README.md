@@ -68,7 +68,8 @@ This section focuses on approaches to optimize costs in your OpenAI based applic
 
 ### [Pattern 13 - Minimizing Hallucination](patterns/13- Minimizing Hallucination/README.md)
 
-This section focuses on approaches to optimize costs in your OpenAI based applications. The techniques involve picking the right OpenAI models, breaking down tasks into specialized tasks to build the most optimized OpenAI 
+This patterns covers techniques to reduce hallucination with scenarios where grounded data is provided, including proper handling of missing information and how to handle the situation as part of larger OpenAI workflows.
+ 
 
 
 ### [Pattern 20 - Scenarios Where OpenAI is Not the Best Fit](patterns/20-scenarios-where-openai-is-not-the-best-fit/README.md)
