@@ -9,10 +9,8 @@ In these scenarios, the document/content needed to be assigned with standard lab
 
 
 ## Challenges
-
-A common denominator for these scenarios is that there is a large number of possible labels to categorize the document/content into.The size of the document to be classified can also be large. 
-Labels and label structure can change sometime. 
-All these create challenges, especially  fine-tuning & model training approaches in traditional NLP.
+Sheer number of labels creates a challenge for any ML classifier including LLMs. Some labels may look similiar even though they are meant for different categories. For example: the label "Application Issue" can appear in both Human Resource domain as well as Sales & Marketing domain. Without enough context, AI or even human can easily misclassify. 
+For instruction-based approach in LLMs using zero-shot or few-shot instruction, the sheer number of labels and additional context can create a large enough prompt that may exceed token limit and is expensive & slow.
 
 ## Solution Patterns
 
@@ -107,20 +105,23 @@ The prompt size for each classifier is smaller which can allow you to put more d
 
 #### Implementation
 
-
+Check out the accompanied notebook on example to classify using instruction prompt 
 #### Performance
-
-[ discuss / evaluate the performance of the approach (accuracy, speed, etc.) for instance here, use Rouge() or BERTScore()]
+Compare accuracy between using 1-stage instruction prompt and 2-stage instruction prompt approach 
 
 #### Strengths
 
-[ discuss the strengths of the approach ]
+- Simplicity: using just instruction
+- Flexibility to add new labels without having to retrain
 
 #### Limitations
-
-[ when does this approach fails or is not recommended ]
+- Expensive 
+- Slow 
 
 ---
-### Pattern 2: (name it)
----
-[ ... ]
+### Pattern 2: Using embedding approach 
+
+### Pattern 3: Fine-tuning on top of embedding
+
+### Pattern 4: Fine-tuning LLM
+
