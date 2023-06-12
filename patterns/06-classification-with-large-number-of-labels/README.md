@@ -15,7 +15,7 @@ For instruction-based approach in LLMs using zero-shot or few-shot instruction, 
 ## Solution Patterns
 
 ---
-### Use instruction models such as ChatGPT
+### Reorganize labels into a hierarchy and use multi-step prediction using instruction based model
 ---
 #### Approach
 
@@ -111,7 +111,7 @@ Compare accuracy between using 1-stage instruction prompt and 2-stage instructio
 
 #### Strengths
 
-- Simplicity: using just instruction
+- Simplicity: using just instruction without fine-tuning
 - Flexibility to add new labels without having to retrain
 
 #### Limitations
@@ -120,8 +120,54 @@ Compare accuracy between using 1-stage instruction prompt and 2-stage instructio
 
 ---
 ### Pattern 2: Using embedding approach 
+#### Approach
+In this approach, Open AI's embedding model is used to convert target document content and all labels into vector representation format. Then we can use a distance measure to compute the document's vector with all the labels. The shortest measure represent the label with closest semantic meaning to the document.
+labels can be re-organized into a hierarchy just like above method or can be in a flat structure. 
+Added context & description can be added to highlight semantic distinction between labels.
+
+#### Implementation
+
+Check out the accompanied notebook on example to classify using embedding vector approach 
+#### Performance
+Compare accuracy between using 1-stage and 2-stage intruction approaches
+
+#### Strengths
+
+- Simplicity: Just need to compute embedding without fine-tuning
+- Flexibility to add new labels without having to retrain
+- Much faster than instruction based model
+
+#### Limitations
+- This may not work for multi-label classification 
 
 ### Pattern 3: Fine-tuning on top of embedding
+#### Approach
+This approach start with creating embedding representation just like pattern 2 but goes further by adding a classifying ML model (classifical ML) on top that is trained on labeled examples.
+
+#### Implementation
+
+Check out the accompanied notebook on example to classify using embedding with classification  approach 
+#### Performance
+Compare performance of this approach with other approaches
+#### Strengths
+
+- Improved accuracy because of the fine-tuning process
+
+#### Limitations
+- This requires preperation of labeled examples
 
 ### Pattern 4: Fine-tuning LLM
+This approach uses a fine-tunable models from Open AI to fine-tune on labeled data.
 
+#### Implementation
+
+Check out the accompanied notebook on example to classify using fine-tuned LLMs
+#### Performance
+Compare performance of this approach with other approaches
+#### Strengths
+
+- Improved accuracy because of the fine-tuning directly on LLMs
+
+#### Limitations
+- This requires preperation of labeled examples
+- Cost can be expensive because of fine-tuning and LLMs deployment
