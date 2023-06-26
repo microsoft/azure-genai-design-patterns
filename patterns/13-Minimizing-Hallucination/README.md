@@ -183,7 +183,7 @@ The below flow demonstartes that input prompt is updated with external knowledge
 
 
 
-<img width="933" alt="image" src="../../patterns/13-Minimizing-Hallucination/src/assets/RAG.jpg/">
+<img width="933" alt="image" src="assets/RAG.jpg/">
 
 #### Performance
 

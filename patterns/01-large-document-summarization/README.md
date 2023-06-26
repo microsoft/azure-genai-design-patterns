@@ -31,7 +31,8 @@ This approach splits large documents into chunks and summarizes each chunk indep
 This pattern can be implemented to summarize large documents,and has the capability process chunks in parallel.This chunk summarization approach summarizes the document chunks independently, leading to parallel and fast execution of chunks. As you can see from the below flow, the final chunk summary is the summary of the all chunks summaries 
 
 
-<img width="677" alt="image" src="../../patterns/01-large-document-summarization/src/assets/Parallel_Chunks.jpg/">
+<img width="677" alt="image" src="assets/Parallel_Chunks.jpg">
+
 
 This pattern can be implemented using langchain library method "Map Reduce".Please refer to below GitHub repository foran example
 
@@ -68,7 +69,8 @@ This pattern can be implemented to summarize large documents,and has the capabil
 
 The below flow provides the sequential flow where chunks can be proceesed in sequence with Open AI, each chunk is processed with sumamry of previous chunk
 
-<img width="677" alt="image" src="../../patterns/01-large-document-summarization/src/assets/sequential_chunks.jpg/">
+<img width="677" alt="image" src="assets/sequential_chunks.jpg">
+
 
 
 This pattern can be implemented using langchain library method "Refine".Please refer to below GitHub repository foran example
