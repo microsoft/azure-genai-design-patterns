@@ -183,7 +183,7 @@ The below flow demonstartes that input prompt is updated with external knowledge
 
 
 
-<img width="933" alt="image" src="https://github.com/microsoft/azure-openai-design-patterns/assets/50298139/384e4855-cb23-41fa-aee6-266b609c79df">
+<img width="933" alt="image" src="../../patterns/13-Minimizing-Hallucination/src/assets/RAG.jpg/">
 
 #### Performance
 
