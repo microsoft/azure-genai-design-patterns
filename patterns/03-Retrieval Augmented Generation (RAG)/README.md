@@ -11,7 +11,7 @@ LLMs can run into limitations when it comes providing  questions on recent event
 ## Use Cases
 LLMs can be used in many use cases listed below with RAG.
 
-* Customer Call routing.
+* Customer Call routing
 
 In Customer call routing scenario, the calls can be routed to the correct department based on customer inquiry and conversation between the initial agent and customer. The customer call log that is generated using speech to text services is used to find relevant knowledge base articles using Vector similarity and the knowledge base articles are used to answer specific questions asked by the customer in the converation. This can reduce call handling time and improve customer experience due to shortned call duration and minimized repeat calls. 
 * Product Copilots
