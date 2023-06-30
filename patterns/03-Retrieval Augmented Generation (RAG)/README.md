@@ -20,7 +20,8 @@ Product Copilots can be built into the end user product that can provide just-in
 * Chatbot to Resolve Level1 and Level2 product support inquiries
 
 Many enterprise products need to provide level 1 and level 2 support to customer issues. Many initial and commonly faced issues can be deflected using a ChatBot that is integrated into the product support page. The support case chatbot can also refer to knowledge base articles and provide assistance to Level 2 support Subject Matter Experts. This helps to reduce the support case handling time from weeks to few days and also results into fewer L1 support issues being handled by SMEs. 
-The below architecture shows how a chatbot can be implemented in product support use cases, where the product issues are created in Oracle Case management. LLMs and Embedding models are used to find relevant cases and knowledge articles using Rest API and provide answers to end user queries and also aide SME to find relevant knowledge article and reduce the case resolution time. The LLMs are also use to generate new knowledge articles based on existing knowledge articles and resolved cases when such knowledge articles are not available.
+
+The below architecture shows how a chatbot can be implemented in product support use cases, where the product issues are created in Oracle Case management. LLMs and Embedding models are used to find relevant cases and knowledge articles using Rest API and provide answers to end user queries and also aide SME to find relevant knowledge article and reduce the case resolution time. The LLMs are also used to generate new knowledge articles based on existing knowledge articles and resolved cases when such knowledge articles are not available.
 
 ![](./support-case-chatbot.png)
 
@@ -29,15 +30,15 @@ The below architecture shows how a chatbot can be implemented in product support
 
 ### Document Indexing
 
-One of the key components in making LLMs effective is to provide additional context to LLMs to answer the user query or to complete the prompt. This additional context can come from high quality documents which could be in different formats - FAQ documents, PDF Files, Web Pages and semi structured files like json and flat files and also REST apis. 
+One of the key components in making LLMs effective is to provide additional context to LLMs to answer the user query or to complete the prompt. This additional context can come from high quality documents which could be in different formats - Word documents, PDF Files, Web Pages and semi-structured files like json and flat files and also REST APIs. 
 
-These documents can have additional structure like pages, sections, paragraphs and tables like in the case of Word and PDF documents. They might also contain metadata like authors, last modified datetime, version and Tags like confidentiality, categories etc. This metadata could be used to index relevant content for e.g use the latest version or newest document etc. 
+These documents can have additional structure like pages, sections, paragraphs and tables like in the case of Word and PDF documents. They might also contain metadata like authors, last modified datetime, version and tags like confidentiality, categories etc. This metadata could be used to index relevant content for e.g use the latest version or newest document. 
 
 
 ### Document Chunking
 
-Document chunking is another important aspect. Because LLMs have limits on the input tokens, it would be beneficial to include relevant content in the prompt that can help with prompt completion or answer user query. For e.g in the case of product documentation, if the answer to the user query lies inside page 5 of a 20-page document, it would be futile to send the entire 20 pages to the LLMs as additional context. It might not only exceed the token limits but also trip the LLMs in providing inaccurate response. 
-So it is imperative to have a structure chunking approach. For e.g extract pages and chunking by paragraphs. Each chunk is then index into the Document Index as a separate document. The vector embeddings are also obtained on these individual chunks. 
+Document chunking is another important aspect. Because LLMs have limits on the input tokens, it would be optimal to include relevant content in the prompt that can help with prompt completion or answer user query. For e.g in the case of product documentation, if the answer to the user query lies inside page 5 of a 20-page document, it would be futile to send the entire 20 pages to the LLMs as additional context. It might not only exceed the token limits but also trip the LLMs in providing inaccurate response. 
+So it is imperative to have a structured chunking approach. For e.g extract pages and chunking by paragraphs. Each chunk is then indexed into the Document Index as a separate document. The vector embeddings are also obtained on these individual chunks. 
 
 ### Choosing embedding engine
 
