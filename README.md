@@ -25,7 +25,7 @@ This is typically handled by human review and data entry with a lot of domain sp
 This pattern addresses the needs to leverage/convert data retrieved from existing systems to generate a new output (structured or unstructured) to be passed to downstream processes or other parties.
 This pattern is discussed and implemented in detail under the [specialized section](specialized_scenarios/rag/README.md)
 
-### [Pattern 04 - Ouput Structure Enforcement](patterns/04-output-structure-enforcement/README.md)
+### [Pattern 04 - Output Structure Enforcement](patterns/04-output-structure-enforcement/README.md)
 
 This pattern focuses on ensuring that the generated output follows a required output structure in which a slight deviation could have a significant impact on the downstream processes and break them.
 
