@@ -4,7 +4,7 @@ LLMs can run into limitations when it comes providing  questions on recent event
 
 ## Generic principle of RAG
 
-![](./RAG-overview.png)
+![](./assets/RAG-overview.png)
 
 
 
@@ -23,7 +23,7 @@ Many enterprise products need to provide level 1 and level 2 support to customer
 
 The below architecture shows how a chatbot can be implemented in product support use cases, where the product issues are created in Oracle Case management. LLMs and Embedding models are used to find relevant cases and knowledge articles using Rest API and provide answers to end user queries and also aide SME to find relevant knowledge article and reduce the case resolution time. The LLMs are also used to generate new knowledge articles based on existing knowledge articles and resolved cases when such knowledge articles are not available.
 
-![](./support-case-chatbot.png)
+![](./assets/support-case-chatbot.png)
 
 
 ## Key Concepts in RAG
@@ -46,15 +46,7 @@ While there are many models that can provide embeddings, choosing the best model
 
 [MTEB](https://huggingface.co/spaces/mteb/leaderboard) provides a comparison for various embedding models.
 
-
-
-
 ### Choosing Vector Database to store embeddings
 
 A vector database stores the vector representation of the documents generated using embedding models. A few examples of vector database include Pinecone, Weavite, Milvus, Azure Redis Enterprise and Azure Cognitive Search. Pinecone provides a hosted or Software as a Service, whereas Milvus and Weavite are opensource and can be deployed on Azure. 
 Azure Cognitive Search now includes [Vector Search feature](https://github.com/Azure/cognitive-search-vector-pr) that is built into the search engine and provides a managed solution for both document index and vector index.
-
-
-
-
-
