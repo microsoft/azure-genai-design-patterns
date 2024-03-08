@@ -1,4 +1,4 @@
-# azure-genai-design-patterns
+# Generative AI Design Patterns for Advanced Use Cases
 
 ## Introduction
 
