@@ -1,6 +1,4 @@
-## Foundational Elements of Generative AI Solutions
-
-## Important Concepts and Considerations to build Generative AI Solutions
+## Foundational Design and Implementation Concepts for Agentic AI Systems
 
 ### UX Considerations
 
