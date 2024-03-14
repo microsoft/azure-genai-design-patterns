@@ -8,7 +8,7 @@ This pattern will focus on Retrieval from unstructured data, which comes with a 
 
 We put RAG in perspective within the context of an Agentic AI System, to showcase how complex problems can be solved by a RAG enabled agent.
 
-:rocket: [Retrieval Augmented Generation (RAG) Accelerator](../3_accelerators/01-retrieval-augmented-generation/README.md)
+:rocket: [Retrieval Augmented Generation (RAG) Accelerator](../3_accelerators/01-rag-agent/README.md)
 
 ### [Pattern 02 - Code Generation Agents](02-code-generation-agent/README.md)
 
