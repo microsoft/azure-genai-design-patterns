@@ -1,6 +1,6 @@
 ## Agentic Design Patterns
 
-### [Pattern 01 - Retrieval Augmented Generation (RAG) Agents](01-retrieval-augmented-generation/README.md)
+### [Pattern 01 - Retrieval Augmented Generation (RAG) Agents](01-rag-agent/README.md)
 
 RAG Agents are designed to retrieve information from a multitude of sources, including databases, documents, and APIs, and then use this information to generate an answer.
 
