@@ -1,0 +1,1 @@
+THIS FOLDER SHOULD CONTAIN CODE ASSETS USED TO ILLUSTRATE THE DESIGN PATTERN (python notebooks, sample code snippets, JSON files, etc.)
