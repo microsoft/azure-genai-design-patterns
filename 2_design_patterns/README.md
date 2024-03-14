@@ -30,4 +30,4 @@ The pattern will cover some key-aspects of MAS, including:
 - self-evaluation and replanning
 - human-agent collaboration
 
-:rocket: [Agentic Analytics Accelerator](../3_design_patterns_accelerators/03-multi-agent-systems/README.md)
+:rocket: [Agentic Analytics Accelerator](../3_accelerators/03-multi-agent-systems/automating_analytics/README.md)
