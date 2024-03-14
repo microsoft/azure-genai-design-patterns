@@ -1,3 +1,5 @@
+TODO: update this Pattern using [THIS TEMPLATE](../00-template/README.md)
+
 # Retrieval Augmented Generation (RAG)
 LLMs can run into limitations when it comes providing  questions on recent events and updated documentation as the trained dataset would have drifted since the LLMs were last trained. With this limitation, LLMs have a tendency to "hallucinate" and provide misinformation or inaccurate output. With RAG, LLMs can generate more specific and factual output than a state of the art LLMs. 
 
