@@ -6,6 +6,6 @@ This section provides sample implementations of some of the patterns as ready to
 
 ### Accelerators
 
-- :rocket: [Retrieval Augmented Generation (RAG) Accelerator](01-retrieval-augmented-generation/README.md)
+- :rocket: [Retrieval Augmented Generation (RAG) Accelerator](01-rag-agent/README.md)
 - :rocket: [Code Generation Agent Accelerator](02-code-generation-agent/README.md)
 - :rocket: [Agentic Analytics Accelerator](03-multi-agent-systems/README.md)
