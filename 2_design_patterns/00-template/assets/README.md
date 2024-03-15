@@ -1,0 +1,1 @@
+THIS FOLDER SHOULD CONTAIN IMAGES USED IN THE README.md FILE (architecture diagrams, screenshots, etc.)

@@ -1,0 +1,1 @@
+TODO: write this Pattern using [THIS TEMPLATE](../00-template/README.md)
