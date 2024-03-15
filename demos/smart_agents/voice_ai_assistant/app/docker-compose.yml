@@ -1,0 +1,20 @@
+version: "3.4"
+services:
+  backend:
+    image: voice-assistant-api:1.0
+    build: ./backend
+    ports:
+      - "50505:50505"
+  tokenbackend:
+    image: token-api:1.0
+    build: ./token
+    ports:
+      - "8000:8000"
+
+  frontend:
+    image: voice-assistant-fe:1.0
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
