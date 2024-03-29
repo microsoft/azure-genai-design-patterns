@@ -23,10 +23,14 @@ The applicability of a Code Generation Agent is vast, and we will cover the most
 
 ### [Pattern 03 - Multi-Domain Agents](03-multi-domain-agents/README.md)
 
-This pattern discusses best practices to build Multi-Domain Agents that can understand and execute complex instructions accross a multitude of domains. These agents are able to detect the domain of a request, domain switching and properly orchestrate requests to domain specific agents. They leverage a multitude of services accross domains to plan, evaluate, replan and achieve complex goals with potential human collaboration. They also enable pausing tasks in one domain to switch to another domain and then resume the task in the original domain if needed to complete a complex workflow, or if directed by the user. 
+This pattern discusses best practices to build Multi-Domain Agents that can understand and execute complex instructions accross a multitude of domains.
+
+These agents are able to detect the domain of a request, handle domain switching and properly orchestrate requests to domain specific agents. They leverage a multitude of services accross domains to plan, evaluate, replan and achieve complex goals with potential human collaboration.
+
+They also enable pausing tasks in one domain to switch to another domain and then resume the task in the original domain if needed to complete a complex workflow, or if directed by the user.
 
 The pattern will cover some key-aspects of this pattern, including:
-- domain scoping & detection, domain switching
-- long-running contextual memory (memorizing context accross domains to be able to resume task started in domain A when user switches to domain B and then back to domain A)
+- domain scoping & detection, domain switching, request delegation
+- long-running contextual memory: memorizing context accross domains to be able to resume task started in domain A when user switches to domain B and then back to domain A
 
 :rocket: [Agentic Analytics Accelerator](../3_accelerators/03-multi-domain-agents/automating_analytics/README.md)
