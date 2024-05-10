@@ -23,11 +23,11 @@ The applicability of a Code Generation Agent is vast, and we will cover the most
 
 ### [Pattern 03 - Multi-Agent Systems (MAS)](03-multi-agent-systems/README.md)
 
-This pattern discusses best practices to build Multi-Agent Systems (MAS) that can understand and execute complex instructions leveraging a multitude of services to plan, evaluate, replan and achieve complex goals with potential human collaboration.
-
-The pattern will cover some key-aspects of MAS, including:
-- agent-to-agent communication
-- self-evaluation and replanning
-- human-agent collaboration
+This pattern explores best practices for building Multi-Agent Systems (MAS) that consist of multiple agents. Each agent focuses on a specific functional area, and they are coordinated to combine their capabilities, offering a unified, enhanced super-agent experience to the end user. The primary goal is to scale the agent system across multiple functional domains. The pattern will address several key aspects of MAS, including:  
+  
+- Decomposition of the overall system's functional scope into more manageable segments.  
+- Designing mechanisms for routing and forwarding.  
+- Management of shared memory and state transitions across agents.  
+- Handling the transition of communication flow from one agent to another.  
 
 :rocket: [Agentic Analytics Accelerator](../3_accelerators/03-multi-agent-systems/automating_analytics/README.md)
