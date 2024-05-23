@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit_extras.add_vertical_space import add_vertical_space
 
-from agents import CODE_MIGRATION_PROMPT, AVAILABLE_FUNCTIONS, FUNCTIONS_SPEC, Smart_Agent, create_migration_plan
+from agents_v2 import CODE_MIGRATION_PROMPT, AVAILABLE_FUNCTIONS, FUNCTIONS_SPEC, Smart_Agent, create_migration_plan
 import sys
 import time
 import random
@@ -9,6 +9,8 @@ import os
 from pathlib import Path  
 import json
 functions = FUNCTIONS_SPEC.copy()
+
+MAX_HIST= 1
 
 if "migration_plan" in st.session_state:
     migration_plan = st.session_state['migration_plan']
@@ -31,14 +33,24 @@ st.markdown(styl, unsafe_allow_html=True)
 with st.sidebar:
     st.title('Code Migration Copilot')
     st.markdown("AI Copilot to help with code migration.")
-    source_folder =st.text_input("Source folder", key="source_folder", value="../Views")
+    source_folder =st.text_input("Source folder", key="source_folder", value="./legacy_code/Views")
     if st.button("Start Analysis"):
         with st.spinner("Analyzing..."):
-            migration_plan, code_analysis=create_migration_plan(source_folder, max_files=5)
-            st.session_state['code_analysis'] = code_analysis
+            migration_analysis,  viz_script, migration_plan=create_migration_plan(source_folder, max_files=5)
+            st.session_state['migration_analysis'] = migration_analysis
             st.session_state['migration_plan'] = migration_plan
+            st.session_state['viz_script'] = viz_script
     if "migration_plan" in st.session_state:
         migration_plan = st.session_state['migration_plan'] 
+        migration_analysis = st.session_state['migration_analysis']
+        viz_script= st.session_state['viz_script']
+        st.markdown(migration_analysis)
+        # st.code(viz_script, language='python')
+        try:
+            exec(viz_script)
+        except Exception as e:
+            print(e)
+
         st.markdown(migration_plan)
         if "history" in st.session_state:
             st.session_state['history'][0]["content"] = CODE_MIGRATION_PROMPT.format(migration_plan=migration_plan)
@@ -46,6 +58,9 @@ with st.sidebar:
 
     if 'history' not in st.session_state:
         st.session_state['history'] = []
+    if 'question_count' not in st.session_state:
+        st.session_state['question_count'] = 0
+
     if 'input' not in st.session_state:
         st.session_state['input'] = ""
     if 'code_display' in st.session_state:
@@ -67,8 +82,31 @@ user_input= st.chat_input("You:")
 
 ## Conditional display of AI generated responses as a function of user provided prompts
 history = st.session_state['history']
+question_count=st.session_state['question_count']
+
       
 if len(history) > 0:
+    #purging history
+    removal_indices =[]
+    idx=0
+    running_question_count=0
+    start_counting=False # flag to start including history items in the removal_indices list
+    for message in history:
+        idx += 1
+        message = dict(message)
+        if message.get("role") == "user":
+            running_question_count +=1
+            start_counting=True
+        if start_counting and (question_count- running_question_count>= MAX_HIST):
+            removal_indices.append(idx-1)
+        elif question_count- running_question_count< MAX_HIST:
+            break
+            
+    # remove items with indices in removal_indices
+    for index in removal_indices:
+        del history[index]
+    question_count=0
+
     for message in history:
         message = dict(message)
         if message.get("role") != "system" and message.get("role") != "tool" and message.get("name") is None and len(message.get("content")) > 0:
