@@ -19,7 +19,7 @@ The applicability of a Code Generation Agent is vast, and we will cover the most
 - code translation
 - automated testing
 
-:rocket: [Code Generation Agent Accelerator](../4_design_patterns_accelerators/02-code-generation-agent/README.md)
+:rocket: [Code Generation Agent Accelerator](../4_accelerators/02-code-generation-agent/README.md)
 
 ### [Pattern 03 - Multi-Domain Agents](03-multi-domain-agents/README.md)
 
