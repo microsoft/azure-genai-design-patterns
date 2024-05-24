@@ -23,9 +23,12 @@ The applicability of a Code Generation Agent is vast, and we will cover the most
 
 ### [Pattern 03 - Multi-Domain Agents](03-multi-domain-agents/README.md)
 
-This pattern discusses best practices to build Multi-Domain Agents that can understand and execute complex instructions accross a multitude of domains.
-
-These agents are able to detect the domain of a request, handle domain switching and properly orchestrate requests to domain specific agents. They leverage a multitude of services accross domains to plan, evaluate, replan and achieve complex goals with potential human collaboration.
+This pattern explores best practices for building Multi-Agent Systems (MAS) that consist of multiple agents. Each agent focuses on a specific functional area, and they are coordinated to combine their capabilities, offering a unified, enhanced super-agent experience to the end user. The primary goal is to scale the agent system across multiple functional domains. The pattern will address several key aspects of MAS, including:  
+  
+- Decomposition of the overall system's functional scope into more manageable segments.  
+- Designing mechanisms for routing and forwarding.  
+- Management of shared memory and state transitions across agents.  
+- Handling the transition of communication flow from one agent to another.  
 
 They also enable pausing tasks in one domain to switch to another domain and then resume the task in the original domain if needed to complete a complex workflow, or if directed by the user.
 
