@@ -45,15 +45,21 @@ Each pattern is designed to address a specific scenario and is backed by a set o
 
 Here you will find the most advanced common scenarios with reference architectures detailing what challenges they address, how to implement them, and the performance and limitations of each pattern.
 
-### [3. Agentic Accelerators](3_accelerators/README.md)
+### [3. Reference Architectures](3_reference_architectures/README.md)
 
-This area provides sample implementations of some of the patterns as ready to go solution, with miminum configurations and code changes. 
+This section provides core details around the architecture considerations at play to deliver these patterns, and includes concrete recommendations on how to implement them in Azure.
+
+These reference architectures support all the patterns outlined in the previous section and provide a clear path to production.
+
+### [4. Agentic Accelerators](4_accelerators/README.md)
+
+This section provides sample implementations of some of the patterns as ready to go solution, with miminum configurations and code changes. 
 
 This is a good starting point to understand how to implement the patterns in real world scenarios and test them out with your own data.
 
 Please understand that these accelerators do not necessary cover all aspects under consideration to deliver production ready solutions. Please refer to the [Foundational Design and Implementation Concepts](1_foundational_concepts/README.md) section for a detailed understanding of the concepts at play in a more compregensive fashion.
 
-### [4. Auxiliary Design Patterns](4_auxiliary_design_patterns/README.md)
+### [5. Auxiliary Design Patterns](5_auxiliary_design_patterns/README.md)
 
 You'll find here a few patterns that are not directly related to Agentic AI Systems, but are important to understand in the context of a Agentic AI Systems design as they may support building specific agent skills or data enrichment pipelines.
 
