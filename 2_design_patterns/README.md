@@ -8,7 +8,7 @@ This pattern will focus on Retrieval from unstructured data, which comes with a 
 
 We put RAG in perspective within the context of an Agentic AI System, to showcase how complex problems can be solved by a RAG enabled agent.
 
-:rocket: [Retrieval Augmented Generation (RAG) Accelerator](../3_accelerators/01-rag-agent/README.md)
+:rocket: [Retrieval Augmented Generation (RAG) Accelerator](../4_accelerators/01-rag-agent/README.md)
 
 ### [Pattern 02 - Code Generation Agents](02-code-generation-agent/README.md)
 
@@ -19,7 +19,7 @@ The applicability of a Code Generation Agent is vast, and we will cover the most
 - code translation
 - automated testing
 
-:rocket: [Code Generation Agent Accelerator](../3_design_patterns_accelerators/02-code-generation-agent/README.md)
+:rocket: [Code Generation Agent Accelerator](../4_accelerators/02-code-generation-agent/README.md)
 
 ### [Pattern 03 - Multi-Domain Agents](03-multi-domain-agents/README.md)
 
@@ -36,4 +36,4 @@ The pattern will cover some key-aspects of this pattern, including:
 - domain scoping & detection, domain switching, request delegation
 - long-running contextual memory: memorizing context accross domains to be able to resume task started in domain A when user switches to domain B and then back to domain A
 
-:rocket: [Agentic Analytics Accelerator](../3_accelerators/03-multi-domain-agents/automating_analytics/README.md)
+:rocket: [Agentic Analytics Accelerator](../4_accelerators/03-multi-domain-agents/automating_analytics/README.md)
