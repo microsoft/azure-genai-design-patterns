@@ -165,7 +165,7 @@ watchfiles==0.21.0
     # via uvicorn
 websockets==12.0
     # via uvicorn
-werkzeug==3.0.1
+werkzeug==3.0.3
     # via
     #   flask
     #   quart
