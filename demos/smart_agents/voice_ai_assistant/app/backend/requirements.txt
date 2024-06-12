@@ -57,7 +57,7 @@ frozenlist==1.4.1
     # via
     #   aiohttp
     #   aiosignal
-gunicorn==21.2.0
+gunicorn==22.0.0
     # via quartapp (pyproject.toml)
 h11==0.14.0
     # via
