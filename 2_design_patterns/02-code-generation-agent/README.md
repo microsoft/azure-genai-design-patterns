@@ -2,7 +2,7 @@
   
 ## Overview  
   
-The **Code Generation Agent Design Pattern** focuses on best practices and designs for implementing scenarios where the agent generates complex code. This code addresses practical business scenarios and operates within a custom environment, interacting with users, other systems, and data sources.  
+The **Code Generation Agent Design Pattern** focuses on best practices and designs for implementing scenarios where the agent generates codes or scripts that are needed to deliver functionalities as part of an application process or to be handed over to another process. The generated code is highly specific to an environment, data and process.  
   
 ## Typical use cases  
   
@@ -11,7 +11,7 @@ Code Generation Agents find application in a multitude of scenarios where automa
 1. **Data Query Agents**: These agents specialize in extracting data from databases to respond to complex business inquiries. By generating precise query scripts, they streamline data retrieval processes, enabling faster decision-making.  
 2. **Data Analysis Agents**: Leveraging languages such as Python, these agents autonomously write and execute code to analyze large datasets. They provide insights and answers to analytical questions, facilitating data-driven strategies in organizations.  
 3. **Simulation Agents**: By crafting code that models experiments or simulations on digital platforms, these agents assist researchers and engineers in testing hypotheses and designs under controlled virtual conditions, saving time and resources.  
-4. **Code Migration AI Assistants**: These agents are invaluable in modernizing legacy systems, automatically translating outdated codebases into modern programming languages or frameworks, thus ensuring software longevity and compatibility.  
+4. **Code Migration AI Assistants**: These agents are invaluable in modernizing legacy systems, automatically translating outdated codebases into modern programming languages or frameworks, thus ensuring software longevity and compatibility. 
   
 ## Challenges in implementing code generation agents  
   
@@ -51,54 +51,125 @@ Throughout a session, an agent's interactions with users and external systems ca
   
 ![Building block](diagrams/img1.png)
   
-### Planning and tracking  
+### Planning and Tracking  
+  
+- **Managing Long-Running Code Generation Processes**  
+  
+  - **Key Points:**  
+    - Due to the complexity inherent in code generation, which may require multiple interim processes to achieve the final correct result, code generation agents usually operate as long-running processes. These processes are typically designed as multi-turn interactive sessions where the agent needs to interact with the user to receive and discuss instructions, generate code, execute it, and review interim results along the way.  
+    - To support this long-running and multi-step operation, it makes sense to equip the agent system with the ability to plan activities and keep track of the plan's status during execution.  
+      - **Planning Function:** The planning function can be performed by a dedicated agent focused on reviewing requirements, obtaining necessary instructions and context materials, and creating an initial plan. This ensures that all aspects of the task are considered and organized before execution begins.  
+      - **Execution Agents:** The plan is then passed on to execution agents, who can be assigned all or specific tasks from the plan. These agents are responsible for carrying out the planned activities and ensuring that the tasks are completed as per the initial plan.  
+      - **Status Updates:** The agents should have the ability to update the status of the tasks they perform. This includes marking tasks as completed, noting any issues encountered, and making adjustments to the plan as necessary to adapt to new information or changing requirements.  
+  
+By implementing these planning and tracking strategies, the agent system can efficiently manage long-running and complex code generation sessions, ensuring that it remains organized, responsive, and accurate throughout the entire process.  
 
 ![planning and tracking](diagrams/img2.png)
 
-- For long running & complex task, agents can get lost during execution  
-- Key points:  
-  - Equip agents (e.g. code conversion manager) with planning capability to create plan, follow-plan, and update execution status along execution  
-  - Agent with plan will follow complex instruction better and with accuracy  
+
+
   
 ### Session and Memory Management  
   
 - **Managing Complex Data Objects & Agent's Memory**  
-- **Key Points:**  
-  - The application platform should possess robust, stateful memory management capabilities to maintain complex data objects throughout the session.  
-  - Given the limitations of an agent's memory, several useful techniques can be employed:  
-    - Maintain detailed memory for the current step, including conversation specifics and details of function calls.  
-    - For a set number (x) of recent conversation turns, retain only the messages exchanged between the assistant and the user, while omitting technical history such as function call details.  
-    - For older history, consider either removing it or providing a summarized version.  
-
+  
+  - **Key Points:**  
+    - The application platform should possess robust, stateful memory management capabilities to maintain complex data objects throughout the session. This involves ensuring that all relevant data, context, and interim results are preserved and accessible as needed to facilitate smooth interactions and accurate code generation.  
+    - Given the limitations of an agent's memory, several useful techniques can be employed to manage this complexity effectively:  
+      - **Detailed Memory for Current Steps:** Maintain an in-depth memory for the current step of the session. This includes storing conversation specifics such as the exact instructions provided by the user, the context of the discussion, and details of any function calls made. This ensures that the agent can accurately process and respond to the user’s current requests.  
+      - **Recent Conversation Turns:** For a set number (x) of recent conversation turns, retain only the essential messages exchanged between the assistant and the user. This means preserving the core dialogue without the additional technical history, such as detailed function call logs. This approach helps to balance memory usage while keeping recent context readily available for ongoing interactions.  
+      - **Older History Management:** For older parts of the conversation history, consider either removing it entirely or providing a summarized version. Summarizing older history can involve condensing the key points and decisions made during those interactions without retaining the full detailed logs. This helps to free up memory resources while still allowing the agent to recall critical past events if necessary.  
+  
+By implementing these memory management strategies, the agent system can efficiently handle long-running and complex sessions, ensuring that it remains responsive and accurate throughout the entire code generation process.  
 
 ### Multi-step reasoning and action  
 
-![Multi-step reasoning](diagrams/img3.png)
 
-- For complex activities such as writing code, the final product may need to undergo multiple rounds of testing and reviewing, each of which may generate useful feedback to improve in the next try.  
-- Key points:  
-  - The agent should be designed to handle “reason -> action -> observe -> repeat” flow  
-  - Communication loop happen in self-feedback mode or with another agent.  
-  - Use of OpenAI’s function calling to implement actions  
+![Multi-step reasoning](diagrams/img3.png)
   
-### Dynamic context look-up  
+- **Handling Complex Activities in Code Generation**  
+  
+  - **Key Points:**  
+    - For complex activities such as writing code, the final product may need to undergo multiple rounds of testing and reviewing, each of which may generate useful feedback to improve the next iteration.  
+      - **Reason -> Action -> Observe -> Repeat Flow:** The agent should be designed to handle a cyclic process of reasoning, taking action, observing the results, and repeating the cycle. This iterative approach allows for continuous improvement and refinement of the code.  
+      - **Communication Loop:** This iterative communication loop can occur either in self-feedback mode, where the agent reviews its own actions and results, or with another agent, where multiple agents collaborate and provide feedback to each other.  
+      - **Use of OpenAI’s Function Calling:** To implement actions effectively, the agent can utilize OpenAI’s function calling capabilities. This allows the agent to perform specific functions programmatically, execute code, and interact with external systems as needed to complete tasks and gather results.  
+  
+By incorporating multi-step reasoning and action strategies, the agent system can efficiently manage complex code generation activities, ensuring high-quality output through iterative testing and feedback.  
+
+
+### Dynamic Context Look-up  
 ![Dynamic context look-up](diagrams/img4.png)
 
-- Contexts such as reference libraries can contain large amounts of information for multiple scenarios. Agents should be designed with look-up capability to retrieve just enough context for the current scenario.  
-- Key points:  
-  - Entire context information is not preloaded to Agent’s LLM prompt. Instead, it is organized into topics with indexing applied for efficient retrieval.  
-  - Agents to have a search/retrieval function to look-up the context on its own to guide its actions for each scenario  
+- **Efficient Handling of Contextual Information**  
   
-### Toolsets & coding interface  
+  - **Overview:**  
+    - Contexts such as reference libraries can contain vast amounts of information pertinent to multiple scenarios. Agents should be designed with a dynamic look-up capability to retrieve just enough context relevant to the current scenario, ensuring efficiency and accuracy in their responses.  
+  
+  - **Key Points:**  
+    - **Organized Context Information:**  
+      - Instead of preloading the entire context information into the Agent’s LLM (Language Learning Model) prompt, the information is organized into distinct topics.  
+      - Indexing is applied to these topics to facilitate efficient retrieval. This organizational structure allows the agent to quickly locate and access the most relevant pieces of information without being overwhelmed by the entirety of the data set.  
+      - This approach ensures that the agent remains agile and responsive, drawing on specific, relevant data as needed rather than sifting through a massive preloaded context.  
+  
+    - **Search/Retrieval Function:**  
+      - Agents are equipped with a search and retrieval function that enables them to autonomously look up the context required to guide their actions for each scenario.  
+      - This function allows the agent to dynamically adapt to the needs of the current task, fetching and utilizing only the most pertinent information.  
+      - By having this ability, the agent can ensure more accurate and contextually appropriate responses, enhancing the overall efficiency and effectiveness of its operations. 
 
-### Multi-agent coordination  
+### Toolsets & Coding Interface  
+  
+- **Secure and Functional Code Execution Environment**  
+  
+  - **Overview:**  
+    - An environment where the code produced by agents can be executed is crucial for testing and achieving desired outcomes. However, due to the sensitivity of automated code execution, caution must be exercised to minimize risks.  
+  
+  - **Key Points:**  
+    - **Risk Mitigation:**  
+      - **Code Review by Another Agent:**  
+        - Implement cross-review mechanisms where another agent examines the code to identify risks, such as potential malicious code.  
+      - **Isolated Sandbox Environment:**  
+        - Execute code in a sandboxed environment that is isolated from production data and systems.  
+        - This isolation ensures that any potential harm is contained within the sandbox, preventing it from affecting critical systems.  
+      - **Access Limitations:**  
+        - Restrict the code environment’s access to only the necessary operations it needs to perform.  
+        - Apply the principle of least privilege to minimize potential security vulnerabilities.  
+      
+    - **Resource Provisioning:**  
+      - **Containerized Environment:**  
+        - Utilize containerized environments with pre-installed libraries and dependencies to ensure that the environment is ready for execution.  
+        - Containers provide a consistent and reproducible environment, making it easier to manage dependencies and configurations.  
+      - **Library Installation:**  
+        - Allow agents to install missing libraries as needed to complete their tasks.  
+        - Ensure that this capability is monitored and controlled to prevent unauthorized installations.  
+  
+    - **Additional Considerations:**  
+      - **Monitoring and Logging:**  
+        - Implement robust monitoring and logging mechanisms to track code execution and detect any anomalies or unauthorized actions.  
+      - **Automated Testing:**  
+        - Integrate automated testing frameworks to validate the functionality and safety of the code before it is deployed or used in a live environment.  
+      - **Continuous Integration/Continuous Deployment (CI/CD):**  
+        - Incorporate CI/CD pipelines to automate the process of code integration, testing, and deployment, ensuring that changes are systematically reviewed and tested.  
+
+### Multi-agent Coordination  
 ![Multi-agent coordination](diagrams/img5.png)
 
-- Agent’s action outcome quality can be better, especially for complex tasks such as coding, if it’s performed collectively by specialist agents.  
-- Key points:  
-  - Agents can perform better if they are specialists, each focusing on a particular area of expertise.  
-  - Multi-agent framework enables user-in-the-loop with human proxy agent  
+- **Enhanced Action Outcomes through Collaboration**  
   
+  - **Overview:**  
+    - The quality of an agent’s action outcomes, especially for complex tasks like coding, can be significantly improved when performed collectively by specialist agents.   
+  
+  - **Key Points:**  
+    - **Specialization:**  
+      - Agents perform better when they are specialists, each focusing on a specific area of expertise.  
+      - By dividing tasks among specialized agents, each agent can leverage its deep knowledge in a particular domain, leading to more accurate and efficient outcomes.  
+  
+    - **Multi-agent Framework:**  
+      - A multi-agent framework allows for the integration of multiple specialized agents to work together on a single task.  
+      - This framework can also include a human proxy agent, enabling user-in-the-loop interactions. This means that human users can provide input and guidance, enhancing the overall performance and ensuring the outputs meet desired standards.  
+    
+By leveraging a multi-agent coordination strategy, tasks can be managed more effectively and efficiently, harnessing the strengths of specialized agents and human oversight to achieve superior results.  
+
 ### Human interaction  
   
 ### System Level Architecture  
