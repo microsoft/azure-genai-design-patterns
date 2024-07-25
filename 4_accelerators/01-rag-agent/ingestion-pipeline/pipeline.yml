@@ -1,0 +1,93 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+display_name: rag-agent
+settings:
+  force_rerun: false
+
+jobs:
+
+  doc_to_json:
+    type: parallel
+    inputs:
+      doc_folder:
+        type: uri_folder
+        mode: ro_mount
+        path: azureml://datastores/datalake/paths/rag-agent/doc
+    outputs:
+      json_folder:
+        type: uri_folder
+        mode: rw_mount
+        path: azureml://datastores/datalake/paths/rag-agent/json
+      log_file:
+        type: uri_file
+        mode: rw_mount
+        path: azureml://datastores/datalake/paths/rag-agent/logs/doc2json.log
+    input_data: ${{inputs.doc_folder}}
+    compute: serverless
+    resources:
+      instance_count: 1
+      instance_type: Standard_F4s_v2
+    max_concurrency_per_instance: 4
+    logging_level: "DEBUG"
+    mini_batch_error_threshold: 1
+    mini_batch_size: "1"
+    retry_settings:
+      max_retries: 1
+      timeout: 600
+    task:
+      type: run_function
+      code: doc2json
+      entry_script: doc2json.py
+      environment: azureml:rag-agent-doc2json@latest
+      program_arguments: --json_folder ${{outputs.json_folder}}
+      append_row_to: ${{outputs.log_file}}
+
+  create_index:
+      type: command
+      code: json2idx
+      command: python create-index.py --log_file=${{outputs.log_file}}
+      outputs:
+        log_file:
+          type: uri_file
+          mode: rw_mount
+          path: azureml://datastores/datalake/paths/rag-agent/logs/create_index.log
+      environment: azureml:rag-agent-json2idx@latest
+      compute: serverless
+      resources:
+        instance_count: 1
+        instance_type: Standard_F4s_v2
+
+  json_to_index:
+    type: parallel
+    inputs:
+      create_index_log:
+        type: uri_file
+        mode: ro_mount
+        path: ${{parent.jobs.create_index.outputs.log_file}}
+      json_folder:
+        type: uri_folder
+        mode: ro_mount
+        path: ${{parent.jobs.doc_to_json.outputs.json_folder}}
+    outputs:
+      log_file:
+        type: uri_file
+        mode: rw_mount
+        path: azureml://datastores/datalake/paths/rag-agent/logs/json2idx.log
+    input_data: ${{inputs.json_folder}}
+    compute: serverless
+    resources:
+      instance_count: 1
+      instance_type: Standard_F4s_v2
+    max_concurrency_per_instance: 4
+    logging_level: "DEBUG"
+    mini_batch_error_threshold: 1
+    mini_batch_size: "1"
+    retry_settings:
+      max_retries: 3
+      timeout: 120
+    task:
+      type: run_function
+      code: json2idx
+      entry_script: json2idx.py
+      environment: azureml:rag-agent-json2idx@latest
+      append_row_to: ${{outputs.log_file}}

@@ -1,0 +1,8 @@
+azure-search-documents
+azureml-core
+azureml-dataprep
+azureml-dataset-runtime[pandas,fuse]
+azureml-telemetry
+openai
+pandas
+tenacity
