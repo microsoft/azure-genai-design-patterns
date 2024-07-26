@@ -12,4 +12,6 @@ dependencies:
   - azureml-telemetry
   - openai
   - pandas
+  - semchunk
   - tenacity
+  - tiktoken

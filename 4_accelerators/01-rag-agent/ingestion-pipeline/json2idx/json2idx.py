@@ -3,6 +3,8 @@ import argparse, base64, hashlib, json, os
 from mimetypes import guess_type
 import pandas as pd
 from tenacity import retry, wait_random_exponential, stop_after_attempt
+import semchunk
+import tiktoken
 
 #
 from openai import AzureOpenAI
@@ -12,7 +14,7 @@ from azure.search.documents import SearchClient
 from azure.search.documents.indexes.models import *
 
 # 
-azure_search_index = "ara-d2i"
+azure_search_index = "rag-agent"
 
 # get keys from Azure Key Vault
 try:
@@ -61,6 +63,8 @@ def local_image_to_data_url(image_path):
     return f"data:{mime_type};base64,{base64_encoded_data}"
 
 # generate chunks from markdown
+MAX_CHUNK_SIZE = 8000
+chunker = semchunk.chunkerify(tiktoken.encoding_for_model('gpt-4'), MAX_CHUNK_SIZE)
 def generate_chunks_from_markdown(markdown):
 	raw_chunks = markdown.split("## ")
 	raw_chunks = list(filter(None, raw_chunks))
@@ -72,7 +76,12 @@ def generate_chunks_from_markdown(markdown):
 		except:
 			title = ""
 			content = raw_chunk
-		chunks.append({ "title": title, "content": content})
+		if len(content) > MAX_CHUNK_SIZE:
+			chunked_content = chunker(content)
+			for chunk in chunked_content:
+				chunks.append({ "title": title, "content": chunk})
+		else:
+			chunks.append({ "title": title, "content": content})
 	return chunks
 
 # processing image with GPT-4-vision/o
@@ -158,15 +167,20 @@ def run(mini_batch):
 			document = {
 				# id is hash of text_file
 				"id": hashlib.md5(document_id.encode()).hexdigest(),
-				"documentName": document_name,
-				"documentUrl": document_name, # TODO: replace with actual URL
-				"chunkIndex": str(i),
-				"chunkTitle": chunk["title"],
-				"chunkContent": chunk["content"],
-				"chunkContentVector": generate_embeddings(chunk["content"])
+				"filepath": document_name,
+				"url": document_name, # TODO: replace with actual URL
+				"meta_json_string": "",
+				"title": chunk["title"],
+				"content": chunk["content"],
+				"contentVector": generate_embeddings(chunk["content"])
 			}
 			documents.append(document)
-		search_client.upload_documents(documents=documents)
+			# every 50 documents, upload to the index
+			if len(documents) == 50:
+				search_client.upload_documents(documents=documents)
+				documents = []
+		if len(documents) > 0:
+			search_client.upload_documents(documents=documents)
 		print(f"Inserted {json_file_name} into the index.")
 		results.append(json_file_name)
 		
@@ -176,7 +190,7 @@ def run(mini_batch):
 if __name__ == "__main__":
 	# simulate AML parallel run framework init() call
 	init()
-	json_folder_path = '..\\datalake\\json'
+	json_folder_path = '..\\data-json'
 	# simulate AML parallel run framework run() call
 	json_files = [os.path.join(json_folder_path, f) for f in os.listdir(json_folder_path) if f.endswith(".json")]
 	print(run(json_files))

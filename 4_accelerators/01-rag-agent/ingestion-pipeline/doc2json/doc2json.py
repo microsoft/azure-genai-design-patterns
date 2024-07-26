@@ -65,8 +65,8 @@ if __name__ == "__main__":
 	# simulate init()
 	init()
 	global json_folder_path
-	json_folder_path = '..\\datalake\\json'
+	json_folder_path = '..\\data-json'
 	# simulate framework setup for parallel step
-	doc_folder_path = '..\\datalake\\doc'
-	doc_files = [os.path.join(doc_folder_path, f) for f in os.listdir(doc_folder_path)]
+	doc_folder_path = '..\\data'
+	doc_files = [os.path.join(doc_folder_path, f) for f in os.listdir(doc_folder_path) if f.endswith(".pdf")]
 	print(run(doc_files))

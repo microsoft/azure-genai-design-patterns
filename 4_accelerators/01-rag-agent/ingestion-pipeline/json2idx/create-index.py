@@ -6,7 +6,7 @@ from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.indexes.models import *
   
 # index name
-azure_ai_search_index = "ara-d2i"
+azure_ai_search_index = "rag-agent"
 # get keys from Azure Key Vault
 try:
 	keyvault = Run.get_context().experiment.workspace.get_default_keyvault()
@@ -32,7 +32,7 @@ fields = [
     SimpleField(name="meta_json_string", type=SearchFieldDataType.String),
     SearchableField(name="title", type=SearchFieldDataType.String),
     SearchableField(name="content", type=SearchFieldDataType.String),
-    SearchableField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), searchable=True, vector_search_dimensions=1536, vector_search_profile_name="myHnswProfile")
+    SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), searchable=True, vector_search_dimensions=1536, vector_search_profile_name="myHnswProfile")
 ]
 
 # Configure the vector search configuration  
@@ -71,8 +71,8 @@ vector_search = VectorSearch(
 semantic_config = SemanticConfiguration(
     name="akb-semantic-config",
     prioritized_fields=SemanticPrioritizedFields(
-        title_field=SemanticField(field_name="chunkTitle"),
-        content_fields=[SemanticField(field_name="chunkContent")]
+        title_field=SemanticField(field_name="title"),
+        content_fields=[SemanticField(field_name="content")]
     )
 )
 
