@@ -9,7 +9,6 @@ def create_figures(doc_intel_output):
     figures = doc_intel_output['analyzeResult']['figures']
     return figures
 
-
 def extract_page_polygons(figures):  
     page_polygons = []  
   
