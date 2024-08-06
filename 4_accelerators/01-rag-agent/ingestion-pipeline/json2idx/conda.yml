@@ -1,0 +1,17 @@
+name: rag-agent-json2idx
+channels:
+- conda-forge
+dependencies:
+- pip
+- python=3.11
+- pip:
+  - azure-search-documents
+  - azureml-core
+  - azureml-dataprep
+  - azureml-dataset-runtime[pandas,fuse]
+  - azureml-telemetry
+  - openai
+  - pandas
+  - semchunk
+  - tenacity
+  - tiktoken
