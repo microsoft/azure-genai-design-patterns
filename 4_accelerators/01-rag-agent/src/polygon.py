@@ -22,26 +22,29 @@ def read_json_file(file_path):
         print(f"Error: The file '{file_path}' does not contain valid JSON. {json_error}")  
         raise  
 
-def extract_fig_polygons_by_page(json_data):  
+def extract_fig_polygons_by_page_and_id(json_data):  
     """  
-    Extracts bounding regions from figures in the JSON data and organizes them by page number.  
+    Extracts bounding regions from figures in the JSON data and organizes them by page number and figure ID.  
   
     :param json_data: The JSON data containing figures.  
-    :return: A dictionary with page numbers as keys and lists of polygons as values.  
+    :return: A dictionary with page numbers as keys and dictionaries of figure IDs and their polygons as values.  
     """  
-    figure_polygons_by_page = {}  
+    figure_polygons_by_page_and_id = {}  
     try:  
         for figure in json_data.get('figures', []):  
+            figure_id = figure.get('id')  
             for region in figure.get('boundingRegions', []):  
                 page_number = region.get('pageNumber')  
-                if page_number is not None:  
-                    if page_number not in figure_polygons_by_page:  
-                        figure_polygons_by_page[page_number] = []  
-                    figure_polygons_by_page[page_number].append(region.get('polygon', []))  
+                if page_number is not None and figure_id is not None:  
+                    if page_number not in figure_polygons_by_page_and_id:  
+                        figure_polygons_by_page_and_id[page_number] = {}  
+                    if figure_id not in figure_polygons_by_page_and_id[page_number]:  
+                        figure_polygons_by_page_and_id[page_number][figure_id] = []  
+                    figure_polygons_by_page_and_id[page_number][figure_id].append(region.get('polygon', []))  
     except KeyError as key_error:  
         print(f"Error processing key: {key_error}")  
         raise  
-    return figure_polygons_by_page
+    return figure_polygons_by_page_and_id
 
 def extract_page_info(json_data):  
     """  
