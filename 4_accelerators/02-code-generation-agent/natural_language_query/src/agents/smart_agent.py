@@ -3,7 +3,7 @@ import json
 import os  
 from openai import AzureOpenAI  
 import yaml  
-from tools import (  
+from .tools import (  
     check_args,  
     get_cache,  
     transform_tools,  
@@ -17,7 +17,7 @@ import pandas as pd
 from dotenv import load_dotenv  
 import inspect  
   
-env_path = Path('../../') / 'secrets.env'  
+env_path = Path('./') / 'secrets.env'  
 load_dotenv(dotenv_path=env_path)  
   
 MAX_ERROR_RUN = 3  
@@ -182,8 +182,8 @@ def load_entity(file_path, entity_name):
   
 class Agent_Orchestrator:  
     def __init__(self, session_id, init_message="Hello, I am your AI Analytic Assistant, what question do you have？", active_agent=0):  
-        coder1 = load_entity('prompts.yaml', 'coder1')  
-        coder2 = load_entity('prompts.yaml', 'coder2')  
+        coder1 = load_entity('src/agents/prompts.yaml', 'coder1')  
+        coder2 = load_entity('src/agents/prompts.yaml', 'coder2')  
         if coder1:  
             coder1_functions_spec = transform_tools(coder1.get('tools', []))  
             coder1_functions = {  

@@ -1,9 +1,10 @@
 import streamlit as st  
 from streamlit_extras.add_vertical_space import add_vertical_space  
-sys.path.append("..")  
-from agents.smart_agent import Agent_Orchestrator  
-from agents.tools import add_to_cache, redis_get, redis_set  
 import sys  
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))  
+from agents.smart_agent import  Agent_Orchestrator  
+from agents.tools import add_to_cache, redis_get, redis_set  
 import os  
 import json  
 import uuid  
@@ -108,7 +109,9 @@ if len(history) > 0:
                 elif type(data_item) is MatplotFigure:  
                     st.pyplot(data_item)  
                 elif type(data_item) is pd.DataFrame:  
-                    st.dataframe(data_item)  
+                    st.dataframe(data_item) 
+                else:
+                    st.markdown(data) 
 else:  
     history, agent_response = asyncio.run(agent_runner.run(user_input=None))  
     with st.chat_message("assistant"):  
@@ -127,7 +130,8 @@ if user_input:
                 print("display chart")  
                 st.plotly_chart(viz_output)  
             else:  
-                st.write(viz_output)  
+                pass
+                # st.write(viz_output)  
     with st.chat_message("assistant"):  
         if agent_response:  
             st.markdown(agent_response)  

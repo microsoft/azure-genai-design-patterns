@@ -20,7 +20,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel  
   
 # Load environment variables  
-env_path = Path('../../') / 'secrets.env'  
+env_path = Path('.') / 'secrets.env'  
 load_dotenv(dotenv_path=env_path)  
   
 # Redis configuration  
@@ -45,7 +45,7 @@ client = AzureOpenAI(
   
   
 # SQLAlchemy configuration  
-sqllite_db_path = os.environ.get("SQLITE_DB_PATH", "../../data/northwind.db")  
+sqllite_db_path = os.environ.get("SQLITE_DB_PATH", "data/northwind.db")  
 engine = create_engine(f'sqlite:///{sqllite_db_path}')  
   
 # FastAPI application  

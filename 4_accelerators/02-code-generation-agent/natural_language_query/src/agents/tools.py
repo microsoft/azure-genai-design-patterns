@@ -22,14 +22,15 @@ import pickle
 import inspect  
 import httpx  # Add this import  
   
-env_path = Path('../../') / 'secrets.env'  
+env_path = Path('./') / 'secrets.env'  
 load_dotenv(dotenv_path=env_path)  
   
 # Redis configuration  
 AZURE_REDIS_ENDPOINT = os.getenv("AZURE_REDIS_ENDPOINT")  
 AZURE_REDIS_KEY = os.getenv("AZURE_REDIS_KEY")  
 redis_client = redis.StrictRedis(host=AZURE_REDIS_ENDPOINT, port=6380, password=AZURE_REDIS_KEY, ssl=True)  
-  
+PYTHON_SERVICE_URL = os.getenv("PYTHON_SERVICE_URL", "http://localhost:8000")  
+
 def redis_set(key, value):  
     redis_client.set(key, base64.b64encode(s=pickle.dumps(obj=value)))  
   
@@ -112,7 +113,7 @@ def transform_tools(tools):
     return transformed_tools  
   
 async def execute_python_code(assumptions, goal, python_code, session_id):  
-    url = "http://127.0.0.1:8000/execute/"  # Change this if your FastAPI service is running on a different host/port  
+    url = f"{PYTHON_SERVICE_URL}/execute/"  # Change this if your FastAPI service is running on a different host/port  
   
     payload = {  
         "assumptions": assumptions,  
