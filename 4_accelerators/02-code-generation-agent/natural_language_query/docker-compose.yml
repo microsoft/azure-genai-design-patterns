@@ -1,0 +1,21 @@
+services:  
+  python_service:  
+    build:  
+      context: .  
+      dockerfile: Dockerfile.python_service  
+    environment:  
+      - PORT=8000  
+    ports:  
+      - "8000:8000" 
+    env_file:
+      - secrets.env 
+  streamlit_app:  
+    build:  
+      context: .  
+      dockerfile: Dockerfile.streamlit_app  
+    environment:  
+      - PYTHON_SERVICE_URL=http://python_service:8000  
+    ports:  
+      - "8501:8501"  
+    depends_on:  
+      - python_service  
