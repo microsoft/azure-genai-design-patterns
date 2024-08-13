@@ -115,13 +115,8 @@ natural_language_query/
     az login  
     ```  
 2. Provision and Deploy:  
-    For Windows
     ```  
-    ./deploy_azure.ps1   
-    ``` 
-    For Linux
-    ```  
-    deploy_azure.sh   
+    ./deploy_azure.sh   
     ```   
     This command will:  
     - Create a new resource group with Azure Container Registry, Container Env resources.  
