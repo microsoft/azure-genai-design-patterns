@@ -14,118 +14,19 @@ Examples of questions are:
 - More difficult: Is that true that top 20% customers generate 80% revenue?
 - Advanced: Forecast monthly revenue for next 12 months
 
-The application supports Python's built-in SQLITE .
 
 ## Prerequisites  
-  
-### Local Deployment  
-- [Docker](https://www.docker.com/products/docker-desktop)  
-- [Docker Compose](https://docs.docker.com/compose/install/)  
-  
-### Azure Deployment  
-- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)  
-- [Azure Developer CLI (azd)](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd)  
-  
-## Project Structure  
-  
-```plaintext  
-natural_language_query/  
-├── src/  
-│   ├── agents/  
-│   ├── api/  
-│   ├── app/  
-│   ├── utils/  
-│   ├── requirements.txt  
-│   └── secrets.env  
-├── infra/  
-│   ├── main.bicep  
-│   └── modules/  
-│       └── containerapp.bicep  
-├── Dockerfile.python_service  
-├── Dockerfile.streamlit_app  
-├── docker-compose.yml  
-├── azure.yaml  
-├── azure-dev.yaml  
-└── README.md  
-```
-## Installation  
-  
-### Prerequisites  
-  
-- Docker  
-- Python 3.8+  
-- Azure Developer CLI (azd)  
-  
-### Option: Local Run  
-  
-1. Clone the Repository:  
-    ```sh  
-    git clone <repository-url>  
+### Have following required Azure Services deployment
+- Azure OpenAI with GPT-4o and optionally GPT-4o-mini deployments
+- Azure AI Search for for Agent's long term memory
+- Azure Redis Cache for Agent's current memory and application session state
+### Clone the Repository  
+    ```sh
+    git clone <repository-url>
     cd natural_language_query  
-    ```  
-2. Create a virtual environment:  
-    ```sh  
-    python -m venv venv  
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`  
-    ```  
-3. Install the required packages:  
-    ```sh  
-    pip install -r requirements.txt  
-    ```  
-4. Create the index for the SQL query cache:  
-    ```sh  
-    python create_cache_index.py  
-    ```  
-5. Run the application:  
-    ```sh  
-    streamlit run src/app/copilot.py  
-    ```  
-  
-### Option: Deploy to Local Docker Environment  
-  
-1. Clone the Repository:  
-    ```sh  
-    git clone <repository-url>  
-    cd natural_language_query  
-    ```  
-2. Build and Start Containers:  
-    ```sh  
-    docker-compose up --build  
-    ```  
-3. Access the Applications:  
-    - Python service will be available at: [http://localhost:8000](http://localhost:8000)  
-    - Main Streamlit app will be available at: [http://localhost:8501](http://localhost:8501)  
-  
-### Option: Azure Deployment  
-  
-#### Step-by-Step Guide  
-  
-1. Login to Azure:  
-    ```sh  
-    az login  
-    ```  
-2. Initialize the Project:  
-    ```sh  
-    azd init --template .  
-    ```  
-3. Provision and Deploy:  
-    ```sh  
-    azd up  
-    ```  
-    This command will:  
-    - Create the necessary Azure resources.  
-    - Build and push Docker images to the Azure Container Registry.  
-    - Deploy the containerized applications to Azure Container Apps.  
-  
-4. Access the Applications:  
-    - FastAPI service will be available at the URL provided by Azure.  
-    - Streamlit app will be available at the URL provided by Azure.  
-  
-### Environment Variables  
-  
-#### `secrets.env` File  
-  
-The `secrets.env` file should be placed in the `src` directory and should contain the necessary environment variables. This file is used both locally and in Azure deployments.  
+    ``` 
+### Setup the secrets.env file content  
+The `secrets.env` file should be placed in the root directory and should contain the necessary environment variables. This file is used both locally and in Azure deployments.  
   
 Example `secrets.env`:  
   
@@ -145,7 +46,92 @@ META_DATA_FILE=../../data/metadata.json
 AZURE_REDIS_KEY==
 AZURE_REDIS_ENDPOINT=.redis.cache.windows.net
 ``` 
+### Create a virtual environment:  
+    ```
+    python -m venv venv  
+    source venv/bin/activate  # On Windows use `venv\Scripts\activate`  
+    ```  
+### Install the required packages
 
+    ```pip install -r requirements.txt```  
+
+### Create AI Search Index  
+- You need to create an index in AI Search to serve as a long term memory (notebook) for Agent 2 to note down user's approved solutions.
+- To do this, follow the steps in Local Run to setup local python environment and run ```create_cache_index.py``` script to setup the index
+    ``` 
+    python create_cache_index.py  
+    ```  
+
+### Local Deployment  
+- [Docker](https://www.docker.com/products/docker-desktop)  
+- [Docker Compose](https://docs.docker.com/compose/install/)  
+- Python 3.8+  
+  
+### Azure Deployment  
+- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)  
+  
+## Project Structure  
+  
+```plaintext  
+natural_language_query/  
+├── src/  
+│   ├── agents/  
+│   ├── api/  
+│   ├── app/  
+│   ├── utils/  
+│   ├── requirements.txt  
+│   └── secrets.env  
+├── Dockerfile.python_service  
+├── Dockerfile.streamlit_app  
+├── docker-compose.yml  
+├── deploy_azure.ps1  
+├── adeploy_azure.sh
+└── README.md  
+```
+## Installation  
+    
+### Option: Local Run  
+  
+  Run the application:  
+    ```  
+    streamlit run src/app/copilot.py  
+    ```  
+  
+### Option: Deploy to Local Docker Environment  
+  
+1. Build and Start Containers:  
+    ``` 
+    docker-compose up --build  
+    ```  
+2. Access the Applications:  
+    - Python service will be available at: [http://localhost:8000](http://localhost:8000)  
+    - Main Streamlit app will be available at: [http://localhost:8501](http://localhost:8501)  
+  
+### Option: Azure Deployment  
+  
+  
+1. Login to Azure:  
+    ```
+    az login  
+    ```  
+2. Provision and Deploy:  
+    For Windows
+    ```  
+    ./deploy_azure.ps1   
+    ``` 
+    For Linux
+    ```  
+    deploy_azure.sh   
+    ```   
+    This command will:  
+    - Create a new resource group with Azure Container Registry, Container Env resources.  
+    - Build and push Docker images to the Azure Container Registry.  
+    - Deploy the containerized applications to Azure Container Apps.  
+  
+3. Access the Applications:  
+    - FastAPI service will be available at the URL provided by Azure.  
+    - Streamlit app will be available at the URL provided by Azure.  
+  
 
 Directory Structure
  
@@ -161,7 +147,6 @@ Directory Structure
   
 - Ensure you are logged in to Azure using `az login`.  
 - Check the Azure Portal for any issues with the deployed resources.  
-- Use `azd pipeline config` to configure a CI/CD pipeline for automated deployments.  
 
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
