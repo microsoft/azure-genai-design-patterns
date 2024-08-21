@@ -213,6 +213,6 @@ if __name__ == "__main__":
 	global chunks_folder_path
 	chunks_folder_path = '..\\..\\data-chunks'
 	# simulate framework setup for parallel step
-	docs_folder_path = '..\\..\\data-test'
+	docs_folder_path = '../../data-test'
 	docs_files = [os.path.join(docs_folder_path, f) for f in os.listdir(docs_folder_path) if f.endswith(".pdf")]
 	print(run(docs_files))

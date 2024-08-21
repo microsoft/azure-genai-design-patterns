@@ -38,7 +38,7 @@ jobs:
       type: run_function
       code: chunk_docs
       entry_script: chunk_docs.py
-      environment: azureml:rag-agent-chunk_docs@latest
+      environment: azureml:rag-agent-chunkdocs@latest
       program_arguments: --chunks_folder ${{outputs.chunks_folder}}
       append_row_to: ${{outputs.log_file}}
 
@@ -51,7 +51,7 @@ jobs:
           type: uri_file
           mode: rw_mount
           path: azureml://datastores/datalake/paths/rag-agent/logs/create_index.log
-      environment: azureml:rag-agent-json2idx@latest
+      environment: azureml:rag-agent-indexchunks@latest
       compute: serverless
       resources:
         instance_count: 1

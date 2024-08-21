@@ -14,7 +14,7 @@ dependencies:
   - openai
   - pandas
   - pdf2image
-  - opencv-python
+  - opencv-python-headless
   - semchunk
   - tenacity
   - tiktoken
