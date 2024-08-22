@@ -1,5 +1,5 @@
-import json
-
+import json  
+  
 def read_json_file(file_path):  
     """  
     Reads a JSON file and returns the data.  
@@ -21,7 +21,7 @@ def read_json_file(file_path):
     except json.JSONDecodeError as json_error:  
         print(f"Error: The file '{file_path}' does not contain valid JSON. {json_error}")  
         raise  
-
+  
 def extract_fig_polygons_by_page(json_data):  
     """  
     Extracts bounding regions from figures in the JSON data and organizes them by page number.  
@@ -32,18 +32,22 @@ def extract_fig_polygons_by_page(json_data):
     figure_polygons_by_page = {}  
     try:  
         for figure in json_data.get('figures', []):  
+            figure_id = figure.get('id')  
             for region in figure.get('boundingRegions', []):  
                 page_number = region.get('pageNumber')  
                 if page_number is not None:  
                     if page_number not in figure_polygons_by_page:  
                         figure_polygons_by_page[page_number] = []  
-                    figure_polygons_by_page[page_number].append(region.get('polygon', []))  
+                    figure_polygons_by_page[page_number].append({  
+                        'id': figure_id,  
+                        'polygons': region.get('polygon', [])  
+                    })  
     except KeyError as key_error:  
         print(f"Error processing key: {key_error}")  
         raise  
-    return figure_polygons_by_page
-
-def extract_pages_info(json_data):  
+    return figure_polygons_by_page  
+  
+def extract_page_info(json_data):  
     """  
     Extracts page information such as width, height, and units from the JSON data.  
   
@@ -65,8 +69,8 @@ def extract_pages_info(json_data):
     except KeyError as key_error:  
         print(f"Error processing key: {key_error}")  
         raise  
-    return pages_info
-
+    return page_info  
+  
 def combine_page_info_and_polygons(page_info, page_polygons):  
     """  
     Combines page information and polygons into a single dictionary.  
@@ -83,6 +87,6 @@ def combine_page_info_and_polygons(page_info, page_polygons):
                 'width': page_info[page_number]['width'],  
                 'height': page_info[page_number]['height'],  
                 'unit': page_info[page_number]['unit'],  
-                'polygons': page_polygons[page_number]  
+                'figures': page_polygons[page_number]  
             }  
-    return combined_info
+    return combined_info  
