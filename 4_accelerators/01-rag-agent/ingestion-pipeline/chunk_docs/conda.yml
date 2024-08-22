@@ -1,0 +1,20 @@
+name: rag-agent-chunkdocs
+channels:
+- conda-forge
+dependencies:
+- pip
+- poppler
+- python=3.11
+- pip:
+  - azure-ai-documentintelligence
+  - azureml-core
+  - azureml-dataprep
+  - azureml-dataset-runtime[pandas,fuse]
+  - azureml-telemetry
+  - openai
+  - pandas
+  - pdf2image
+  - opencv-python-headless
+  - semchunk
+  - tenacity
+  - tiktoken

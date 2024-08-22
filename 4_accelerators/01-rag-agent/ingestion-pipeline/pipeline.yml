@@ -6,23 +6,23 @@ settings:
 
 jobs:
 
-  doc_to_json:
+  chunk_docs:
     type: parallel
     inputs:
-      doc_folder:
+      docs_folder:
         type: uri_folder
         mode: ro_mount
-        path: azureml://datastores/datalake/paths/rag-agent/doc
+        path: azureml://datastores/datalake/paths/rag-agent/docs
     outputs:
-      json_folder:
+      chunks_folder:
         type: uri_folder
         mode: rw_mount
-        path: azureml://datastores/datalake/paths/rag-agent/json
+        path: azureml://datastores/datalake/paths/rag-agent/chunks
       log_file:
         type: uri_file
         mode: rw_mount
-        path: azureml://datastores/datalake/paths/rag-agent/logs/doc2json.log
-    input_data: ${{inputs.doc_folder}}
+        path: azureml://datastores/datalake/paths/rag-agent/logs/chunk_docs.log
+    input_data: ${{inputs.docs_folder}}
     compute: serverless
     resources:
       instance_count: 1
@@ -36,28 +36,28 @@ jobs:
       timeout: 600
     task:
       type: run_function
-      code: doc2json
-      entry_script: doc2json.py
-      environment: azureml:rag-agent-doc2json@latest
-      program_arguments: --json_folder ${{outputs.json_folder}}
+      code: chunk_docs
+      entry_script: chunk_docs.py
+      environment: azureml:rag-agent-chunkdocs@latest
+      program_arguments: --chunks_folder ${{outputs.chunks_folder}}
       append_row_to: ${{outputs.log_file}}
 
   create_index:
       type: command
-      code: json2idx
-      command: python create-index.py --log_file=${{outputs.log_file}}
+      code: index_chunks
+      command: python create_index.py --log_file=${{outputs.log_file}}
       outputs:
         log_file:
           type: uri_file
           mode: rw_mount
           path: azureml://datastores/datalake/paths/rag-agent/logs/create_index.log
-      environment: azureml:rag-agent-json2idx@latest
+      environment: azureml:rag-agent-indexchunks@latest
       compute: serverless
       resources:
         instance_count: 1
         instance_type: Standard_F4s_v2
 
-  json_to_index:
+  index_chunks:
     type: parallel
     inputs:
       create_index_log:
@@ -67,12 +67,12 @@ jobs:
       json_folder:
         type: uri_folder
         mode: ro_mount
-        path: ${{parent.jobs.doc_to_json.outputs.json_folder}}
+        path: ${{parent.jobs.chunk_docs.outputs.chunks_folder}}
     outputs:
       log_file:
         type: uri_file
         mode: rw_mount
-        path: azureml://datastores/datalake/paths/rag-agent/logs/json2idx.log
+        path: azureml://datastores/datalake/paths/rag-agent/logs/index_chunks.log
     input_data: ${{inputs.json_folder}}
     compute: serverless
     resources:
@@ -87,7 +87,7 @@ jobs:
       timeout: 120
     task:
       type: run_function
-      code: json2idx
-      entry_script: json2idx.py
-      environment: azureml:rag-agent-json2idx@latest
+      code: index_chunks
+      entry_script: index_chunks.py
+      environment: azureml:rag-agent-indexchunks@latest
       append_row_to: ${{outputs.log_file}}
