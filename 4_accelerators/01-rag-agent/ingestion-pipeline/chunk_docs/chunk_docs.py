@@ -1,41 +1,50 @@
-import argparse, base64, hashlib, json, os, cv2, semchunk, tiktoken
+import argparse
+import base64
+import hashlib
+import json
+import os
+import time
 from mimetypes import guess_type
-import pandas as pd
-import numpy as np
-from pdf2image import convert_from_path
-from tenacity import retry, wait_random_exponential, stop_after_attempt
 
-from openai import AzureOpenAI
-from azure.core.credentials import AzureKeyCredential
-from azureml.core import Run, Workspace
+import cv2
+import document_intelligence_reader as dir
+import numpy as np
+import pandas as pd
+import semchunk
+import tiktoken
+import azure.cognitiveservices.speech as speechsdk
 from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.ai.documentintelligence.models import AnalyzeDocumentRequest
-
-#
-import document_intelligence_reader as dir
+from azure.core.credentials import AzureKeyCredential
+from azureml.core import Run, Workspace
+from openai import AzureOpenAI
+from pdf2image import convert_from_path
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 # GPT-4-vision/o system message
-system_message_vision_to_text = "Describe the picture in detail (title and description). The description needs to provide as much information as possible.\
-For instance, for images which are photos, describe people, animals, objects, activities, but also colors, type of image, style.\
-If there is text in the image, make sure you extract it. If the image is a chart/graph, detail the findings, as well as the analysis of the meaning of the chart\
-or conclusion that can be derived from it. The end goal is to provide a very comprehensive description of the image so we can operate effective search on it.\
-Your end result needs to have the following form:\
-<image title>\
-==========\
-<image description>"
+system_message_vision_to_text = (
+    "Describe the picture in detail (title and description). The description needs to provide as much information as possible."
+    "For instance, for images which are photos, describe people, animals, objects, activities, but also colors, type of image, style."
+    "If there is text in the image, make sure you extract it. If the image is a chart/graph, detail the findings, as well as the analysis of the meaning of the chart"
+    "or conclusion that can be derived from it. The end goal is to provide a very comprehensive description of the image so we can operate effective search on it."
+    "Your end result needs to have the following form:"
+    "<image title>\n==========\n<image description>"
+)
 
 
-# TODO: implement a vectorizer for image and text using Azure Vision 4.0:
+# TODO: Implement a vectorizer for image and text using Azure Vision 4.0
 # https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/how-to/image-retrieval?tabs=python#call-the-vectorize-image-api
 def azure_ai_vision_generate_image_vector(image_path):
+    """Generates a vector representation of the image using Azure Vision 4.0 API."""
     pass
 
 
 def azure_ai_vision_generate_text_vector(text):
+    """Generates a vector representation of the text using Azure Vision 4.0 API."""
     pass
 
 
-# get keys from Azure Key Vault
+# Get keys from Azure Key Vault
 try:
     keyvault = Run.get_context().experiment.workspace.get_default_keyvault()
 except Exception as e:
@@ -43,11 +52,12 @@ except Exception as e:
 
 
 def getenv(key):
+    """Retrieves the secret value for the given key from Azure Key Vault."""
     return keyvault.get_secret(name=key)
 
 
-#
 def build_chunk(chunk_type, chunk_index, title, content, doc_layout):
+    """Builds a chunk dictionary with metadata for a document segment."""
     document_name = doc_layout["document_name"]
     document_id = document_name + "_" + chunk_type + "_" + str(chunk_index)
     chunk = {
@@ -60,19 +70,20 @@ def build_chunk(chunk_type, chunk_index, title, content, doc_layout):
     return chunk
 
 
-# function to encode an image into data URL
 def image_to_data_url(image):
+    """Encodes an image into a data URL format."""
     mime_type = "image/png"
     base64_encoded_data = base64.b64encode(image).decode("utf-8")
     return f"data:{mime_type};base64,{base64_encoded_data}"
 
 
-# generate chunks from markdown
+# Generate chunks from markdown
 MAX_CHUNK_SIZE = 8000
 chunker = semchunk.chunkerify(tiktoken.encoding_for_model("gpt-4"), MAX_CHUNK_SIZE)
 
 
 def generate_chunks_from_markdown(doc_layout):
+    """Generates chunks from the markdown content of a document layout."""
     raw_chunks = doc_layout.content.split("## ")
     raw_chunks = list(filter(None, raw_chunks))
     chunk_index = 0
@@ -86,7 +97,7 @@ def generate_chunks_from_markdown(doc_layout):
             content = raw_chunk
         sub_chunks = []
         if len(content) > MAX_CHUNK_SIZE:
-            # re-chunking with semantic chunking
+            # Re-chunking with semantic chunking
             chunked_content = chunker(content)
             for chunk in chunked_content:
                 sub_chunks.append({"title": title, "content": chunk})
@@ -106,9 +117,10 @@ def generate_chunks_from_markdown(doc_layout):
     return chunks
 
 
-# processing image with GPT vision model
-# @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
+# Processing image with GPT vision model
+@retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 def generate_chunk_from_image(chunk_index, image, doc_layout):
+    """Generates a chunk from an image using GPT-4 vision model."""
     image_url = image_to_data_url(image)
     response = openai_client_vision.chat.completions.create(
         model=deployment_name,
@@ -124,7 +136,7 @@ def generate_chunk_from_image(chunk_index, image, doc_layout):
         ],
         max_tokens=2000,
     )
-    # string parser to parse array of strings separated by "=========="
+    # String parser to parse array of strings separated by "=========="
     response = response.choices[0].message.content
     response_parsed = response.split("==========")
     title = response_parsed[1]
@@ -132,8 +144,8 @@ def generate_chunk_from_image(chunk_index, image, doc_layout):
     return build_chunk("image", chunk_index, title, content, doc_layout)
 
 
-# use Document Intelligence to analyze layout
 def analyze_layout(analyze_request):
+    """Uses Document Intelligence to analyze the layout of a document."""
     poller = document_intelligence_client.begin_analyze_document(
         model_id="prebuilt-layout",
         analyze_request=analyze_request,
@@ -142,14 +154,15 @@ def analyze_layout(analyze_request):
     return poller.result()
 
 
-# chunk document
+# Chunk document
 DPI = 300
 
 
 def chunk_document(doc_file_path, doc_layout):
-    # chunk text using markdown
+    """Chunks a document into text and image chunks."""
+    # Chunk text using markdown
     chunks = generate_chunks_from_markdown(doc_layout)
-    # chunk images using figures metadata
+    # Chunk images using figures metadata
     print(
         f"Rendering {doc_file_path} as images with {DPI} dpi resolution ..."
     )  # TODO: move this part after polygon processing, and skip it if there's no figure in the doc
@@ -163,7 +176,7 @@ def chunk_document(doc_file_path, doc_layout):
         image = doc_pages[page - 1]
         for j, polygon in enumerate(page_polygon_info[page]["polygons"]):
             print(f"Processing {doc_layout['document_name']}_{page}_{j} ...")
-            # convert polygon to pixels from inches using DPI
+            # Convert polygon to pixels from inches using DPI
             print(f"Polygon (inches): {polygon}")
             polygon = [int(coord * DPI) for coord in polygon]
             print(f"Polygon (pixels): {polygon}")
@@ -176,22 +189,22 @@ def chunk_document(doc_file_path, doc_layout):
                 cropped_image,
             )
             print(f"Saved image {doc_layout['document_name']}_{page}_{j}.png")
-            # chunk image using GPT-4-vision/o
+            # Chunk image using GPT-4-vision/o
             chunk = generate_chunk_from_image(j, cropped_image, doc_layout)
             chunks.append(chunk)
     return chunks
 
 
-###
 def init():
+    """Initializes the chunk_docs script, setting up necessary clients and configurations."""
     print("chunk_docs.init()")
-    # retrieve output from arguments
+    # Retrieve output from arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--chunks_folder", type=str)
     args, _ = parser.parse_known_args()
     global chunks_folder_path
     chunks_folder_path = args.chunks_folder
-    # setup Document Intelligence client
+    # Setup Document Intelligence client
     document_intelligence_endpoint = getenv("AZURE-DOCUMENT-INTELLIGENCE-ENDPOINT")
     document_intelligence_key = getenv("AZURE-DOCUMENT-INTELLIGENCE-KEY")
     global document_intelligence_client
@@ -200,7 +213,7 @@ def init():
         credential=AzureKeyCredential(document_intelligence_key),
         api_version="2024-02-29-preview",
     )
-    # setup OpenAI client: vision
+    # Setup OpenAI client: vision
     global deployment_name
     deployment_name = "gpt-4o"
     global openai_client_vision
@@ -211,8 +224,8 @@ def init():
     )
 
 
-###
 def run(mini_batch):
+    """Processes a mini-batch of document files, chunking them into text and image segments."""
     print(f"chunk_docs.run({mini_batch})")
     results = []
     for doc_file_path in mini_batch:
@@ -223,11 +236,11 @@ def run(mini_batch):
                 bytes_source=base64.b64encode(f.read()).decode("utf-8")
             )
             doc_layout = analyze_layout(analyze_request)
-            # adding metadata
+            # Adding metadata
             doc_layout["document_name"] = doc_file_name
-            # chunk document and save chunks
+            # Chunk document and save chunks
             chunks = chunk_document(doc_file_path, doc_layout)
-            for chunk, i in enumerate(chunks):
+            for i, chunk in enumerate(chunks):
                 chunk_file_name = f"{doc_file_name}_{i}.json"
                 chunk_file_path = os.path.join(chunks_folder_path, chunk_file_name)
                 with open(chunk_file_path, "w") as f:
@@ -236,13 +249,13 @@ def run(mini_batch):
     return pd.DataFrame(results)
 
 
-### local unit test
+# Local unit test
 if __name__ == "__main__":
-    # simulate init()
+    # Simulate init()
     init()
     global chunks_folder_path
     chunks_folder_path = "..\\..\\data-chunks"
-    # simulate framework setup for parallel step
+    # Simulate framework setup for parallel step
     docs_folder_path = "../../data-test"
     docs_files = [
         os.path.join(docs_folder_path, f)

@@ -1,5 +1,12 @@
+import os
 import time
+
 import azure.cognitiveservices.speech as speechsdk
+from openai import AzureOpenAI
+
+# NOTE: The following code is adapted from the official Azure Cognitive Services SDK documentation.
+# https://learn.microsoft.com/en-us/azure/ai-services/speech-service/how-to-use-codec-compressed-audio-input-streams?tabs=windows%2Cdebian%2Cjava-android%2Cterminal&pivots=programming-language-python
+# Follow the installation instructions for gstreamer to use the code below.
 
 
 class BinaryFileReaderCallback(speechsdk.audio.PullAudioInputStreamCallback):
@@ -176,28 +183,94 @@ def pull_audio_input_stream_wav(
     return full_transcript
 
 
-def main(file_path: str, speech_key: str, speech_region: str) -> str:
+def whisper_transcription_text(
+    whisper_client, audio_file_path: str, deployment_id: str = "whisper"
+) -> str:
+    """
+    Transcribes an audio file using the Whisper API.
+
+    Args:
+        whisper_client: The Azure OpenAI client instance for interacting with the Whisper API.
+        audio_file_path (str): The path to the audio file to be transcribed. Must be one of 'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'wav', 'webm' types.
+        deployment_id (str, optional): The model deployment ID to use for transcription. Defaults to 'whisper'.
+
+    Returns:
+        str: The transcribed text from the audio file.
+    """
+    # Open the audio file in binary read mode
+    with open(audio_file_path, "rb") as audio_file:
+        # Create a transcription using the Whisper API
+        transcription_result = whisper_client.audio.transcriptions.create(
+            file=audio_file, model=deployment_id
+        )
+
+    # Print the transcribed text to the console
+    # print(transcription_result.text)
+
+    # Return the transcribed text
+    return transcription_result.text
+
+
+# Define the allowed file types and maximum file size
+allowed_file_types = {"mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"}
+max_file_size_mb = 24.99
+
+
+# Function to check file type and size
+def check_file(file_path):
+    file_extension = file_path.split(".")[-1].lower()
+    file_size_mb = os.path.getsize(file_path) / (1024 * 1024)  # Convert bytes to MB
+    if file_extension not in allowed_file_types:
+        return False, "File type is not allowed."
+    if file_size_mb > max_file_size_mb:
+        return False, "File size exceeds the maximum limit."
+    return True, "File is valid."
+
+
+def main(file_path: str, speech_key: str, speech_region: str, whisper_client) -> str:
     """
     Main function to process the audio file based on its format.
+
     Args:
         file_path (str): The path to the audio file.
         speech_key (str): Azure Speech API subscription key.
         speech_region (str): Azure Speech API service region.
+        whisper_client: The Azure client object from the AzureOpenAI sdk.
+
     Returns:
         str: The full transcript of the recognized speech.
     """
-    if file_path.lower().endswith(".mp3"):
-        return pull_audio_input_stream_compressed_mp3(
-            file_path, speech_key, speech_region
-        )
-    elif file_path.lower().endswith(".wav"):
-        return pull_audio_input_stream_wav(file_path, speech_key, speech_region)
+    is_valid, message = check_file(file_path)
+    if is_valid:
+        try:
+            result_text = whisper_transcription_text(whisper_client, file_path)
+            return result_text
+        except Exception as e:
+            raise RuntimeError(f"Failed to create transcription: {e}")
     else:
-        raise ValueError("Unsupported audio format. Only .mp3 and .wav are supported.")
+        if file_path.lower().endswith(".mp3"):
+            return pull_audio_input_stream_compressed_mp3(
+                file_path, speech_key, speech_region
+            )
+        elif file_path.lower().endswith(".wav"):
+            return pull_audio_input_stream_wav(file_path, speech_key, speech_region)
+        else:
+            raise ValueError(f"File does not meet the required conditions: {message}")
 
 
 # Example usage:
-# file_path = "path_to_your_audio_file.wav"
-# speech_key = "your_azure_speech_api_key"
-# speech_region = "your_azure_speech_api_region"
-# print(main(file_path, speech_key, speech_region))
+# file_path = "path_to/azure-genai-design-patterns/4_accelerators/01-rag-agent/data/Introducing GPT-4.mp3" # gpt-4o-system-card.pdf Introducing GPT-4.wav
+# speech_key = ""
+# speech_region = "eastus"
+# aoai_key=""
+# aoai_api_version="2024-07-01-preview"
+# aoai_endpoint=""
+# deployment_id="whisper"
+
+# whisper_client = AzureOpenAI(
+#     azure_endpoint = aoai_endpoint,
+#     api_key = aoai_key,
+#     api_version = aoai_api_version
+#     )
+
+# print(main(file_path, speech_key, speech_region, whisper_client))
