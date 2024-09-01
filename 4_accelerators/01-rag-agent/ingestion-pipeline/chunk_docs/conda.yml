@@ -18,3 +18,4 @@ dependencies:
   - semchunk
   - tenacity
   - tiktoken
+  - azure-cognitiveservices-speech==1.40.0

@@ -6,13 +6,14 @@ import os
 import time
 from mimetypes import guess_type
 
+import azure.cognitiveservices.speech as speechsdk
 import cv2
 import document_intelligence_reader as dir
 import numpy as np
 import pandas as pd
 import semchunk
+import speech_transcription as st
 import tiktoken
-import azure.cognitiveservices.speech as speechsdk
 from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.ai.documentintelligence.models import AnalyzeDocumentRequest
 from azure.core.credentials import AzureKeyCredential
@@ -122,8 +123,8 @@ def generate_chunks_from_markdown(doc_layout):
 def generate_chunk_from_image(chunk_index, image, doc_layout):
     """Generates a chunk from an image using GPT-4 vision model."""
     image_url = image_to_data_url(image)
-    response = openai_client_vision.chat.completions.create(
-        model=deployment_name,
+    response = aoai_client.chat.completions.create(
+        model=gpt4o_deployment_name,
         messages=[
             {"role": "system", "content": system_message_vision_to_text},
             {
@@ -167,7 +168,7 @@ def chunk_document(doc_file_path, doc_layout):
         f"Rendering {doc_file_path} as images with {DPI} dpi resolution ..."
     )  # TODO: move this part after polygon processing, and skip it if there's no figure in the doc
     doc_pages = convert_from_path(doc_file_path, DPI)
-    pages_info = dir.extract_pages_info(doc_layout)
+    pages_info = dir.extract_page_info(doc_layout)
     polygon_info = dir.extract_fig_polygons_by_page(doc_layout)
     page_polygon_info = dir.combine_page_info_and_polygons(pages_info, polygon_info)
     print("Page polygon info: ", page_polygon_info)
@@ -213,15 +214,24 @@ def init():
         credential=AzureKeyCredential(document_intelligence_key),
         api_version="2024-02-29-preview",
     )
-    # Setup OpenAI client: vision
-    global deployment_name
-    deployment_name = "gpt-4o"
-    global openai_client_vision
-    openai_client_vision = AzureOpenAI(
+    # Setup Azrue OpenAI client for GPT-4o for vision and Whisper for Speech Transcription
+    global gpt4o_deployment_name
+    gpt4o_deployment_name = "gpt-4o"
+    global whisper_deployment_name
+    whisper_deployment_name = "whisper"
+    global aoai_client
+    aoai_client = AzureOpenAI(
         azure_endpoint=getenv("AZURE-OPENAI-ENDPOINT"),
         api_key=getenv("AZURE-OPENAI-API-KEY"),
         api_version="2024-06-01",
     )
+    global speech_config
+    speech_config = speechsdk.SpeechConfig(
+        subscription=getenv("AZURE-SPEECH-SERVICE-KEY"), region="eastus"
+    )
+
+
+ALLOWED_SPEECH_FILE_TYPES = {"mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"}
 
 
 def run(mini_batch):
@@ -230,23 +240,47 @@ def run(mini_batch):
     results = []
     for doc_file_path in mini_batch:
         doc_file_name = os.path.basename(doc_file_path)
-        print(f"Azure Document Intelligence: layout('{doc_file_name}')...")
-        with open(doc_file_path, "rb") as f:
-            analyze_request = AnalyzeDocumentRequest(
-                bytes_source=base64.b64encode(f.read()).decode("utf-8")
-            )
-            doc_layout = analyze_layout(analyze_request)
-            # Adding metadata
-            doc_layout["document_name"] = doc_file_name
-            # Chunk document and save chunks
-            chunks = chunk_document(doc_file_path, doc_layout)
-            for i, chunk in enumerate(chunks):
-                chunk_file_name = f"{doc_file_name}_{i}.json"
-                chunk_file_path = os.path.join(chunks_folder_path, chunk_file_name)
-                with open(chunk_file_path, "w") as f:
-                    f.write(json.dumps(chunk))
-        results.append(doc_file_name)
-    return pd.DataFrame(results)
+
+        # Find the file extension type and evaluate if it is an audio file
+        file_extension = doc_file_path.split(".")[-1].lower()
+        # First check is to see if AOAI Whisper supports the file type; Azure Speech is only set to use .mp3 and .wav in this code
+        if file_extension in ALLOWED_SPEECH_FILE_TYPES:
+            try:
+                transcription_text = st.speech_main(
+                    doc_file_path, speech_config, aoai_client
+                )
+                #TODO: Implement chunking strategy for audio text
+                # Cannot use markdown as there is no hashing etc - just blocks of text.
+                results.append(doc_file_name)
+                return pd.DataFrame(results)
+            except Exception as e:
+                print(f"Error processing Audio File {doc_file_name}: {e}")
+                raise e
+        else:  # This will kick off document text + image processing
+            try:
+                print(f"Azure Document Intelligence: layout('{doc_file_name}')...")
+                with open(doc_file_path, "rb") as f:
+                    analyze_request = AnalyzeDocumentRequest(
+                        bytes_source=base64.b64encode(f.read()).decode("utf-8")
+                    )
+                    doc_layout = analyze_layout(analyze_request)
+                    # Adding metadata
+                    doc_layout["document_name"] = doc_file_name
+                    # Chunk document and save chunks
+                    chunks = chunk_document(doc_file_path, doc_layout)
+                    for i, chunk in enumerate(chunks):
+                        chunk_file_name = f"{doc_file_name}_{i}.json"
+                        chunk_file_path = os.path.join(
+                            chunks_folder_path, chunk_file_name
+                        )
+                        with open(chunk_file_path, "w") as f:
+                            f.write(json.dumps(chunk))
+                results.append(doc_file_name)
+                return pd.DataFrame(results)
+
+            except Exception as e:
+                print(f"Error processing {doc_file_name}: {e}")
+                raise e
 
 
 # Local unit test
