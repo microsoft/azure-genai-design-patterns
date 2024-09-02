@@ -1,7 +1,12 @@
+# Import necessary modules
+import hashlib
+import json
 import os
 import time
 
 import azure.cognitiveservices.speech as speechsdk
+import semchunk
+import tiktoken
 from openai import AzureOpenAI
 
 # NOTE: The following code is adapted from the official Azure Cognitive Services SDK documentation.
@@ -170,7 +175,7 @@ def pull_audio_input_stream_wav(speech_config, wav_file_path: str) -> str:
 
 
 def whisper_transcription_text(
-    whisper_client, audio_file_path: str, deployment_id: str = "whisper"
+    whisper_client, audio_file_path: str, whisper_deployment_id: str = "whisper"
 ) -> str:
     """
     Transcribes an audio file using the Whisper API.
@@ -178,7 +183,7 @@ def whisper_transcription_text(
     Args:
         whisper_client: The Azure OpenAI client instance for interacting with the Whisper API.
         audio_file_path (str): The path to the audio file to be transcribed. Must be one of 'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'wav', 'webm' types.
-        deployment_id (str, optional): The model deployment ID to use for transcription. Defaults to 'whisper'.
+        whisper_deployment_id (str, optional): The model deployment ID to use for transcription. Defaults to 'whisper'.
 
     Returns:
         str: The transcribed text from the audio file.
@@ -187,7 +192,7 @@ def whisper_transcription_text(
     with open(audio_file_path, "rb") as audio_file:
         # Create a transcription using the Whisper API
         transcription_result = whisper_client.audio.transcriptions.create(
-            file=audio_file, model=deployment_id
+            file=audio_file, model=whisper_deployment_id
         )
 
     # Print the transcribed text to the console
@@ -213,7 +218,7 @@ def check_file(file_path):
     return True, "File is valid."
 
 
-def speech_main(speech_config, whisper_client, file_path: str) -> str:
+def speech_transcription(speech_config, whisper_client, file_path: str) -> str:
     """
     Main function to process the audio file based on its format.
 
@@ -227,39 +232,133 @@ def speech_main(speech_config, whisper_client, file_path: str) -> str:
         str: The full transcript of the recognized speech.
     """
     is_valid, message = check_file(file_path)
+    # If it's a file type supported by Whisper AND less than 24.99mb in size, use Whisper
     if is_valid:
         try:
-            result_text = whisper_transcription_text(whisper_client, file_path)
-            return result_text
+            return whisper_transcription_text(whisper_client, file_path)
         except Exception as e:
             raise RuntimeError(f"Failed to create transcription: {e}")
+    # If it's not a valid file try to user Azure Speech with one of the supported formats (mp3, wav)
+    # more formats available but those two supported currently
     else:
+        # Run the mp3 transcription process
         if file_path.lower().endswith(".mp3"):
             return pull_audio_input_stream_compressed_mp3(speech_config, file_path)
+        # Run the wav transcription process
         elif file_path.lower().endswith(".wav"):
             return pull_audio_input_stream_wav(speech_config, file_path)
+        # If the file is not a valid type or size, raise an error
         else:
             raise ValueError(f"File does not meet the required conditions: {message}")
 
 
-# Example usage:
-# file_path = "path_to/azure-genai-design-patterns/4_accelerators/01-rag-agent/data/Introducing GPT-4.mp3" # gpt-4o-system-card.pdf Introducing GPT-4.wav
+# TODO: Remove this function if it's unncessary as it is a duplicate of what is already in chunk_docs.py
+def build_chunk(chunk_type, chunk_index, title, content, doc_layout):
+    """Builds a chunk dictionary with metadata for a document segment."""
+    document_name = doc_layout["document_name"]
+    document_id = document_name + "_" + chunk_type + "_" + str(chunk_index)
+    chunk = {
+        "id": hashlib.md5(document_id.encode()).hexdigest(),
+        "filepath": document_name,
+        "url": document_name,  # TODO: replace with actual URL
+        "title": title,
+        "content": content,
+    }
+    return chunk
 
+
+def generate_chunks_from_stt(stt_output_text: str, file_path: str) -> list:
+    """
+    Generates chunks from the output of speech_transcription.
+
+    Args:
+        file_path (str): The path to the audio file.
+        stt_output_text (str): The full transcript of the recognized speech..
+
+    Returns:
+        list: A list of dictionaries - the chunks of text from audio transcription files.
+    """
+    # Generate chunks with semchunk as there is no markdown/titles/headers in the output of the STT
+    MAX_CHUNK_SIZE = 8000
+    chunker = semchunk.chunkerify(tiktoken.encoding_for_model("gpt-4o"), MAX_CHUNK_SIZE)
+
+    # Set the "title" of the chunk to the filename
+    doc_file_name = os.path.basename(file_path)
+
+    # Create a dictionary for stt_output_dict 
+    # MUST match doc_layout to use the buikd_chunk function
+    # and the index for AI Search
+    stt_output_dict = {"document_name": doc_file_name, "content": stt_output_text}
+
+    # Create empty containers for chunks and sub-chunks and set index to 0
+    chunk_index = 0
+    chunks = []
+    sub_chunks = []
+
+    # If the STT output is too large, re-chunk it with semantic chunking from semchunk
+    if len(stt_output_text) > MAX_CHUNK_SIZE:
+        # Re-chunking with semantic chunking
+        chunked_content = chunker(stt_output_text)
+        for chunk in chunked_content:
+            sub_chunks.append(
+                {"title": stt_output_dict["document_name"], "content": chunk}
+            )
+    else:
+        sub_chunks.append(
+            {"title": stt_output_dict["document_name"], "content": stt_output_text}
+        )
+
+    # Build the chunks from the sub-chunks
+    for sub_chunk in sub_chunks:
+        chunks.append(
+            build_chunk(
+                "audio",
+                chunk_index,
+                sub_chunk["title"],
+                sub_chunk["content"],
+                stt_output_dict,
+            )
+        )
+        chunk_index += 1
+
+    return chunks
+
+
+# ###############################################################################
+# # Example usage:
+# ###############################################################################
+# # Set the file path for the audio file to be transcribed
+# file_path = "path_to/your_audio/file/azure-genai-design-patterns/4_accelerators/01-rag-agent/data/Introducing GPT-4.mp3" # gpt-4o-system-card.pdf Introducing GPT-4.wav
+
+# # Create the speech configuration object with key and region
 # speech_key = ""
-# speech_region = ""
+# speech_region = "eastus"
 # speech_config = speechsdk.SpeechConfig(
 #         subscription=speech_key,
 #         region=speech_region
 #     )
 
+# # Create the Azure OpenAI client object
 # aoai_key=""
 # aoai_api_version="2024-06-01"
 # aoai_endpoint=""
-# deployment_id="whisper"
-# whisper_client = AzureOpenAI(
+# aoai_client = AzureOpenAI(
 #     azure_endpoint = aoai_endpoint,
 #     api_key = aoai_key,
 #     api_version = aoai_api_version
 #     )
 
-# print(speech_main(speech_config, whisper_client, file_path))
+# # Provide the deployment IDs for the Whisper and GPT-4o models
+# whisper_deployment_id="whisper"
+# gpt4o_deployment_id="gpt-4o-global"
+
+# # Transcribe the audio file
+# stt_output_text = speech_transcription(speech_config, aoai_client, file_path)
+# # print(stt_output_text)
+
+# # Generate chunks from the STT output
+# chunks = generate_chunks_from_stt(stt_output_text, file_path)
+
+# # Print the chunks
+# for chunk in chunks:
+#     print(chunk)

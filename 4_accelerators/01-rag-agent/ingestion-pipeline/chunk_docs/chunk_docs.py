@@ -80,7 +80,9 @@ def image_to_data_url(image):
 
 # Generate chunks from markdown
 MAX_CHUNK_SIZE = 8000
-chunker = semchunk.chunkerify(tiktoken.encoding_for_model("gpt-4"), MAX_CHUNK_SIZE)
+chunker = semchunk.chunkerify(
+    tiktoken.encoding_for_model("gpt-4o"), MAX_CHUNK_SIZE
+)  # Set to use GPT-4o as that is the model utilized in the chunk process
 
 
 def generate_chunks_from_markdown(doc_layout):
@@ -243,19 +245,27 @@ def run(mini_batch):
 
         # Find the file extension type and evaluate if it is an audio file
         file_extension = doc_file_path.split(".")[-1].lower()
-        # First check is to see if AOAI Whisper supports the file type; Azure Speech is only set to use .mp3 and .wav in this code
+        # First check is to see if AOAI Whisper supports the file type
+        # Azure Speech is only set to use .mp3 and .wav in this code
         if file_extension in ALLOWED_SPEECH_FILE_TYPES:
             try:
-                transcription_text = st.speech_main(
+                # Transcribe the audio file
+                stt_output_text = st.speech_transcription(
                     doc_file_path, speech_config, aoai_client
                 )
-                #TODO: Implement chunking strategy for audio text
-                # Cannot use markdown as there is no hashing etc - just blocks of text.
+                # Generate chunks from the STT output
+                chunks = st.generate_chunks_from_stt(stt_output_text, doc_file_path)
+                # Save the chunks
+                for i, chunk in enumerate(chunks):
+                    chunk_file_name = f"{doc_file_name}_{i}.json"
+                    chunk_file_path = os.path.join(chunks_folder_path, chunk_file_name)
+                    with open(chunk_file_path, "w") as f:
+                        f.write(json.dumps(chunk))
                 results.append(doc_file_name)
                 return pd.DataFrame(results)
-            except Exception as e:
-                print(f"Error processing Audio File {doc_file_name}: {e}")
-                raise e
+            except Exception as e2:
+                print(f"Error processing Audio File {doc_file_name}: {e2}")
+                raise e2
         else:  # This will kick off document text + image processing
             try:
                 print(f"Azure Document Intelligence: layout('{doc_file_name}')...")
@@ -278,9 +288,9 @@ def run(mini_batch):
                 results.append(doc_file_name)
                 return pd.DataFrame(results)
 
-            except Exception as e:
-                print(f"Error processing {doc_file_name}: {e}")
-                raise e
+            except Exception as e2:
+                print(f"Error processing {doc_file_name}: {e2}")
+                raise e2
 
 
 # Local unit test
