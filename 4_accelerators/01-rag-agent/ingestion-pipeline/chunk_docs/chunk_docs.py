@@ -125,7 +125,9 @@ def generate_chunks_from_markdown(doc_layout):
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 def generate_chunk_from_image(chunk_index, image, doc_layout):
     """Generates a chunk from an image using GPT-4 vision model."""
+    print("Generating chunk from image ...")
     image_url = image_to_data_url(image)
+    print("Image URL:", image_url)
     response = aoai_client.chat.completions.create(
         model=gpt4o_deployment_name,
         messages=[
@@ -157,6 +159,20 @@ def analyze_layout(analyze_request):
     return poller.result()
 
 
+def bounding_box(nested_points):
+    '''
+    Returns the bounding box of a polygon defined by a list of nested points.
+    Creates a bounding box with
+    '''
+    points_array = np.array(nested_points).reshape(-1, 2)
+    min_x = np.min(points_array[:, 0])
+    min_y = np.min(points_array[:, 1])
+    max_x = np.max(points_array[:, 0])
+    max_y = np.max(points_array[:, 1]
+                   )
+    return [min_x, min_y, max_x, min_y, max_x, max_y, min_x, max_y]  
+
+
 # Chunk document
 DPI = 300
 
@@ -180,16 +196,19 @@ def chunk_document(doc_file_path, doc_layout):
         for j, polygon in enumerate(page_polygon_info[page]["figures"]):
             logger.info("Processing %s_%d_%d ...", doc_layout['document_name'], page, j)
             logger.info("Polygon (inches): %s", polygon)
-            polygon = [int(coord * DPI) for coord in polygon["polygons"]]
+            polygon = bounding_box(polygon)
             logger.info("Polygon (pixels): %s", polygon)
             cropped_image = image.crop(
                 ([polygon[0], polygon[1], polygon[4], polygon[5]])
             )
             cropped_image = cv2.cvtColor(np.array(cropped_image), cv2.COLOR_RGB2BGR)
+            image_file_name = f"{doc_layout['document_name']}_{page}_{j}.png"
             cv2.imwrite(
-                f"../../data-images/{doc_layout['document_name']}_{page}_{j}.png",
+                image_file_name,
                 cropped_image,
             )
+            with open(image_file_name) as file:
+                cropped_image = file.read()
             logger.info("Saved image %s_%d_%d.png", doc_layout['document_name'], page, j)
             chunk = generate_chunk_from_image(j, cropped_image, doc_layout)
             chunks.append(chunk)
@@ -236,7 +255,7 @@ ALLOWED_SPEECH_FILE_TYPES = {"mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"}
 
 def run(mini_batch):
     """Processes a mini-batch of document files, chunking them into text and image segments."""
-    logger.info(f"chunk_docs.run({mini_batch})")
+    logger.info("chunk_docs.run(%s)", mini_batch)
     results = []
     for doc_file_path in mini_batch:
         doc_file_name = os.path.basename(doc_file_path)
