@@ -1,0 +1,5 @@
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+name: rag-agent-chunkdocs
+image: nicoleserafino/gstreamer:latest
+conda_file: conda.yml
+description: Environment for the RAG Agent Chunk Docs pipeline with https://hub.docker.com/r/nicoleserafino/gstreamer as the image and conda.yml as the conda file. 

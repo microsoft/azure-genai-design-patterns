@@ -189,6 +189,9 @@ def whisper_transcription_text(
         str: The transcribed text from the audio file.
     """
     # Open the audio file in binary read mode
+    print(
+        f"Transcribing audio file: {audio_file_path} with deployment ID: {whisper_deployment_id}"
+    )
     with open(audio_file_path, "rb") as audio_file:
         # Create a transcription using the Whisper API
         transcription_result = whisper_client.audio.transcriptions.create(
@@ -196,26 +199,44 @@ def whisper_transcription_text(
         )
 
     # Print the transcribed text to the console
-    # print(transcription_result.text)
+    print(transcription_result.text)
 
     # Return the transcribed text
     return transcription_result.text
 
 
 # Define the allowed file types and maximum file size
-ALLOWED_FILE_TYPES = {"mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"}
+ALLOWED_FILE_TYPES = {'flac', 'm4a', 'mp3', 'mp4', 'mpeg', 'mpga', 'oga', 'ogg', 'wav', 'webm'}
 MAX_FILE_SIZE_MB = 24.99
 
 
 # Function to check file type and size
 def check_file(file_path):
+    """
+    Checks if the given file is valid for Whisper transcription.
+
+    This function verifies the file extension and file size to ensure they meet
+    the requirements for Whisper transcription. It checks if the file extension
+    is in the list of allowed file types and if the file size does not exceed
+    the maximum limit.
+
+    Args:
+        file_path (str): The path to the file to be checked.
+
+    Returns:
+        tuple: A tuple containing a boolean and a string.
+            - bool: True if the file is valid for Whisper transcription, False otherwise.
+            - str: A message indicating the result of the validation.
+    """
     file_extension = file_path.split(".")[-1].lower()
+    print(f"File extension: {file_extension}")
     file_size_mb = os.path.getsize(file_path) / (1024 * 1024)  # Convert bytes to MB
+    print(f"File size (MB): {file_size_mb}")
     if file_extension not in ALLOWED_FILE_TYPES:
-        return False, "File type is not allowed."
+        return False, "File type cannot be transcribed with Whisper."
     if file_size_mb > MAX_FILE_SIZE_MB:
-        return False, "File size exceeds the maximum limit."
-    return True, "File is valid."
+        return False, "File size exceeds the maximum limit for Whisper."
+    return True, "File is valid for Whisper Transcription."
 
 
 def speech_transcription(speech_config, whisper_client, file_path: str) -> str:
@@ -231,21 +252,32 @@ def speech_transcription(speech_config, whisper_client, file_path: str) -> str:
     Returns:
         str: The full transcript of the recognized speech.
     """
-    is_valid, message = check_file(file_path)
+    # Verify if the file can be transcribed with Whisper
+    is_valid_for_whisper, message = check_file(file_path)
+    # Extract the file extension from the file path
+    file_extension = file_path.split(".")[-1].lower()
+    print(f"Processing file: {file_path}")
+    print(f"File valid: {is_valid_for_whisper}, Message: {message}")
+    
     # If it's a file type supported by Whisper AND less than 24.99mb in size, use Whisper
-    if is_valid:
+    if is_valid_for_whisper:
         try:
+            print("Transcribing with Whisper...")
             return whisper_transcription_text(whisper_client, file_path)
         except Exception as e:
+            print(f"Error processing file: {file_path}")
+            print(f"Exception: {e}")
             raise RuntimeError(f"Failed to create transcription: {e}")
     # If it's not a valid file try to user Azure Speech with one of the supported formats (mp3, wav)
     # more formats available but those two supported currently
     else:
         # Run the mp3 transcription process
-        if file_path.lower().endswith(".mp3"):
+        if file_extension == "mp3":
+            print(f"Transcribing {file_path} as an .mp3 with Azure Speech...")
             return pull_audio_input_stream_compressed_mp3(speech_config, file_path)
         # Run the wav transcription process
-        elif file_path.lower().endswith(".wav"):
+        elif file_extension == "wav":
+            (f"Transcribing {file_path} as an .mp3 with Azure Speech...")
             return pull_audio_input_stream_wav(speech_config, file_path)
         # If the file is not a valid type or size, raise an error
         else:
@@ -285,7 +317,7 @@ def generate_chunks_from_stt(stt_output_text: str, file_path: str) -> list:
     # Set the "title" of the chunk to the filename
     doc_file_name = os.path.basename(file_path)
 
-    # Create a dictionary for stt_output_dict 
+    # Create a dictionary for stt_output_dict
     # MUST match doc_layout to use the buikd_chunk function
     # and the index for AI Search
     stt_output_dict = {"document_name": doc_file_name, "content": stt_output_text}

@@ -177,11 +177,11 @@ def chunk_document(doc_file_path, doc_layout):
     for i, page in enumerate(page_polygon_info):
         print(f"Processing page #{page}...")
         image = doc_pages[page - 1]
-        for j, polygon in enumerate(page_polygon_info[page]["polygons"]):
+        for j, polygon in enumerate(page_polygon_info[page]["figures"]):
             print(f"Processing {doc_layout['document_name']}_{page}_{j} ...")
             # Convert polygon to pixels from inches using DPI
             print(f"Polygon (inches): {polygon}")
-            polygon = [int(coord * DPI) for coord in polygon]
+            polygon = [int(coord * DPI) for coord in polygon["polygons"]]
             print(f"Polygon (pixels): {polygon}")
             cropped_image = image.crop(
                 ([polygon[0], polygon[1], polygon[4], polygon[5]])
@@ -218,7 +218,7 @@ def init():
     )
     # Setup Azrue OpenAI client for GPT-4o for vision and Whisper for Speech Transcription
     global gpt4o_deployment_name
-    gpt4o_deployment_name = "gpt-4o"
+    gpt4o_deployment_name = "gpt-4o-global"
     global whisper_deployment_name
     whisper_deployment_name = "whisper"
     global aoai_client
@@ -251,7 +251,7 @@ def run(mini_batch):
             try:
                 # Transcribe the audio file
                 stt_output_text = st.speech_transcription(
-                    doc_file_path, speech_config, aoai_client
+                    speech_config, aoai_client, doc_file_path
                 )
                 # Generate chunks from the STT output
                 chunks = st.generate_chunks_from_stt(stt_output_text, doc_file_path)

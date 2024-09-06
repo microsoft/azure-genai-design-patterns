@@ -1,6 +1,0 @@
-$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
-name: rag-agent-chunkdocs
-build:
-  dockerfile_path: Dockerfile
-  path: .
-description: Environment for the RAG Agent Chunk Docs pipeline with restreamio/gstreamer:x86_64-latest-prod-dbg as the image and conda.yml as the conda file. 
