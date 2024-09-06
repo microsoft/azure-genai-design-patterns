@@ -1,22 +1,25 @@
 # Import necessary modules
 import hashlib
-import json
+import logging
 import os
 import time
 
 import azure.cognitiveservices.speech as speechsdk
 import semchunk
 import tiktoken
-from openai import AzureOpenAI
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # NOTE: The following code is adapted from the official Azure Cognitive Services SDK documentation.
 # https://learn.microsoft.com/en-us/azure/ai-services/speech-service/how-to-use-codec-compressed-audio-input-streams?tabs=windows%2Cdebian%2Cjava-android%2Cterminal&pivots=programming-language-python
-# Follow the installation instructions for gstreamer to use the code below.
 
 
 class BinaryFileReaderCallback(speechsdk.audio.PullAudioInputStreamCallback):
     """
     A callback class to read audio data from a binary file.
+
     Attributes:
         _file_handle: A file handle for reading the binary file.
     """
@@ -24,6 +27,7 @@ class BinaryFileReaderCallback(speechsdk.audio.PullAudioInputStreamCallback):
     def __init__(self, filename: str):
         """
         Initializes the BinaryFileReaderCallback with the given filename.
+
         Args:
             filename (str): The path to the binary file to be read.
         """
@@ -33,8 +37,10 @@ class BinaryFileReaderCallback(speechsdk.audio.PullAudioInputStreamCallback):
     def read(self, buffer: memoryview) -> int:
         """
         Reads data into the buffer from the binary file.
+
         Args:
             buffer (memoryview): A memoryview object to store the read data.
+
         Returns:
             int: The number of bytes read.
         """
@@ -44,7 +50,7 @@ class BinaryFileReaderCallback(speechsdk.audio.PullAudioInputStreamCallback):
             buffer[: len(frames)] = frames
             return len(frames)
         except Exception as ex:
-            print(f"Exception in `read`: {ex}")
+            logger.error("Exception in `read`: %s", ex)
             raise
 
     def close(self) -> None:
@@ -54,18 +60,18 @@ class BinaryFileReaderCallback(speechsdk.audio.PullAudioInputStreamCallback):
         try:
             self._file_handle.close()
         except Exception as ex:
-            print(f"Exception in `close`: {ex}")
+            logger.error("Exception in `close`: %s", ex)
             raise
 
 
 def compressed_stream_helper(speech_config, compressed_format, file_path) -> str:
     """
     Helper function to handle the streaming and recognition of compressed audio.
+
     Args:
         compressed_format: The compressed audio stream format.
         file_path (str): The path to the audio file.
-        speech_key (str): Azure Speech API subscription key.
-        speech_region (str): Azure Speech API service region.
+
     Returns:
         str: The full transcript of the recognized speech.
     """
@@ -113,10 +119,10 @@ def compressed_stream_helper(speech_config, compressed_format, file_path) -> str
 def pull_audio_input_stream_compressed_mp3(speech_config, mp3_file_path: str) -> str:
     """
     Processes an MP3 file to extract and recognize speech using Azure Cognitive Services.
+
     Args:
         mp3_file_path (str): The path to the MP3 file.
-        speech_key (str): Azure Speech API subscription key.
-        speech_region (str): Azure Speech API service region.
+
     Returns:
         str: The full transcript of the recognized speech.
     """
@@ -130,10 +136,10 @@ def pull_audio_input_stream_compressed_mp3(speech_config, mp3_file_path: str) ->
 def pull_audio_input_stream_wav(speech_config, wav_file_path: str) -> str:
     """
     Processes a WAV file to extract and recognize speech using Azure Cognitive Services.
+
     Args:
         wav_file_path (str): The path to the WAV file.
-        speech_key (str): Azure Speech API subscription key.
-        speech_region (str): Azure Speech API service region.
+
     Returns:
         str: The full transcript of the recognized speech.
     """
@@ -182,39 +188,44 @@ def whisper_transcription_text(
 
     Args:
         whisper_client: The Azure OpenAI client instance for interacting with the Whisper API.
-        audio_file_path (str): The path to the audio file to be transcribed. Must be one of 'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'wav', 'webm' types.
-        whisper_deployment_id (str, optional): The model deployment ID to use for transcription. Defaults to 'whisper'.
+        audio_file_path (str): The path to the audio file to be transcribed. 
+            Must be one of 'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'wav', 'webm' types.
+        whisper_deployment_id (str, optional): The model deployment ID to use for transcription. 
+            Defaults to 'whisper'.
 
     Returns:
         str: The transcribed text from the audio file.
     """
-    # Open the audio file in binary read mode
-    print(
-        f"Transcribing audio file: {audio_file_path} with deployment ID: {whisper_deployment_id}"
+    logger.info(
+        "Transcribing audio file: %s with deployment ID: %s", audio_file_path, whisper_deployment_id
     )
     with open(audio_file_path, "rb") as audio_file:
-        # Create a transcription using the Whisper API
         transcription_result = whisper_client.audio.transcriptions.create(
             file=audio_file, model=whisper_deployment_id
         )
-
-    # Print the transcribed text to the console
-    print(transcription_result.text)
-
-    # Return the transcribed text
+    logger.info("Transcription result: %s", transcription_result.text)
     return transcription_result.text
 
 
 # Define the allowed file types and maximum file size
-ALLOWED_FILE_TYPES = {'flac', 'm4a', 'mp3', 'mp4', 'mpeg', 'mpga', 'oga', 'ogg', 'wav', 'webm'}
+ALLOWED_FILE_TYPES = {
+    "flac",
+    "m4a",
+    "mp3",
+    "mp4",
+    "mpeg",
+    "mpga",
+    "oga",
+    "ogg",
+    "wav",
+    "webm",
+}
 MAX_FILE_SIZE_MB = 24.99
 
 
-# Function to check file type and size
 def check_file(file_path):
     """
     Checks if the given file is valid for Whisper transcription.
-
     This function verifies the file extension and file size to ensure they meet
     the requirements for Whisper transcription. It checks if the file extension
     is in the list of allowed file types and if the file size does not exceed
@@ -229,9 +240,9 @@ def check_file(file_path):
             - str: A message indicating the result of the validation.
     """
     file_extension = file_path.split(".")[-1].lower()
-    print(f"File extension: {file_extension}")
+    logger.info("File extension: %s", file_extension)
     file_size_mb = os.path.getsize(file_path) / (1024 * 1024)  # Convert bytes to MB
-    print(f"File size (MB): {file_size_mb}")
+    logger.info("File size (MB): %s", file_size_mb)
     if file_extension not in ALLOWED_FILE_TYPES:
         return False, "File type cannot be transcribed with Whisper."
     if file_size_mb > MAX_FILE_SIZE_MB:
@@ -252,41 +263,44 @@ def speech_transcription(speech_config, whisper_client, file_path: str) -> str:
     Returns:
         str: The full transcript of the recognized speech.
     """
-    # Verify if the file can be transcribed with Whisper
     is_valid_for_whisper, message = check_file(file_path)
-    # Extract the file extension from the file path
     file_extension = file_path.split(".")[-1].lower()
-    print(f"Processing file: {file_path}")
-    print(f"File valid: {is_valid_for_whisper}, Message: {message}")
-    
-    # If it's a file type supported by Whisper AND less than 24.99mb in size, use Whisper
+    logger.info("Processing file: %s", file_path)
+    logger.info("File valid: %s, Message: %s", is_valid_for_whisper, message)
+
     if is_valid_for_whisper:
         try:
-            print("Transcribing with Whisper...")
+            logger.info("Transcribing with Whisper...")
             return whisper_transcription_text(whisper_client, file_path)
         except Exception as e:
-            print(f"Error processing file: {file_path}")
-            print(f"Exception: {e}")
+            logger.error("Error processing file: %s", file_path)
+            logger.error("Exception: %s", e)
             raise RuntimeError(f"Failed to create transcription: {e}")
-    # If it's not a valid file try to user Azure Speech with one of the supported formats (mp3, wav)
-    # more formats available but those two supported currently
     else:
-        # Run the mp3 transcription process
         if file_extension == "mp3":
-            print(f"Transcribing {file_path} as an .mp3 with Azure Speech...")
+            logger.info("Transcribing %s as an .mp3 with Azure Speech...", file_path)
             return pull_audio_input_stream_compressed_mp3(speech_config, file_path)
-        # Run the wav transcription process
         elif file_extension == "wav":
-            (f"Transcribing {file_path} as an .mp3 with Azure Speech...")
+            logger.info("Transcribing %s as an .wav with Azure Speech...", file_path)
             return pull_audio_input_stream_wav(speech_config, file_path)
-        # If the file is not a valid type or size, raise an error
         else:
             raise ValueError(f"File does not meet the required conditions: {message}")
 
 
-# TODO: Remove this function if it's unncessary as it is a duplicate of what is already in chunk_docs.py
 def build_chunk(chunk_type, chunk_index, title, content, doc_layout):
-    """Builds a chunk dictionary with metadata for a document segment."""
+    """
+    Builds a chunk dictionary with metadata for a document segment.
+
+    Args:
+        chunk_type (str): Type of the chunk.
+        chunk_index (int): Index of the chunk.
+        title (str): Title of the chunk.
+        content (str): Content of the chunk.
+        doc_layout (dict): Layout of the document.
+
+    Returns:
+        dict: A dictionary containing chunk metadata.
+    """
     document_name = doc_layout["document_name"]
     document_id = document_name + "_" + chunk_type + "_" + str(chunk_index)
     chunk = {
@@ -310,26 +324,15 @@ def generate_chunks_from_stt(stt_output_text: str, file_path: str) -> list:
     Returns:
         list: A list of dictionaries - the chunks of text from audio transcription files.
     """
-    # Generate chunks with semchunk as there is no markdown/titles/headers in the output of the STT
-    MAX_CHUNK_SIZE = 8000
-    chunker = semchunk.chunkerify(tiktoken.encoding_for_model("gpt-4o"), MAX_CHUNK_SIZE)
-
-    # Set the "title" of the chunk to the filename
+    max_chunk_size = 8000
+    chunker = semchunk.chunkerify(tiktoken.encoding_for_model("gpt-4o"), max_chunk_size)
     doc_file_name = os.path.basename(file_path)
-
-    # Create a dictionary for stt_output_dict
-    # MUST match doc_layout to use the buikd_chunk function
-    # and the index for AI Search
     stt_output_dict = {"document_name": doc_file_name, "content": stt_output_text}
-
-    # Create empty containers for chunks and sub-chunks and set index to 0
     chunk_index = 0
     chunks = []
     sub_chunks = []
 
-    # If the STT output is too large, re-chunk it with semantic chunking from semchunk
-    if len(stt_output_text) > MAX_CHUNK_SIZE:
-        # Re-chunking with semantic chunking
+    if len(stt_output_text) > max_chunk_size:
         chunked_content = chunker(stt_output_text)
         for chunk in chunked_content:
             sub_chunks.append(
@@ -340,7 +343,6 @@ def generate_chunks_from_stt(stt_output_text: str, file_path: str) -> list:
             {"title": stt_output_dict["document_name"], "content": stt_output_text}
         )
 
-    # Build the chunks from the sub-chunks
     for sub_chunk in sub_chunks:
         chunks.append(
             build_chunk(
@@ -352,17 +354,17 @@ def generate_chunks_from_stt(stt_output_text: str, file_path: str) -> list:
             )
         )
         chunk_index += 1
-
     return chunks
 
 
-# ###############################################################################
-# # Example usage:
-# ###############################################################################
-# # Set the file path for the audio file to be transcribed
-# file_path = "path_to/your_audio/file/azure-genai-design-patterns/4_accelerators/01-rag-agent/data/Introducing GPT-4.mp3" # gpt-4o-system-card.pdf Introducing GPT-4.wav
+# ################################################################################
+# Example usage:
+# ################################################################################
+# Set the file path for the audio file to be transcribed
+# file_path = "path_to/your_audio/file/azure-genai-design-patterns/4_accelerators/01-rag-agent/data/Introducing GPT-4.mp3"
+# gpt-4o-system-card.pdf Introducing GPT-4.wav
 
-# # Create the speech configuration object with key and region
+# Create the speech configuration object with key and region
 # speech_key = ""
 # speech_region = "eastus"
 # speech_config = speechsdk.SpeechConfig(
@@ -370,7 +372,7 @@ def generate_chunks_from_stt(stt_output_text: str, file_path: str) -> list:
 #         region=speech_region
 #     )
 
-# # Create the Azure OpenAI client object
+# Create the Azure OpenAI client object
 # aoai_key=""
 # aoai_api_version="2024-06-01"
 # aoai_endpoint=""
@@ -380,17 +382,19 @@ def generate_chunks_from_stt(stt_output_text: str, file_path: str) -> list:
 #     api_version = aoai_api_version
 #     )
 
-# # Provide the deployment IDs for the Whisper and GPT-4o models
+# Provide the deployment IDs for the Whisper and GPT-4o models
 # whisper_deployment_id="whisper"
 # gpt4o_deployment_id="gpt-4o-global"
 
-# # Transcribe the audio file
+# Transcribe the audio file
 # stt_output_text = speech_transcription(speech_config, aoai_client, file_path)
-# # print(stt_output_text)
 
-# # Generate chunks from the STT output
+# Print the STT output text
+# logger.info(stt_output_text)
+
+# Generate chunks from the STT output
 # chunks = generate_chunks_from_stt(stt_output_text, file_path)
 
-# # Print the chunks
+# Print the chunks
 # for chunk in chunks:
-#     print(chunk)
+#     logger.info(chunk)

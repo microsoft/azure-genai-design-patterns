@@ -2,13 +2,13 @@ import argparse
 import base64
 import hashlib
 import json
+import logging
 import os
-import time
-from mimetypes import guess_type
+import mimetypes
 
 import azure.cognitiveservices.speech as speechsdk
 import cv2
-import document_intelligence_reader as dir
+import document_intelligence_reader as docreader
 import numpy as np
 import pandas as pd
 import semchunk
@@ -21,6 +21,10 @@ from azureml.core import Run, Workspace
 from openai import AzureOpenAI
 from pdf2image import convert_from_path
 from tenacity import retry, stop_after_attempt, wait_random_exponential
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # GPT-4-vision/o system message
 system_message_vision_to_text = (
@@ -60,7 +64,7 @@ def getenv(key):
 def build_chunk(chunk_type, chunk_index, title, content, doc_layout):
     """Builds a chunk dictionary with metadata for a document segment."""
     document_name = doc_layout["document_name"]
-    document_id = document_name + "_" + chunk_type + "_" + str(chunk_index)
+    document_id = f"{document_name}_{chunk_type}_{chunk_index}"
     chunk = {
         "id": hashlib.md5(document_id.encode()).hexdigest(),
         "filepath": document_name,
@@ -80,9 +84,7 @@ def image_to_data_url(image):
 
 # Generate chunks from markdown
 MAX_CHUNK_SIZE = 8000
-chunker = semchunk.chunkerify(
-    tiktoken.encoding_for_model("gpt-4o"), MAX_CHUNK_SIZE
-)  # Set to use GPT-4o as that is the model utilized in the chunk process
+chunker = semchunk.chunkerify(tiktoken.encoding_for_model("gpt-4o"), MAX_CHUNK_SIZE)
 
 
 def generate_chunks_from_markdown(doc_layout):
@@ -95,12 +97,11 @@ def generate_chunks_from_markdown(doc_layout):
         try:
             title, content = raw_chunk.split("\n", 1)
             content = title + "\n" + content
-        except:
+        except ValueError:
             title = ""
             content = raw_chunk
         sub_chunks = []
         if len(content) > MAX_CHUNK_SIZE:
-            # Re-chunking with semantic chunking
             chunked_content = chunker(content)
             for chunk in chunked_content:
                 sub_chunks.append({"title": title, "content": chunk})
@@ -139,7 +140,6 @@ def generate_chunk_from_image(chunk_index, image, doc_layout):
         ],
         max_tokens=2000,
     )
-    # String parser to parse array of strings separated by "=========="
     response = response.choices[0].message.content
     response_parsed = response.split("==========")
     title = response_parsed[1]
@@ -166,23 +166,22 @@ def chunk_document(doc_file_path, doc_layout):
     # Chunk text using markdown
     chunks = generate_chunks_from_markdown(doc_layout)
     # Chunk images using figures metadata
-    print(
-        f"Rendering {doc_file_path} as images with {DPI} dpi resolution ..."
-    )  # TODO: move this part after polygon processing, and skip it if there's no figure in the doc
+    logger.info("Rendering %s as images with %d dpi resolution ...", doc_file_path, DPI)
     doc_pages = convert_from_path(doc_file_path, DPI)
-    pages_info = dir.extract_page_info(doc_layout)
-    polygon_info = dir.extract_fig_polygons_by_page(doc_layout)
-    page_polygon_info = dir.combine_page_info_and_polygons(pages_info, polygon_info)
-    print("Page polygon info: ", page_polygon_info)
+    pages_info = docreader.extract_page_info(doc_layout)
+    polygon_info = docreader.extract_fig_polygons_by_page(doc_layout)
+    page_polygon_info = docreader.combine_page_info_and_polygons(
+        pages_info, polygon_info
+    )
+    logger.info("Page polygon info: %s", page_polygon_info)
     for i, page in enumerate(page_polygon_info):
-        print(f"Processing page #{page}...")
+        logger.info("Processing page #%d...", page)
         image = doc_pages[page - 1]
         for j, polygon in enumerate(page_polygon_info[page]["figures"]):
-            print(f"Processing {doc_layout['document_name']}_{page}_{j} ...")
-            # Convert polygon to pixels from inches using DPI
-            print(f"Polygon (inches): {polygon}")
+            logger.info("Processing %s_%d_%d ...", doc_layout['document_name'], page, j)
+            logger.info("Polygon (inches): %s", polygon)
             polygon = [int(coord * DPI) for coord in polygon["polygons"]]
-            print(f"Polygon (pixels): {polygon}")
+            logger.info("Polygon (pixels): %s", polygon)
             cropped_image = image.crop(
                 ([polygon[0], polygon[1], polygon[4], polygon[5]])
             )
@@ -191,8 +190,7 @@ def chunk_document(doc_file_path, doc_layout):
                 f"../../data-images/{doc_layout['document_name']}_{page}_{j}.png",
                 cropped_image,
             )
-            print(f"Saved image {doc_layout['document_name']}_{page}_{j}.png")
-            # Chunk image using GPT-4-vision/o
+            logger.info("Saved image %s_%d_%d.png", doc_layout['document_name'], page, j)
             chunk = generate_chunk_from_image(j, cropped_image, doc_layout)
             chunks.append(chunk)
     return chunks
@@ -200,7 +198,7 @@ def chunk_document(doc_file_path, doc_layout):
 
 def init():
     """Initializes the chunk_docs script, setting up necessary clients and configurations."""
-    print("chunk_docs.init()")
+    logger.info("chunk_docs.init()")
     # Retrieve output from arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--chunks_folder", type=str)
@@ -216,7 +214,7 @@ def init():
         credential=AzureKeyCredential(document_intelligence_key),
         api_version="2024-02-29-preview",
     )
-    # Setup Azrue OpenAI client for GPT-4o for vision and Whisper for Speech Transcription
+    # Setup Azure OpenAI client for GPT-4o for vision and Whisper for Speech Transcription
     global gpt4o_deployment_name
     gpt4o_deployment_name = "gpt-4o-global"
     global whisper_deployment_name
@@ -238,11 +236,10 @@ ALLOWED_SPEECH_FILE_TYPES = {"mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"}
 
 def run(mini_batch):
     """Processes a mini-batch of document files, chunking them into text and image segments."""
-    print(f"chunk_docs.run({mini_batch})")
+    logger.info(f"chunk_docs.run({mini_batch})")
     results = []
     for doc_file_path in mini_batch:
         doc_file_name = os.path.basename(doc_file_path)
-
         # Find the file extension type and evaluate if it is an audio file
         file_extension = doc_file_path.split(".")[-1].lower()
         # First check is to see if AOAI Whisper supports the file type
@@ -264,11 +261,13 @@ def run(mini_batch):
                 results.append(doc_file_name)
                 return pd.DataFrame(results)
             except Exception as e2:
-                print(f"Error processing Audio File {doc_file_name}: {e2}")
+                logger.error("Error processing Audio File %s: %s", doc_file_name, e2)
                 raise e2
         else:  # This will kick off document text + image processing
             try:
-                print(f"Azure Document Intelligence: layout('{doc_file_name}')...")
+                logger.info(
+                    "Azure Document Intelligence: layout('%s')...", doc_file_name
+                )
                 with open(doc_file_path, "rb") as f:
                     analyze_request = AnalyzeDocumentRequest(
                         bytes_source=base64.b64encode(f.read()).decode("utf-8")
@@ -287,9 +286,8 @@ def run(mini_batch):
                             f.write(json.dumps(chunk))
                 results.append(doc_file_name)
                 return pd.DataFrame(results)
-
             except Exception as e2:
-                print(f"Error processing {doc_file_name}: {e2}")
+                logger.error("Error processing %s: %s", doc_file_name, e2)
                 raise e2
 
 
@@ -306,4 +304,4 @@ if __name__ == "__main__":
         for f in os.listdir(docs_folder_path)
         if f.endswith(".pdf")
     ]
-    print(run(docs_files))
+    logger.info(run(docs_files))
