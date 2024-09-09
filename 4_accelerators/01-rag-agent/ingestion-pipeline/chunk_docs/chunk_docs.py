@@ -3,8 +3,8 @@ import base64
 import hashlib
 import json
 import logging
-import os
 import mimetypes
+import os
 
 import azure.cognitiveservices.speech as speechsdk
 import cv2
@@ -52,7 +52,7 @@ def azure_ai_vision_generate_text_vector(text):
 # Get keys from Azure Key Vault
 try:
     keyvault = Run.get_context().experiment.workspace.get_default_keyvault()
-except Exception as e:
+except RunEnvironmentException or WorkspaceException as e:
     keyvault = Workspace.from_config().get_default_keyvault()
 
 
@@ -84,6 +84,7 @@ def image_to_data_url(image):
 
 # Generate chunks from markdown
 MAX_CHUNK_SIZE = 8000
+#TODO: Implement chunking for large text segments based on tokens not characters - use langchain?
 chunker = semchunk.chunkerify(tiktoken.encoding_for_model("gpt-4o"), MAX_CHUNK_SIZE)
 
 
@@ -98,14 +99,16 @@ def generate_chunks_from_markdown(doc_layout):
             title, content = raw_chunk.split("\n", 1)
             content = title + "\n" + content
         except ValueError:
-            title = ""
-            content = raw_chunk
+            logger.error("Error splitting chunk: %s ", raw_chunk)
+            raise ValueError("Error splitting chunk: %s ", raw_chunk)
         sub_chunks = []
+        #TODO: Implement chunking for large text segments based on tokens not characters
         if len(content) > MAX_CHUNK_SIZE:
             chunked_content = chunker(content)
             for chunk in chunked_content:
                 sub_chunks.append({"title": title, "content": chunk})
         else:
+            # Append everything to sub_chunks if it's not larger than 8k characters
             sub_chunks.append({"title": title, "content": content})
         for sub_chunk in sub_chunks:
             chunks.append(
@@ -121,32 +124,47 @@ def generate_chunks_from_markdown(doc_layout):
     return chunks
 
 
-# Processing image with GPT vision model
+# Processing image with GPT-4o Omni model
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 def generate_chunk_from_image(chunk_index, image, doc_layout):
     """Generates a chunk from an image using GPT-4 vision model."""
     print("Generating chunk from image ...")
     image_url = image_to_data_url(image)
     print("Image URL:", image_url)
-    response = aoai_client.chat.completions.create(
-        model=gpt4o_deployment_name,
-        messages=[
-            {"role": "system", "content": system_message_vision_to_text},
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": "Process this picture:"},
-                    {"type": "image_url", "image_url": {"url": f"{image_url}"}},
-                ],
-            },
-        ],
-        max_tokens=2000,
-    )
-    response = response.choices[0].message.content
-    response_parsed = response.split("==========")
-    title = response_parsed[1]
-    content = response_parsed[2]
-    return build_chunk("image", chunk_index, title, content, doc_layout)
+
+    try:
+        response = aoai_client.chat.completions.create(
+            model=gpt4o_deployment_name,
+            messages=[
+                {"role": "system", "content": system_message_vision_to_text},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Process this picture:"},
+                        {"type": "image_url", "image_url": {"url": f"{image_url}"}},
+                    ],
+                },
+            ],
+            max_tokens=2000,
+        )
+
+        print("Response:", response)
+        response_content = response.choices[0].message.content
+        
+        # Separate the title and content based on the delimiter from GPT-4o
+        print("Response content:", response_content)
+        response_parsed = response_content.split("==========")
+        print("Response parsed:", response_parsed)
+
+        title = response_parsed[0].strip()
+        content = response_parsed[1].strip()
+
+        return build_chunk("image", chunk_index, title, content, doc_layout)
+
+    except IndexError as ie:
+        logger.error("IndexError: %s", ie)
+        logger.error("Failed to parse response: %s", response_content)
+        raise ie
 
 
 def analyze_layout(analyze_request):
@@ -160,17 +178,39 @@ def analyze_layout(analyze_request):
 
 
 def bounding_box(nested_points):
-    '''
-    Returns the bounding box of a polygon defined by a list of nested points.
-    Creates a bounding box with
-    '''
-    points_array = np.array(nested_points).reshape(-1, 2)
-    min_x = np.min(points_array[:, 0])
-    min_y = np.min(points_array[:, 1])
-    max_x = np.max(points_array[:, 0])
-    max_y = np.max(points_array[:, 1]
-                   )
-    return [min_x, min_y, max_x, min_y, max_x, max_y, min_x, max_y]  
+    print("Nested points:", nested_points)
+    if len(nested_points) >= 4:
+        try:
+            points_array = np.array(nested_points).reshape(-1, 2)
+            print("Points array:", points_array)
+            min_x = np.min(points_array[:, 0])
+            min_y = np.min(points_array[:, 1])
+            max_x = np.max(points_array[:, 0])
+            max_y = np.max(points_array[:, 1])
+            bounding_box_points = [
+                min_x,
+                min_y,
+                max_x,
+                min_y,
+                max_x,
+                max_y,
+                min_x,
+                max_y,
+            ]
+            logger.debug("Calculated bounding box: %s", bounding_box_points)
+            print("Bounding box points:", bounding_box_points)
+            return bounding_box_points
+        except ValueError as ve:
+            logger.error(
+                "Error reshaping points array: %s, nested_points: %s", ve, nested_points
+            )
+            raise ve
+    else:
+        logger.info("Insufficient points, returning original points: %s", nested_points)
+        # Ensure returning points are structured the same way
+        return nested_points + [None] * (
+            8 - len(nested_points)
+        )  # Pad with None to ensure length is 8
 
 
 # Chunk document
@@ -189,29 +229,52 @@ def chunk_document(doc_file_path, doc_layout):
     page_polygon_info = docreader.combine_page_info_and_polygons(
         pages_info, polygon_info
     )
+    print("Page polygon info:", page_polygon_info)
     logger.info("Page polygon info: %s", page_polygon_info)
-    for i, page in enumerate(page_polygon_info):
+
+    for page, page_info in page_polygon_info.items():
         logger.info("Processing page #%d...", page)
         image = doc_pages[page - 1]
-        for j, polygon in enumerate(page_polygon_info[page]["figures"]):
-            logger.info("Processing %s_%d_%d ...", doc_layout['document_name'], page, j)
-            logger.info("Polygon (inches): %s", polygon)
-            polygon = bounding_box(polygon)
+        for j, figure in enumerate(page_info["figures"]):
+            logger.info("Processing %s_%d_%d ...", doc_layout["document_name"], page, j)
+            logger.info("Polygon (inches): %s", figure["polygons"])
+            print("Polygon going to bounding_box:", figure["polygons"])
+            polygon = bounding_box(figure["polygons"])
+            print("Bounding box polygon:", polygon)
+            polygon = [int(coord * DPI) for coord in polygon]
+            print("Polygon (pixels):", polygon)
             logger.info("Polygon (pixels): %s", polygon)
-            cropped_image = image.crop(
-                ([polygon[0], polygon[1], polygon[4], polygon[5]])
-            )
-            cropped_image = cv2.cvtColor(np.array(cropped_image), cv2.COLOR_RGB2BGR)
-            image_file_name = f"{doc_layout['document_name']}_{page}_{j}.png"
-            cv2.imwrite(
-                image_file_name,
-                cropped_image,
-            )
-            with open(image_file_name) as file:
-                cropped_image = file.read()
-            logger.info("Saved image %s_%d_%d.png", doc_layout['document_name'], page, j)
-            chunk = generate_chunk_from_image(j, cropped_image, doc_layout)
-            chunks.append(chunk)
+
+            if all(
+                p is not None for p in polygon[:4]
+            ):  # Ensure we have valid bounding box points
+                cropped_image = image.crop(
+                    (polygon[0], polygon[1], polygon[4], polygon[5])
+                )
+                print("Cropped image:", cropped_image)
+                cropped_image = cv2.cvtColor(np.array(cropped_image), cv2.COLOR_RGB2BGR)
+                image_file_name = f"{doc_layout['document_name']}_{page}_{j}.png"
+                print("Image file name:", image_file_name)
+                print("Current working directory: ", os.getcwd())
+                cv2.imwrite(
+                    image_file_name,
+                    cropped_image,
+                )
+                with open(image_file_name, "rb") as file:
+                    cropped_image = file.read()
+                logger.info(
+                    "Saved image %s_%d_%d.png", doc_layout["document_name"], page, j
+                )
+                print("Chunk index: ", j)
+                chunk = generate_chunk_from_image(j, cropped_image, doc_layout)
+                chunks.append(chunk)
+            else:
+                logger.warning(
+                    "Skipping figure on page %d with invalid polygon points: %s",
+                    page,
+                    polygon,
+                )
+
     return chunks
 
 
@@ -266,6 +329,8 @@ def run(mini_batch):
         if file_extension in ALLOWED_SPEECH_FILE_TYPES:
             try:
                 # Transcribe the audio file
+                print("Transcribing audio file...")
+                logger.info("Transcribing audio file...")
                 stt_output_text = st.speech_transcription(
                     speech_config, aoai_client, doc_file_path
                 )
@@ -284,6 +349,7 @@ def run(mini_batch):
                 raise e2
         else:  # This will kick off document text + image processing
             try:
+                print("Azure Document Intelligence: layout('%s')...", doc_file_name)
                 logger.info(
                     "Azure Document Intelligence: layout('%s')...", doc_file_name
                 )
@@ -294,10 +360,12 @@ def run(mini_batch):
                     doc_layout = analyze_layout(analyze_request)
                     # Adding metadata
                     doc_layout["document_name"] = doc_file_name
+                    print("Document layout:", doc_layout["document_name"], " has completed in Document Intelligence")
                     # Chunk document and save chunks
                     chunks = chunk_document(doc_file_path, doc_layout)
                     for i, chunk in enumerate(chunks):
                         chunk_file_name = f"{doc_file_name}_{i}.json"
+                        print("Chunk file name:", chunk_file_name)
                         chunk_file_path = os.path.join(
                             chunks_folder_path, chunk_file_name
                         )
