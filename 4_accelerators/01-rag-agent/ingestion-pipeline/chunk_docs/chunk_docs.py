@@ -3,7 +3,6 @@ import base64
 import hashlib
 import json
 import logging
-import mimetypes
 import os
 
 import azure.cognitiveservices.speech as speechsdk
@@ -44,11 +43,6 @@ def azure_ai_vision_generate_image_vector(image_path):
     pass
 
 
-def azure_ai_vision_generate_text_vector(text):
-    """Generates a vector representation of the text using Azure Vision 4.0 API."""
-    pass
-
-
 # Get keys from Azure Key Vault
 try:
     keyvault = Run.get_context().experiment.workspace.get_default_keyvault()
@@ -61,6 +55,17 @@ def getenv(key):
     return keyvault.get_secret(name=key)
 
 
+# generate embedding using an OpenAI ADA model
+@retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
+def generate_text_embeddings(text):
+    return (
+        aoai_client.embeddings.create(
+            input=[text], model=openai_embedding_model
+        )
+        .data[0]
+        .embedding
+    )
+
 def build_chunk(chunk_type, chunk_index, title, content, doc_layout):
     """Builds a chunk dictionary with metadata for a document segment."""
     document_name = doc_layout["document_name"]
@@ -71,6 +76,7 @@ def build_chunk(chunk_type, chunk_index, title, content, doc_layout):
         "url": document_name,  # TODO: replace with actual URL
         "title": title,
         "content": content,
+        "contentVector": generate_text_embeddings(content),
     }
     return chunk
 
@@ -150,7 +156,7 @@ def generate_chunk_from_image(chunk_index, image, doc_layout):
 
         print("Response:", response)
         response_content = response.choices[0].message.content
-        
+
         # Separate the title and content based on the delimiter from GPT-4o
         print("Response content:", response_content)
         response_parsed = response_content.split("==========")
@@ -215,7 +221,6 @@ def bounding_box(nested_points):
 
 # Chunk document
 DPI = 300
-
 
 def chunk_document(doc_file_path, doc_layout):
     """Chunks a document into text and image chunks."""
@@ -299,8 +304,12 @@ def init():
     # Setup Azure OpenAI client for GPT-4o for vision and Whisper for Speech Transcription
     global gpt4o_deployment_name
     gpt4o_deployment_name = "gpt-4o-global"
+    # setup OpenAI Whisper model
     global whisper_deployment_name
     whisper_deployment_name = "whisper"
+    # setup OpenAI embedding model
+    global openai_embedding_model
+    openai_embedding_model = "text-embedding-3-large"
     global aoai_client
     aoai_client = AzureOpenAI(
         azure_endpoint=getenv("AZURE-OPENAI-ENDPOINT"),

@@ -11,4 +11,3 @@ dependencies:
   - azureml-dataset-runtime[pandas,fuse]
   - azureml-telemetry
   - pandas
-  - tenacity

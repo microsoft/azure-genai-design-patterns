@@ -42,7 +42,7 @@ fields = [
         name="contentVector",
         type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
         searchable=True,
-        vector_search_dimensions=1536,
+        vector_search_dimensions=3072, #TODO: Make this a variable value so users can swap between ada-002 at 1536 and ada-003-large at 3072
         vector_search_profile_name="myHnswProfile",
     ),
 ]
