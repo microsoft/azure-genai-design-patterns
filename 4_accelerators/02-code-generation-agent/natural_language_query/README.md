@@ -89,14 +89,7 @@ natural_language_query/
 └── README.md  
 ```
 ## Installation  
-    
-### Option: Local Run  
-  
-  Run the application:  
-    ```  
-    streamlit run src/app/copilot.py  
-    ```  
-  
+      
 ### Option: Deploy to Local Docker Environment  
   
 1. Build and Start Containers:  
