@@ -1,0 +1,925 @@
+{
+  "package": {
+    "promptflow_vectordb.tool.common_index_lookup.search": {
+      "name": "Index Lookup",
+      "type": "python",
+      "inputs": {
+        "acs_content_field": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "Azure AI Search"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_acs_index_fields",
+            "func_kwargs": [
+              {
+                "name": "acs_connection",
+                "optional": false,
+                "reference": "${inputs.acs_index_connection}",
+                "type": [
+                  "CognitiveSearchConnection"
+                ]
+              },
+              {
+                "name": "acs_index_name",
+                "optional": false,
+                "reference": "${inputs.acs_index_name}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "default": "Edm.String",
+                "name": "field_data_type",
+                "optional": false,
+                "type": [
+                  "string"
+                ]
+              }
+            ]
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "acs_embedding_field": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "Azure AI Search"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_acs_index_fields",
+            "func_kwargs": [
+              {
+                "name": "acs_connection",
+                "optional": false,
+                "reference": "${inputs.acs_index_connection}",
+                "type": [
+                  "CognitiveSearchConnection"
+                ]
+              },
+              {
+                "name": "acs_index_name",
+                "optional": false,
+                "reference": "${inputs.acs_index_name}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "default": "Collection(Edm.Single)",
+                "name": "field_data_type",
+                "optional": false,
+                "type": [
+                  "string"
+                ]
+              }
+            ]
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "acs_index_connection": {
+          "type": [
+            "CognitiveSearchConnection"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "Azure AI Search"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "acs_index_name": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "Azure AI Search"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_acs_indices",
+            "func_kwargs": [
+              {
+                "name": "acs_connection",
+                "optional": false,
+                "reference": "${inputs.acs_index_connection}",
+                "type": [
+                  "CognitiveSearchConnection"
+                ]
+              }
+            ]
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "acs_metadata_field": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "Azure AI Search"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_acs_index_fields",
+            "func_kwargs": [
+              {
+                "name": "acs_connection",
+                "optional": false,
+                "reference": "${inputs.acs_index_connection}",
+                "type": [
+                  "CognitiveSearchConnection"
+                ]
+              },
+              {
+                "name": "acs_index_name",
+                "optional": false,
+                "reference": "${inputs.acs_index_name}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "default": "Edm.String",
+                "name": "field_data_type",
+                "optional": false,
+                "type": [
+                  "string"
+                ]
+              }
+            ]
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "aoai_embedding_connection": {
+          "type": [
+            "AzureOpenAIConnection"
+          ],
+          "enabled_by": "embedding_type",
+          "enabled_by_value": [
+            "Azure OpenAI"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "embedding_deployment": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "embedding_type",
+          "enabled_by_value": [
+            "Azure OpenAI"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_aoai_embedding_deployments",
+            "func_kwargs": [
+              {
+                "name": "aoai_connection",
+                "optional": false,
+                "reference": "${inputs.aoai_embedding_connection}",
+                "type": [
+                  "AzurOpenAIConnection"
+                ]
+              }
+            ]
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "embedding_model": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "embedding_type",
+          "enabled_by_value": [
+            "OpenAI",
+            "Hugging Face"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_embedding_models",
+            "func_kwargs": [
+              {
+                "name": "embedding_type",
+                "optional": false,
+                "reference": "${inputs.embedding_type}",
+                "type": [
+                  "string"
+                ]
+              }
+            ]
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "embedding_type": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "Azure AI Search",
+            "FAISS",
+            "Pinecone"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_available_embedding_types",
+            "func_kwargs": [
+              {
+                "name": "index_type",
+                "optional": false,
+                "reference": "${inputs.index_type}",
+                "type": [
+                  "string"
+                ]
+              }
+            ]
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "faiss_index_path": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "FAISS"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "index_type": {
+          "type": [
+            "string"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_available_index_types"
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "mlindex_asset_id": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "Registered Index"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_registered_mlindices"
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "mlindex_content": {
+          "type": [
+            "string"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "generated_by": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.forward_mapping",
+            "func_kwargs": [
+              {
+                "name": "index_type",
+                "reference": "${inputs.index_type}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "mlindex_asset_id",
+                "optional": true,
+                "reference": "${inputs.mlindex_asset_id}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "mlindex_path",
+                "optional": true,
+                "reference": "${inputs.mlindex_path}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "acs_index_connection",
+                "optional": true,
+                "reference": "${inputs.acs_index_connection}",
+                "type": [
+                  "CognitiveSearchConnection"
+                ]
+              },
+              {
+                "name": "acs_index_name",
+                "optional": true,
+                "reference": "${inputs.acs_index_name}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "acs_content_field",
+                "optional": true,
+                "reference": "${inputs.acs_content_field}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "acs_embedding_field",
+                "optional": true,
+                "reference": "${inputs.acs_embedding_field}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "acs_metadata_field",
+                "optional": true,
+                "reference": "${inputs.acs_metadata_field}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "semantic_configuration",
+                "optional": true,
+                "reference": "${inputs.semantic_configuration}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "faiss_index_path",
+                "optional": true,
+                "reference": "${inputs.faiss_index_path}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "pinecone_index_connection",
+                "optional": true,
+                "reference": "${inputs.pinecone_index_connection}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "pinecone_index_name",
+                "optional": true,
+                "reference": "${inputs.pinecone_index_name}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "pinecone_content_field",
+                "optional": true,
+                "reference": "${inputs.pinecone_content_field}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "pinecone_metadata_field",
+                "optional": true,
+                "reference": "${inputs.pinecone_metadata_field}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "embedding_type",
+                "optional": true,
+                "reference": "${inputs.embedding_type}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "aoai_embedding_connection",
+                "optional": true,
+                "reference": "${inputs.aoai_embedding_connection}",
+                "type": [
+                  "AzureOpenAIConnection"
+                ]
+              },
+              {
+                "name": "oai_embedding_connection",
+                "optional": true,
+                "reference": "${inputs.oai_embedding_connection}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "embedding_model",
+                "optional": true,
+                "reference": "${inputs.embedding_model}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "embedding_deployment",
+                "optional": true,
+                "reference": "${inputs.embedding_deployment}",
+                "type": [
+                  "string"
+                ]
+              },
+              {
+                "name": "serverless_embedding_connection",
+                "optional": true,
+                "reference": "${inputs.serverless_embedding_connection}",
+                "type": [
+                  "string"
+                ]
+              }
+            ],
+            "reverse_func_path": "promptflow_vectordb.tool.common_index_lookup_utils.reverse_mapping"
+          },
+          "input_type": "default"
+        },
+        "mlindex_path": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "MLIndex file from path"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "oai_embedding_connection": {
+          "type": [
+            "OpenAIConnection"
+          ],
+          "enabled_by": "embedding_type",
+          "enabled_by_value": [
+            "OpenAI"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "pinecone_content_field": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "Pinecone"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "pinecone_index_connection": {
+          "type": [
+            "PineconeConnection"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "Pinecone"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_pinecone_connections"
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "pinecone_index_name": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "Pinecone"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_pinecone_indices",
+            "func_kwargs": [
+              {
+                "name": "pinecone_connection_name",
+                "optional": false,
+                "reference": "${inputs.pinecone_index_connection}",
+                "type": [
+                  "string"
+                ]
+              }
+            ]
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "pinecone_metadata_field": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "Pinecone"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "queries": {
+          "type": [
+            "object"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "default"
+        },
+        "query_type": {
+          "type": [
+            "string"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_available_query_types",
+            "func_kwargs": [
+              {
+                "name": "mlindex_content",
+                "optional": false,
+                "reference": "${inputs.mlindex_content}",
+                "type": [
+                  "string"
+                ]
+              }
+            ]
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "default"
+        },
+        "semantic_configuration": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "index_type",
+          "enabled_by_value": [
+            "Azure AI Search"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_acs_index_semantic_configurations",
+            "func_kwargs": [
+              {
+                "name": "acs_connection",
+                "optional": false,
+                "reference": "${inputs.acs_index_connection}",
+                "type": [
+                  "CognitiveSearchConnection"
+                ]
+              },
+              {
+                "name": "acs_index_name",
+                "optional": false,
+                "reference": "${inputs.acs_index_name}",
+                "type": [
+                  "string"
+                ]
+              }
+            ]
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "serverless_embedding_connection": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "embedding_type",
+          "enabled_by_value": [
+            "Serverless Endpoint"
+          ],
+          "dynamic_list": {
+            "func_path": "promptflow_vectordb.tool.common_index_lookup_utils.list_serverless_embedding_connections"
+          },
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "uionly_hidden"
+        },
+        "top_k": {
+          "type": [
+            "int"
+          ],
+          "default": 3,
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "default"
+        }
+      },
+      "description": "Search an AzureML Vector Index for relevant results using one or more text queries.",
+      "module": "promptflow_vectordb.tool.common_index_lookup",
+      "function": "search",
+      "is_builtin": true,
+      "package": "promptflow_vectordb",
+      "package_version": "0.2.6",
+      "enable_kwargs": false,
+      "tool_state": "preview",
+      "toolId": "promptflow_vectordb.tool.common_index_lookup.search"
+    }
+  },
+  "code": {
+    "ragcore/prompt_templates/generateReply.jinja2": {
+      "name": "generateReply.jinja2",
+      "type": "prompt",
+      "inputs": {
+        "indomain": {
+          "type": [
+            "string"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "True"
+        },
+        "inputs": {
+          "type": [
+            "string"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false
+        },
+        "role_info": {
+          "type": [
+            "string"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false
+        }
+      },
+      "source": "ragcore/prompt_templates/generateReply.jinja2",
+      "is_builtin": false,
+      "toolId": "ragcore/prompt_templates/generateReply.jinja2"
+    },
+    "chunkDocuments.py": {
+      "name": "chunkDocuments.py",
+      "type": "python",
+      "inputs": {
+        "data_source": {
+          "type": [
+            "string"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false
+        },
+        "max_tokens": {
+          "type": [
+            "int"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "default",
+          "value": "1050"
+        },
+        "queries": {
+          "type": [
+            "object"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "${extractSearchIntent.output}"
+        },
+        "query_type": {
+          "type": [
+            "string"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false
+        },
+        "results": {
+          "type": [
+            "object"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "input_type": "default",
+          "value": "${querySearchResource.output}"
+        },
+        "top_k": {
+          "type": [
+            "int"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "5"
+        }
+      },
+      "source": "chunkDocuments.py",
+      "function": "chunk_documents",
+      "is_builtin": false,
+      "enable_kwargs": false,
+      "tool_state": "stable",
+      "toolId": "chunkDocuments.py"
+    },
+    "ragcore/prompt_templates/rewriteIntent.jinja2": {
+      "name": "rewriteIntent.jinja2",
+      "type": "prompt",
+      "inputs": {
+        "conversation": {
+          "type": [
+            "string"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false
+        }
+      },
+      "source": "ragcore/prompt_templates/rewriteIntent.jinja2",
+      "is_builtin": false,
+      "toolId": "ragcore/prompt_templates/rewriteIntent.jinja2"
+    },
+    "extractSearchIntent.py": {
+      "name": "extractSearchIntent.py",
+      "type": "python",
+      "inputs": {
+        "intent": {
+          "type": [
+            "object"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "${rewriteIntent.output}"
+        }
+      },
+      "source": "extractSearchIntent.py",
+      "function": "extract_search_intent",
+      "is_builtin": false,
+      "toolId": "extractSearchIntent.py"
+    },
+    "shouldGenerateReply.py": {
+      "name": "shouldGenerateReply.py",
+      "type": "python",
+      "inputs": {
+        "chunks": {
+          "type": [
+            "object"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "${selectChunks.output}"
+        },
+        "queries": {
+          "type": [
+            "object"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "${extractSearchIntent.output}"
+        }
+      },
+      "source": "shouldGenerateReply.py",
+      "function": "should_generate_reply",
+      "is_builtin": false,
+      "toolId": "shouldGenerateReply.py"
+    },
+    "filterChunks.py": {
+      "name": "filterChunks.py",
+      "type": "python",
+      "inputs": {
+        "min_score": {
+          "type": [
+            "double"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "0.3"
+        },
+        "results": {
+          "type": [
+            "object"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "${chunkDocuments.output}"
+        },
+        "top_k": {
+          "type": [
+            "int"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "5"
+        }
+      },
+      "source": "filterChunks.py",
+      "function": "select_chunks",
+      "is_builtin": false,
+      "toolId": "filterChunks.py"
+    },
+    "formatConversationForIntentRewriting.py": {
+      "name": "formatConversationForIntentRewriting.py",
+      "type": "python",
+      "inputs": {
+        "history": {
+          "type": [
+            "object"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "${inputs.chat_history}"
+        },
+        "max_tokens": {
+          "type": [
+            "int"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "2000"
+        },
+        "query": {
+          "type": [
+            "string"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "${inputs.query}"
+        }
+      },
+      "source": "formatConversationForIntentRewriting.py",
+      "function": "format_rewrite_intent_inputs",
+      "is_builtin": false,
+      "toolId": "formatConversationForIntentRewriting.py"
+    },
+    "formatReplyInputs.py": {
+      "name": "formatReplyInputs.py",
+      "type": "python",
+      "inputs": {
+        "chunks": {
+          "type": [
+            "object"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "${selectChunks.output}"
+        },
+        "history": {
+          "type": [
+            "object"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "${inputs.chat_history}"
+        },
+        "max_conversation_tokens": {
+          "type": [
+            "int"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "2000"
+        },
+        "max_tokens": {
+          "type": [
+            "int"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "5000"
+        },
+        "query": {
+          "type": [
+            "string"
+          ],
+          "allow_manual_entry": false,
+          "is_multi_select": false,
+          "value": "${inputs.query}"
+        }
+      },
+      "source": "formatReplyInputs.py",
+      "function": "format_generate_reply_inputs",
+      "is_builtin": false,
+      "toolId": "formatReplyInputs.py"
+    }
+  }
+}

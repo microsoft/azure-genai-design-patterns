@@ -1,0 +1,80 @@
+{
+  "nodes": {
+    "shouldGenerateReply": {
+      "variant_0": {
+        "inputs": {},
+        "inputsValue": {}
+      }
+    },
+    "selectChunks": {
+      "variant_0": {
+        "inputs": {},
+        "inputsValue": {}
+      }
+    },
+    "extractSearchIntent": {
+      "variant_0": {
+        "inputs": {},
+        "inputsValue": {}
+      }
+    },
+    "formatGenerateReplyInputs": {
+      "variant_0": {
+        "inputs": {},
+        "inputsValue": {}
+      }
+    },
+    "rewriteIntent": {
+      "variant_0": {
+        "inputs": {},
+        "inputsValue": {}
+      }
+    },
+    "chunkDocuments": {
+      "variant_0": {
+        "inputs": {},
+        "inputsValue": {}
+      }
+    },
+    "generateReply": {
+      "variant_0": {
+        "inputs": {},
+        "inputsValue": {}
+      }
+    },
+    "formatRewriteIntentInputs": {
+      "variant_0": {
+        "inputs": {},
+        "inputsValue": {}
+      }
+    },
+    "querySearchResource": {
+      "variant_0": {
+        "inputs": {
+          "embedding_model": [],
+          "serverless_embedding_connection": [],
+          "mlindex_asset_id": [],
+          "pinecone_index_connection": [],
+          "pinecone_index_name": [],
+          "semantic_configuration": [
+            {
+              "value": "akb-semantic-config"
+            }
+          ]
+        },
+        "inputsValue": {
+          "index_type": "Azure AI Search",
+          "acs_index_connection": "ragagent20aisearch",
+          "acs_content_field": "content",
+          "acs_embedding_field": "contentVector",
+          "acs_index_name": "rag-agent",
+          "acs_metadata_field": "metadata",
+          "embedding_type": "Azure OpenAI",
+          "aoai_embedding_connection": "aistudioeastus2713045711_aoai",
+          "embedding_deployment": "text-embedding-ada-002",
+          "semantic_configuration": "akb-semantic-config"
+        }
+      }
+    }
+  }
+}
