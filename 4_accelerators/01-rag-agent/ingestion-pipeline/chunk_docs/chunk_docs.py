@@ -88,12 +88,6 @@ def image_to_data_url(image):
     return f"data:{mime_type};base64,{base64_encoded_data}"
 
 
-# Generate chunks from markdown
-MAX_CHUNK_SIZE = 8000
-#TODO: Implement chunking for large text segments based on tokens not characters - use langchain?
-chunker = semchunk.chunkerify(tiktoken.encoding_for_model("gpt-4o"), MAX_CHUNK_SIZE)
-
-
 def generate_chunks_from_markdown(doc_layout):
     """Generates chunks from the markdown content of a document layout."""
     raw_chunks = doc_layout.content.split("## ")
@@ -110,6 +104,9 @@ def generate_chunks_from_markdown(doc_layout):
         sub_chunks = []
         #TODO: Implement chunking for large text segments based on tokens not characters
         if len(content) > MAX_CHUNK_SIZE:
+            # Generate chunks from markdown
+            #TODO: Implement chunking for large text segments based on tokens not characters - use langchain?
+            chunker = semchunk.chunkerify(tiktoken.encoding_for_model("gpt-4o"), MAX_CHUNK_SIZE)
             chunked_content = chunker(content)
             for chunk in chunked_content:
                 sub_chunks.append({"title": title, "content": chunk})
@@ -289,37 +286,52 @@ def init():
     # Retrieve output from arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--chunks_folder", type=str)
+    parser.add_argument("--gpt4o_deployment_name", type=str)
+    parser.add_argument("--whisper_deployment_name", type=str)
+    parser.add_argument("--openai_embedding_model", type=str)
+    parser.add_argument("--aoai_api_version", type=str)
+    parser.add_argument("--doc_intel_api_version", type=str)
+    parser.add_argument("--speech_region", type=str)
+    parser.add_argument("--max_chunk_size", type=str)
     args, _ = parser.parse_known_args()
     global chunks_folder_path
     chunks_folder_path = args.chunks_folder
-    # Setup Document Intelligence client
-    document_intelligence_endpoint = getenv("AZURE-DOCUMENT-INTELLIGENCE-ENDPOINT")
-    document_intelligence_key = getenv("AZURE-DOCUMENT-INTELLIGENCE-KEY")
-    global document_intelligence_client
-    document_intelligence_client = DocumentIntelligenceClient(
-        endpoint=document_intelligence_endpoint,
-        credential=AzureKeyCredential(document_intelligence_key),
-        api_version="2024-02-29-preview",
-    )
     # Setup Azure OpenAI client for GPT-4o for vision and Whisper for Speech Transcription
     global gpt4o_deployment_name
-    gpt4o_deployment_name = "gpt-4o-global"
-    # setup OpenAI Whisper model
+    gpt4o_deployment_name = args.gpt4o_deployment_name
     global whisper_deployment_name
-    whisper_deployment_name = "whisper"
-    # setup OpenAI embedding model
+    whisper_deployment_name = args.whisper_deployment_name
     global openai_embedding_model
-    openai_embedding_model = "text-embedding-3-large"
+    openai_embedding_model = args.openai_embedding_model
+    global aoai_api_version
+    aoai_api_version = args.aoai_api_version
     global aoai_client
     aoai_client = AzureOpenAI(
         azure_endpoint=getenv("AZURE-OPENAI-ENDPOINT"),
         api_key=getenv("AZURE-OPENAI-API-KEY"),
-        api_version="2024-06-01",
+        api_version=aoai_api_version,
     )
+    # Setup Document Intelligence client
+    document_intelligence_endpoint = getenv("AZURE-DOCUMENT-INTELLIGENCE-ENDPOINT")
+    document_intelligence_key = getenv("AZURE-DOCUMENT-INTELLIGENCE-KEY")
+    global doc_intel_api_version
+    doc_intel_api_version = args.doc_intel_api_version
+    global document_intelligence_client
+    document_intelligence_client = DocumentIntelligenceClient(
+        endpoint=document_intelligence_endpoint,
+        credential=AzureKeyCredential(document_intelligence_key),
+        api_version=doc_intel_api_version,
+    )
+    # Set up Speech Transcription configuration
+    global speech_region
+    speech_region = args.speech_region
     global speech_config
     speech_config = speechsdk.SpeechConfig(
-        subscription=getenv("AZURE-SPEECH-SERVICE-KEY"), region="eastus"
+        subscription=getenv("AZURE-SPEECH-SERVICE-KEY"), region=speech_region
     )
+    # Set up maximum chunk size
+    global MAX_CHUNK_SIZE
+    MAX_CHUNK_SIZE = int(args.max_chunk_size)
 
 
 ALLOWED_SPEECH_FILE_TYPES = {"mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"}

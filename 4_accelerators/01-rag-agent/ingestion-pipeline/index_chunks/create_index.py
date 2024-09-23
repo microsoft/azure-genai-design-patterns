@@ -7,8 +7,6 @@ from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.indexes.models import *
 from azureml.core import Run, Workspace
 
-# index name
-azure_ai_search_index = "rag-agent"
 # get keys from Azure Key Vault
 try:
     keyvault = Run.get_context().experiment.workspace.get_default_keyvault()
@@ -23,8 +21,13 @@ def getenv(key):
 # retrieve arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--log_file", type=str)
+parser.add_argument("--azure_ai_search_index_name", type=str)
+parser.add_argument("--azure_ai_vector_search_dimensions", type=str)
 args, _ = parser.parse_known_args()
 log_file_path = args.log_file if args.log_file else None
+azure_ai_search_index_name = args.azure_ai_search_index_name
+azure_ai_vector_search_dimensions = int(args.azure_ai_vector_search_dimensions)
+print(f"Creating index {azure_ai_search_index_name} with vector_search_dimensions={azure_ai_vector_search_dimensions} ...")
 
 # Create a search index
 index_client = SearchIndexClient(
@@ -42,7 +45,7 @@ fields = [
         name="contentVector",
         type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
         searchable=True,
-        vector_search_dimensions=3072, #TODO: Make this a variable value so users can swap between ada-002 at 1536 and ada-003-large at 3072
+        vector_search_dimensions=azure_ai_vector_search_dimensions, # variable value so users can swap between ada-002 at 1536 and ada-003-large at 3072
         vector_search_profile_name="myHnswProfile",
     ),
 ]
@@ -92,9 +95,10 @@ semantic_config = SemanticConfiguration(
 semantic_search = SemanticSearch(configurations=[semantic_config])
 
 # Create the search index with the semantic settings
-result = index_client.delete_index(azure_ai_search_index)
+print(f"Creating index {azure_ai_search_index_name} ...")
+result = index_client.delete_index(azure_ai_search_index_name)
 index = SearchIndex(
-    name=azure_ai_search_index,
+    name=azure_ai_search_index_name,
     fields=fields,
     vector_search=vector_search,
     semantic_search=semantic_search,

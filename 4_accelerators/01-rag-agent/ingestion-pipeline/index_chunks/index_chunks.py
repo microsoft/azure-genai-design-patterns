@@ -1,4 +1,5 @@
 #
+import argparse
 import json
 import logging
 import os
@@ -13,9 +14,6 @@ from azureml.core import Run, Workspace
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-#
-azure_search_index = "rag-agent"
 
 # get keys from Azure Key Vault
 try:
@@ -32,12 +30,16 @@ def getenv(key):
 def init():
 
     print("index_chunks.init()")
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--azure_ai_search_index_name", type=str)
+    args, _ = parser.parse_known_args()
     # setup AI Search index client
+    global azure_ai_search_index_name
+    azure_ai_search_index_name = args.azure_ai_search_index_name
     global search_client
     search_client = SearchClient(
         endpoint=getenv("AZURE-AI-SEARCH-ENDPOINT"),
-        index_name=azure_search_index,
+        index_name=azure_ai_search_index_name,
         credential=AzureKeyCredential(getenv("AZURE-AI-SEARCH-ADMIN-API-KEY")),
     )
 
