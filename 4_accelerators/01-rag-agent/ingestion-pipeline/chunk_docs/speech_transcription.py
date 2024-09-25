@@ -313,7 +313,7 @@ def build_chunk(chunk_type, chunk_index, title, content, doc_layout):
     return chunk
 
 
-def generate_chunks_from_stt(stt_output_text: str, file_path: str) -> list:
+def generate_chunks_from_stt(stt_output_text: str, file_path: str, max_chunk_size: int) -> list:
     """
     Generates chunks from the output of speech_transcription.
 
@@ -324,7 +324,6 @@ def generate_chunks_from_stt(stt_output_text: str, file_path: str) -> list:
     Returns:
         list: A list of dictionaries - the chunks of text from audio transcription files.
     """
-    max_chunk_size = 8000
     chunker = semchunk.chunkerify(tiktoken.encoding_for_model("gpt-4o"), max_chunk_size)
     doc_file_name = os.path.basename(file_path)
     stt_output_dict = {"document_name": doc_file_name, "content": stt_output_text}

@@ -102,7 +102,6 @@ def generate_chunks_from_markdown(doc_layout):
             logger.error("Error splitting chunk: %s ", raw_chunk)
             raise ValueError("Error splitting chunk: %s ", raw_chunk)
         sub_chunks = []
-        #TODO: Implement chunking for large text segments based on tokens not characters
         if len(content) > MAX_CHUNK_SIZE:
             # Generate chunks from markdown
             #TODO: Implement chunking for large text segments based on tokens not characters - use langchain?
@@ -133,7 +132,7 @@ def generate_chunk_from_image(chunk_index, image, doc_layout):
     """Generates a chunk from an image using GPT-4 vision model."""
     print("Generating chunk from image ...")
     image_url = image_to_data_url(image)
-    print("Image URL:", image_url)
+    # print("Image URL:", image_url)
 
     try:
         response = aoai_client.chat.completions.create(
@@ -334,29 +333,34 @@ def init():
     MAX_CHUNK_SIZE = int(args.max_chunk_size)
 
 
-ALLOWED_SPEECH_FILE_TYPES = {"mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"}
+
 
 
 def run(mini_batch):
     """Processes a mini-batch of document files, chunking them into text and image segments."""
     logger.info("chunk_docs.run(%s)", mini_batch)
     results = []
+    ALLOWED_SPEECH_FILE_TYPES = {"mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"}
     for doc_file_path in mini_batch:
         doc_file_name = os.path.basename(doc_file_path)
         # Find the file extension type and evaluate if it is an audio file
         file_extension = doc_file_path.split(".")[-1].lower()
+        print("File extension:", file_extension)
         # First check is to see if AOAI Whisper supports the file type
         # Azure Speech is only set to use .mp3 and .wav in this code
         if file_extension in ALLOWED_SPEECH_FILE_TYPES:
             try:
                 # Transcribe the audio file
-                print("Transcribing audio file...")
+                print(f"Transcribing audio file...{doc_file_name}")
                 logger.info("Transcribing audio file...")
                 stt_output_text = st.speech_transcription(
                     speech_config, aoai_client, doc_file_path
                 )
                 # Generate chunks from the STT output
-                chunks = st.generate_chunks_from_stt(stt_output_text, doc_file_path)
+                print("Generating chunks from STT output...")
+                logger.info("Generating chunks from STT output...")
+                print("Max chunk size for STT: ", MAX_CHUNK_SIZE)
+                chunks = st.generate_chunks_from_stt(stt_output_text, doc_file_path, MAX_CHUNK_SIZE)
                 # Save the chunks
                 for i, chunk in enumerate(chunks):
                     chunk_file_name = f"{doc_file_name}_{i}.json"
