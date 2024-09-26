@@ -58,15 +58,17 @@ jobs:
       code: chunk_docs
       entry_script: chunk_docs.py
       environment: azureml:rag-agent-chunkdocs@latest
-      program_arguments: --chunks_folder ${{outputs.chunks_folder}}
-                         --log_file ${{outputs.log_file}}
-                         --gpt4o_deployment_name ${{inputs.gpt4o_deployment_name}}
-                         --whisper_deployment_name ${{inputs.whisper_deployment_name}}
-                         --openai_embedding_model ${{inputs.openai_embedding_model}}
-                         --aoai_api_version ${{inputs.aoai_api_version}}
-                         --doc_intel_api_version ${{inputs.doc_intel_api_version}}
-                         --speech_region ${{inputs.speech_region}}
-                         --max_chunk_size ${{inputs.max_chunk_size}}
+      program_arguments: >- 
+        --chunks_folder ${{outputs.chunks_folder}}
+        --log_file ${{outputs.log_file}}
+        --gpt4o_deployment_name ${{inputs.gpt4o_deployment_name}}
+        --whisper_deployment_name ${{inputs.whisper_deployment_name}}
+        --openai_embedding_model ${{inputs.openai_embedding_model}}
+        --aoai_api_version ${{inputs.aoai_api_version}}
+        --doc_intel_api_version ${{inputs.doc_intel_api_version}}
+        --speech_region ${{inputs.speech_region}}
+        --max_chunk_size ${{inputs.max_chunk_size}}
+        --copy_logs_to_parent True
       append_row_to: ${{outputs.log_file}}
 
   create_index:
@@ -113,7 +115,7 @@ jobs:
     resources:
       instance_count: 1
       instance_type: Standard_F4s_v2
-    max_concurrency_per_instance: 4
+    max_concurrency_per_instance: 3
     logging_level: "DEBUG"
     mini_batch_error_threshold: 1
     mini_batch_size: "1"
@@ -125,6 +127,8 @@ jobs:
       code: index_chunks
       entry_script: index_chunks.py
       environment: azureml:rag-agent-indexchunks@latest
-      program_arguments: --log_file ${{outputs.log_file}}
-                         --azure_ai_search_index_name ${{inputs.azure_ai_search_index_name}}
+      program_arguments: >-
+        --log_file ${{outputs.log_file}}
+        --azure_ai_search_index_name ${{inputs.azure_ai_search_index_name}}
+        --copy_logs_to_parent True
       append_row_to: ${{outputs.log_file}}
