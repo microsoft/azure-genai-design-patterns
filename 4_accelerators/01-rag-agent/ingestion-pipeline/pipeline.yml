@@ -3,7 +3,7 @@ type: pipeline
 display_name: rag-agent
 description: "Pipeline to ingest and index documents for RAG 2.0 agent."
 settings:
-  force_rerun: false
+  force_rerun: true
 
 inputs:
   pipeline_job_gpt4o_deployment_name: "gpt-4o-global"
@@ -46,12 +46,12 @@ jobs:
     resources:
       instance_count: 1
       instance_type: Standard_F4s_v2
-    max_concurrency_per_instance: 4
+    max_concurrency_per_instance: 2
     logging_level: "DEBUG"
-    mini_batch_error_threshold: 1
+    mini_batch_error_threshold: 2
     mini_batch_size: "1"
     retry_settings:
-      max_retries: 1
+      max_retries: 2
       timeout: 600
     task:
       type: run_function
