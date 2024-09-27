@@ -10,13 +10,14 @@ import cv2
 import document_intelligence_reader as docreader
 import numpy as np
 import pandas as pd
-import semchunk
 import speech_transcription as st
 import tiktoken
 from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.ai.documentintelligence.models import AnalyzeDocumentRequest
 from azure.core.credentials import AzureKeyCredential
 from azureml.core import Run, Workspace
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain_openai.embeddings import AzureOpenAIEmbeddings
 from openai import AzureOpenAI
 from pdf2image import convert_from_path
 from tenacity import retry, stop_after_attempt, wait_random_exponential
@@ -59,12 +60,11 @@ def getenv(key):
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 def generate_text_embeddings(text):
     return (
-        aoai_client.embeddings.create(
-            input=[text], model=openai_embedding_model
-        )
+        aoai_client.embeddings.create(input=[text], model=openai_embedding_model)
         .data[0]
         .embedding
     )
+
 
 def build_chunk(chunk_type, chunk_index, title, content, doc_layout):
     """Builds a chunk dictionary with metadata for a document segment."""
@@ -103,12 +103,10 @@ def generate_chunks_from_markdown(doc_layout):
             raise ValueError("Error splitting chunk: %s ", raw_chunk)
         sub_chunks = []
         if len(content) > MAX_CHUNK_SIZE:
-            # Generate chunks from markdown
-            #TODO: Implement chunking for large text segments based on tokens not characters - use langchain?
-            chunker = semchunk.chunkerify(tiktoken.encoding_for_model("gpt-4o"), MAX_CHUNK_SIZE)
-            chunked_content = chunker(content)
+            # Generate chunks from markdown using langchain
+            chunked_content = text_splitter.create_documents([content])
             for chunk in chunked_content:
-                sub_chunks.append({"title": title, "content": chunk})
+                sub_chunks.append({"title": title, "content": chunk.page_content})
         else:
             # Append everything to sub_chunks if it's not larger than 8k characters
             sub_chunks.append({"title": title, "content": content})
@@ -133,7 +131,6 @@ def generate_chunk_from_image(chunk_index, image, doc_layout):
     print("Generating chunk from image ...")
     image_url = image_to_data_url(image)
     # print("Image URL:", image_url)
-
     try:
         response = aoai_client.chat.completions.create(
             model=gpt4o_deployment_name,
@@ -149,20 +146,15 @@ def generate_chunk_from_image(chunk_index, image, doc_layout):
             ],
             max_tokens=2000,
         )
-
         print("Response:", response)
         response_content = response.choices[0].message.content
-
         # Separate the title and content based on the delimiter from GPT-4o
         print("Response content:", response_content)
         response_parsed = response_content.split("==========")
         print("Response parsed:", response_parsed)
-
         title = response_parsed[0].strip()
         content = response_parsed[1].strip()
-
         return build_chunk("image", chunk_index, title, content, doc_layout)
-
     except IndexError as ie:
         logger.error("IndexError: %s", ie)
         logger.error("Failed to parse response: %s", response_content)
@@ -217,6 +209,7 @@ def bounding_box(nested_points):
 
 # Chunk document
 DPI = 300
+
 
 def chunk_document(doc_file_path, doc_layout):
     """Chunks a document into text and image chunks."""
@@ -275,7 +268,6 @@ def chunk_document(doc_file_path, doc_layout):
                     page,
                     polygon,
                 )
-
     return chunks
 
 
@@ -291,10 +283,13 @@ def init():
     parser.add_argument("--aoai_api_version", type=str)
     parser.add_argument("--doc_intel_api_version", type=str)
     parser.add_argument("--speech_region", type=str)
-    parser.add_argument("--max_chunk_size", type=str)
+    parser.add_argument("--max_chunk_size", type=int)
+    parser.add_argument("--breakpoint_threshold_type", type=str)
+    parser.add_argument("--breakpoint_threshold_amount", type=float)
     args, _ = parser.parse_known_args()
     global chunks_folder_path
     chunks_folder_path = args.chunks_folder
+
     # Setup Azure OpenAI client for GPT-4o for vision and Whisper for Speech Transcription
     global gpt4o_deployment_name
     gpt4o_deployment_name = args.gpt4o_deployment_name
@@ -310,6 +305,7 @@ def init():
         api_key=getenv("AZURE-OPENAI-API-KEY"),
         api_version=aoai_api_version,
     )
+
     # Setup Document Intelligence client
     document_intelligence_endpoint = getenv("AZURE-DOCUMENT-INTELLIGENCE-ENDPOINT")
     document_intelligence_key = getenv("AZURE-DOCUMENT-INTELLIGENCE-KEY")
@@ -321,6 +317,7 @@ def init():
         credential=AzureKeyCredential(document_intelligence_key),
         api_version=doc_intel_api_version,
     )
+
     # Set up Speech Transcription configuration
     global speech_region
     speech_region = args.speech_region
@@ -328,12 +325,27 @@ def init():
     speech_config = speechsdk.SpeechConfig(
         subscription=getenv("AZURE-SPEECH-SERVICE-KEY"), region=speech_region
     )
+
     # Set up maximum chunk size
     global MAX_CHUNK_SIZE
     MAX_CHUNK_SIZE = int(args.max_chunk_size)
 
-
-
+    # Set up langchain text splitter
+    global breakpoint_threshold_type
+    breakpoint_threshold_type = args.breakpoint_threshold_type
+    global breakpoint_threshold_amount
+    breakpoint_threshold_amount = float(args.breakpoint_threshold_amount)
+    global text_splitter
+    text_splitter = SemanticChunker(
+        AzureOpenAIEmbeddings(
+            azure_endpoint=getenv("AZURE-OPENAI-ENDPOINT"),
+            deployment=openai_embedding_model,
+            openai_api_key=getenv("AZURE-OPENAI-API-KEY"),
+            openai_api_version=aoai_api_version,
+        ),
+        breakpoint_threshold_type=breakpoint_threshold_type,
+        breakpoint_threshold_amount=breakpoint_threshold_amount,
+    )
 
 
 def run(mini_batch):
@@ -360,7 +372,12 @@ def run(mini_batch):
                 print("Generating chunks from STT output...")
                 logger.info("Generating chunks from STT output...")
                 print("Max chunk size for STT: ", MAX_CHUNK_SIZE)
-                chunks = st.generate_chunks_from_stt(stt_output_text, doc_file_path, MAX_CHUNK_SIZE)
+                chunks = st.generate_chunks_from_stt(
+                    stt_output_text,
+                    doc_file_path,
+                    MAX_CHUNK_SIZE,
+                    text_splitter
+                )
                 # Save the chunks
                 for i, chunk in enumerate(chunks):
                     chunk_file_name = f"{doc_file_name}_{i}.json"
@@ -385,7 +402,11 @@ def run(mini_batch):
                     doc_layout = analyze_layout(analyze_request)
                     # Adding metadata
                     doc_layout["document_name"] = doc_file_name
-                    print("Document layout:", doc_layout["document_name"], " has completed in Document Intelligence")
+                    print(
+                        "Document layout:",
+                        doc_layout["document_name"],
+                        " has completed in Document Intelligence",
+                    )
                     # Chunk document and save chunks
                     chunks = chunk_document(doc_file_path, doc_layout)
                     for i, chunk in enumerate(chunks):

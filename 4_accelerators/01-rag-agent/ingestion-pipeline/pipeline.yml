@@ -15,6 +15,8 @@ inputs:
   pipeline_job_max_chunk_size: 8000
   pipeline_job_azure_ai_search_index_name: "rag-agent"
   pipeline_job_vector_search_dimensions: 3072
+  pipeline_breakpoint_threshold_type: "standard_deviation"
+  pipeline_breakpoint_threshold_amount: 2.5
 
 jobs:
 
@@ -32,6 +34,8 @@ jobs:
       doc_intel_api_version: ${{parent.inputs.pipeline_job_doc_intel_api_version}}
       speech_region: ${{parent.inputs.pipeline_job_speech_region}}
       max_chunk_size: ${{parent.inputs.pipeline_job_max_chunk_size}}
+      breakpoint_threshold_type: ${{parent.inputs.pipeline_breakpoint_threshold_type}}
+      breakpoint_threshold_amount: ${{parent.inputs.pipeline_breakpoint_threshold_amount}}
     outputs:
       chunks_folder:
         type: uri_folder
@@ -68,6 +72,8 @@ jobs:
         --doc_intel_api_version ${{inputs.doc_intel_api_version}}
         --speech_region ${{inputs.speech_region}}
         --max_chunk_size ${{inputs.max_chunk_size}}
+        --breakpoint_threshold_type ${{inputs.breakpoint_threshold_type}}
+        --breakpoint_threshold_amount ${{inputs.breakpoint_threshold_amount}}
         --copy_logs_to_parent True
       append_row_to: ${{outputs.log_file}}
 

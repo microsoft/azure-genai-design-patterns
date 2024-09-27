@@ -5,8 +5,9 @@ import os
 import time
 
 import azure.cognitiveservices.speech as speechsdk
-import semchunk
 import tiktoken
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain_openai.embeddings import AzureOpenAIEmbeddings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,7 +20,6 @@ logger = logging.getLogger(__name__)
 class BinaryFileReaderCallback(speechsdk.audio.PullAudioInputStreamCallback):
     """
     A callback class to read audio data from a binary file.
-
     Attributes:
         _file_handle: A file handle for reading the binary file.
     """
@@ -27,7 +27,6 @@ class BinaryFileReaderCallback(speechsdk.audio.PullAudioInputStreamCallback):
     def __init__(self, filename: str):
         """
         Initializes the BinaryFileReaderCallback with the given filename.
-
         Args:
             filename (str): The path to the binary file to be read.
         """
@@ -37,10 +36,8 @@ class BinaryFileReaderCallback(speechsdk.audio.PullAudioInputStreamCallback):
     def read(self, buffer: memoryview) -> int:
         """
         Reads data into the buffer from the binary file.
-
         Args:
             buffer (memoryview): A memoryview object to store the read data.
-
         Returns:
             int: The number of bytes read.
         """
@@ -52,6 +49,7 @@ class BinaryFileReaderCallback(speechsdk.audio.PullAudioInputStreamCallback):
         except Exception as ex:
             logger.error("Exception in `read`: %s", ex)
             raise
+
 
     def close(self) -> None:
         """
@@ -119,10 +117,8 @@ def compressed_stream_helper(speech_config, compressed_format, file_path) -> str
 def pull_audio_input_stream_compressed_mp3(speech_config, mp3_file_path: str) -> str:
     """
     Processes an MP3 file to extract and recognize speech using Azure Cognitive Services.
-
     Args:
         mp3_file_path (str): The path to the MP3 file.
-
     Returns:
         str: The full transcript of the recognized speech.
     """
@@ -136,10 +132,8 @@ def pull_audio_input_stream_compressed_mp3(speech_config, mp3_file_path: str) ->
 def pull_audio_input_stream_wav(speech_config, wav_file_path: str) -> str:
     """
     Processes a WAV file to extract and recognize speech using Azure Cognitive Services.
-
     Args:
         wav_file_path (str): The path to the WAV file.
-
     Returns:
         str: The full transcript of the recognized speech.
     """
@@ -185,19 +179,19 @@ def whisper_transcription_text(
 ) -> str:
     """
     Transcribes an audio file using the Whisper API.
-
     Args:
         whisper_client: The Azure OpenAI client instance for interacting with the Whisper API.
-        audio_file_path (str): The path to the audio file to be transcribed. 
+        audio_file_path (str): The path to the audio file to be transcribed.
             Must be one of 'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'wav', 'webm' types.
-        whisper_deployment_id (str, optional): The model deployment ID to use for transcription. 
+        whisper_deployment_id (str, optional): The model deployment ID to use for transcription.
             Defaults to 'whisper'.
-
     Returns:
         str: The transcribed text from the audio file.
     """
     logger.info(
-        "Transcribing audio file: %s with deployment ID: %s", audio_file_path, whisper_deployment_id
+        "Transcribing audio file: %s with deployment ID: %s",
+        audio_file_path,
+        whisper_deployment_id,
     )
     with open(audio_file_path, "rb") as audio_file:
         transcription_result = whisper_client.audio.transcriptions.create(
@@ -255,11 +249,9 @@ def speech_transcription(speech_config, whisper_client, file_path: str) -> str:
     Main function to process the audio file based on its format.
 
     Args:
-        file_path (str): The path to the audio file.
-        speech_key (str): Azure Speech API subscription key.
-        speech_region (str): Azure Speech API service region.
+        speech_config: The speech configuration object for Azure Speech API.
         whisper_client: The Azure client object from the AzureOpenAI sdk.
-
+        file_path (str): The path to the audio file.
     Returns:
         str: The full transcript of the recognized speech.
     """
@@ -290,14 +282,12 @@ def speech_transcription(speech_config, whisper_client, file_path: str) -> str:
 def build_chunk(chunk_type, chunk_index, title, content, doc_layout):
     """
     Builds a chunk dictionary with metadata for a document segment.
-
     Args:
         chunk_type (str): Type of the chunk.
         chunk_index (int): Index of the chunk.
         title (str): Title of the chunk.
         content (str): Content of the chunk.
         doc_layout (dict): Layout of the document.
-
     Returns:
         dict: A dictionary containing chunk metadata.
     """
@@ -313,87 +303,51 @@ def build_chunk(chunk_type, chunk_index, title, content, doc_layout):
     return chunk
 
 
-def generate_chunks_from_stt(stt_output_text: str, file_path: str, max_chunk_size: int) -> list:
+def generate_chunks_from_stt(
+    stt_output_text: str,
+    file_path: str,
+    max_chunk_size: int,
+    text_splitter,
+) -> list:
     """
     Generates chunks from the output of speech_transcription.
-
     Args:
+        stt_output_text (str): The full transcript of the recognized speech.
         file_path (str): The path to the audio file.
-        stt_output_text (str): The full transcript of the recognized speech..
-
+        max_chunk_size (int): The maximum size of each chunk.
+        text_splitter: The LangChain text splitter object for splitting the text into semantic chunks.
     Returns:
         list: A list of dictionaries - the chunks of text from audio transcription files.
     """
-    chunker = semchunk.chunkerify(tiktoken.encoding_for_model("gpt-4o"), max_chunk_size)
+
     doc_file_name = os.path.basename(file_path)
     stt_output_dict = {"document_name": doc_file_name, "content": stt_output_text}
     chunk_index = 0
     chunks = []
-    sub_chunks = []
 
     if len(stt_output_text) > max_chunk_size:
-        chunked_content = chunker(stt_output_text)
+        chunked_content = text_splitter.create_documents([stt_output_text])
         for chunk in chunked_content:
-            sub_chunks.append(
-                {"title": stt_output_dict["document_name"], "content": chunk}
+            content = chunk.page_content
+            chunks.append(
+                build_chunk(
+                    "audio",
+                    chunk_index,
+                    stt_output_dict["document_name"],
+                    content,
+                    stt_output_dict,
+                )
             )
+            chunk_index += 1
     else:
-        sub_chunks.append(
-            {"title": stt_output_dict["document_name"], "content": stt_output_text}
-        )
-
-    for sub_chunk in sub_chunks:
         chunks.append(
             build_chunk(
                 "audio",
                 chunk_index,
-                sub_chunk["title"],
-                sub_chunk["content"],
+                stt_output_dict["document_name"],
+                stt_output_text,
                 stt_output_dict,
             )
         )
-        chunk_index += 1
+
     return chunks
-
-
-# ################################################################################
-# Example usage:
-# ################################################################################
-# Set the file path for the audio file to be transcribed
-# file_path = "path_to/your_audio/file/azure-genai-design-patterns/4_accelerators/01-rag-agent/data/Introducing GPT-4.mp3"
-# gpt-4o-system-card.pdf Introducing GPT-4.wav
-
-# Create the speech configuration object with key and region
-# speech_key = ""
-# speech_region = "eastus"
-# speech_config = speechsdk.SpeechConfig(
-#         subscription=speech_key,
-#         region=speech_region
-#     )
-
-# Create the Azure OpenAI client object
-# aoai_key=""
-# aoai_api_version="2024-06-01"
-# aoai_endpoint=""
-# aoai_client = AzureOpenAI(
-#     azure_endpoint = aoai_endpoint,
-#     api_key = aoai_key,
-#     api_version = aoai_api_version
-#     )
-
-# Provide the deployment IDs for the Whisper and GPT-4o models
-# whisper_deployment_id="whisper"
-# gpt4o_deployment_id="gpt-4o-global"
-
-# Transcribe the audio file
-# stt_output_text = speech_transcription(speech_config, aoai_client, file_path)
-
-# Print the STT output text
-# logger.info(stt_output_text)
-
-# Generate chunks from the STT output
-# chunks = generate_chunks_from_stt(stt_output_text, file_path)
-
-# Print the chunks
-# for chunk in chunks:
-#     logger.info(chunk)

@@ -19,3 +19,5 @@ dependencies:
   - tenacity
   - tiktoken
   - azure-cognitiveservices-speech
+  - langchain_experimental
+  - langchain_openai
