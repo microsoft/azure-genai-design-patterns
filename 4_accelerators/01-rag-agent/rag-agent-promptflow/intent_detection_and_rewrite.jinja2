@@ -56,3 +56,13 @@ system:
 
 user:
 Please generate search queries for the conversation above based on instructions above to help answer the "Current user question".
+
+{% for item in chat_history %}
+user:
+{{item.inputs.question}}
+assistant:
+{{item.outputs.answer}}
+{% endfor %}
+
+user:
+{{question}}

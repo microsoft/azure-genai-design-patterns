@@ -2,59 +2,19 @@
   "orientation": "Vertical",
   "nodeLayouts": {
     "inputs": {
-      "x": 407.5,
-      "y": 62,
+      "x": 290,
+      "y": 42,
       "index": -1
     },
     "outputs": {
-      "x": 297,
-      "y": 1052,
+      "x": 220,
+      "y": 310,
       "index": -1
     },
-    "formatRewriteIntentInputs": {
-      "x": 122.5,
-      "y": 172,
+    "conversation_continuation_detection": {
+      "x": 140,
+      "y": 176,
       "index": 0
-    },
-    "rewriteIntent": {
-      "x": 122.5,
-      "y": 282,
-      "index": 1
-    },
-    "extractSearchIntent": {
-      "x": 122.5,
-      "y": 392,
-      "index": 2
-    },
-    "chunkDocuments": {
-      "x": 67,
-      "y": 612,
-      "index": 4
-    },
-    "selectChunks": {
-      "x": 67,
-      "y": 722,
-      "index": 5
-    },
-    "shouldGenerateReply": {
-      "x": 177.5,
-      "y": 832,
-      "index": 6
-    },
-    "formatGenerateReplyInputs": {
-      "x": 527.5,
-      "y": 832,
-      "index": 7
-    },
-    "generateReply": {
-      "x": 357.5,
-      "y": 942,
-      "index": 8
-    },
-    "querySearchResource": {
-      "x": 12,
-      "y": 502,
-      "index": 3
     }
   },
   "viewport": {
@@ -64,7 +24,7 @@
       0,
       1,
       110.8359375,
-      -174.5
+      738
     ]
   }
 }

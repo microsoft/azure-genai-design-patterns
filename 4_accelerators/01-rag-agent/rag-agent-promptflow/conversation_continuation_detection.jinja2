@@ -1,0 +1,19 @@
+
+system:
+## Task - Conversation Continuation or New Topic Detection
+- Your task is to review a conversation and determine if the user is continuing the conversation or introducing a new topic for the purposes of search query formulation.
+- If the user is continuing the conversation output [Continuation] and [Current topic: {item.inputs.topic}].
+- If the user is introducing a new topic output [New Topic] and [New topic: {item.inputs.topic}].
+
+## Output Format
+[Continuation] or [New Topic] followed by [Current topic: {{item.inputs.topic}}] and then supply a .
+
+{% for item in chat_history %}
+user:
+{{item.inputs.question}}
+assistant:
+{{item.outputs.answer}}
+{% endfor %}
+
+user:
+{{question}}

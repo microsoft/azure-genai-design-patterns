@@ -1,1 +1,38 @@
-{"chat_list": []}
+{
+  "chat_list": [
+    {
+      "name": "default",
+      "inputs": {
+        "question": "Are you able to tell me about GPT-4o and the omni models?",
+        "chat_history": [
+          {
+            "inputs": {
+              "question": "Let's run a test"
+            },
+            "outputs": {
+              "answer": "[New Topic] [New topic: test]"
+            }
+          },
+          {
+            "inputs": {
+              "question": "Hello, how are you doing today?"
+            },
+            "outputs": {
+              "answer": "[Continuation] [Current topic: test]"
+            }
+          },
+          {
+            "inputs": {
+              "question": "Are you able to tell me about GPT-4o and the omni models?"
+            },
+            "outputs": {
+              "answer": "[New Topic] [New topic: GPT-4o and omni models]"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "prompty_chat_list": [],
+  "init": {}
+}

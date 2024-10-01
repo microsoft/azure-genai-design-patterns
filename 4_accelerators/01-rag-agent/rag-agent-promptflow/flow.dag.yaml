@@ -1,171 +1,33 @@
 id: template_chat_flow
 name: Template Chat Flow
+environment:
+  python_requirements_txt: requirements.txt
 inputs:
   chat_history:
     type: list
-    default: []
     is_chat_input: false
     is_chat_history: true
-  query:
+  question:
     type: string
-    default: ""
     is_chat_input: true
 outputs:
-  reply:
+  answer:
     type: string
-    reference: ${generateReply.output}
+    reference: ${conversation_continuation_detection.output}
     is_chat_output: true
-  documents:
-    type: string
-    reference: ${selectChunks.output}
 nodes:
-- name: formatRewriteIntentInputs
-  type: python
-  source:
-    type: code
-    path: formatConversationForIntentRewriting.py
-  inputs:
-    history: ${inputs.chat_history}
-    max_tokens: 2000
-    query: ${inputs.query}
-  use_variants: false
-- name: rewriteIntent
+- name: conversation_continuation_detection
   type: llm
   source:
     type: code
-    path: ragcore/prompt_templates/rewriteIntent.jinja2
+    path: conversation_continuation_detection.jinja2
   inputs:
-    deployment_name: gpt-4o-global #TODO: make variable
-    temperature: 0.7
-    top_p: 0.95
-    max_tokens: 120
-    presence_penalty: 0
-    frequency_penalty: 0
-    conversation: ${formatRewriteIntentInputs.output}
-  provider: AzureOpenAI
-  connection: {youraistudioconnectionname} #TODO: make variable
+    deployment_name: gpt-4o-mini-global
+    temperature: 0
+    max_tokens: 200
+    response_format:
+      type: text
+    chat_history: ${inputs.chat_history}
+    question: ${inputs.question}
+  connection: ragagent20aiservices_aoai
   api: chat
-  module: promptflow.tools.aoai
-  use_variants: false
-- name: extractSearchIntent
-  type: python
-  source:
-    type: code
-    path: extractSearchIntent.py
-  inputs:
-    intent: ${rewriteIntent.output}
-  use_variants: false
-- name: querySearchResource
-  type: python
-  source:
-    type: package
-    tool: promptflow_vectordb.tool.common_index_lookup.search
-  inputs:
-    mlindex_content: >
-      embeddings:
-        api_base: https://{youraoairesourcename}.openai.azure.com/ #TODO: make variable
-        api_type: azure
-        api_version: 2024-06-01
-        batch_size: '1'
-        connection:
-          id: >-
-            /subscriptions/{subscriptionid}/resourceGroups/{resourcegroupname}/providers/Microsoft.MachineLearningServices/workspaces/{aistudioprojectname}/connections/{aoaiconnectionname}
-        connection_type: workspace_connection
-        deployment: {enmdeploymentname} #TODO: make variable
-        dimension: 3072
-        kind: open_ai
-        model: {enmmodelname} #TODO: make variable
-        file_format_version: '2'
-        schema_version: '2'
-      index:
-        api_version: 2023-07-01-preview
-        connection:
-          id: >-
-            /subscriptions/{subscriptionid}/resourceGroups/{resourcegroupname}/providers/Microsoft.MachineLearningServices/workspaces/{aistudioprojectname}/connections/{aisearchresourcename}
-        connection_type: workspace_connection
-        endpoint: https://{aisearchresourcename}.search.windows.net/
-        engine: azure-sdk
-        field_mapping:
-          content: content
-          filename: filepath
-          title: title
-          url: url
-          metadata: metadata
-          embedding: contentVector
-        index: {aisearchindexname} #TODO: make variable
-        kind: acs
-        semantic_configuration_name: default
-    queries: ${extractSearchIntent.output}
-    query_type: Hybrid (vector + keyword)
-    top_k: 5
-  use_variants: false
-- name: chunkDocuments
-  type: python
-  source:
-    type: code
-    path: chunkDocuments.py
-  inputs:
-    data_source: Azure AI Search
-    max_tokens: 1050
-    queries: ${extractSearchIntent.output}
-    query_type: Hybrid (vector + keyword)
-    results: ${querySearchResource.output}
-    top_k: 5
-  use_variants: false
-- name: selectChunks
-  type: python
-  source:
-    type: code
-    path: filterChunks.py
-  inputs:
-    min_score: 0.3
-    results: ${chunkDocuments.output}
-    top_k: 5
-  use_variants: false
-- name: shouldGenerateReply
-  type: python
-  source:
-    type: code
-    path: shouldGenerateReply.py
-  inputs:
-    chunks: ${selectChunks.output}
-    queries: ${extractSearchIntent.output}
-  use_variants: false
-- name: formatGenerateReplyInputs
-  type: python
-  source:
-    type: code
-    path: formatReplyInputs.py
-  inputs:
-    chunks: ${selectChunks.output}
-    history: ${inputs.chat_history}
-    max_conversation_tokens: 2000
-    max_tokens: 5000
-    query: ${inputs.query}
-  use_variants: false
-- name: generateReply
-  type: llm
-  source:
-    type: code
-    path: ragcore/prompt_templates/generateReply.jinja2
-  inputs:
-    inputs: ${formatGenerateReplyInputs.output}
-    deployment_name: gpt-4o-global
-    temperature: 0.7
-    top_p: 0.95
-    max_tokens: 800
-    presence_penalty: 0
-    frequency_penalty: 0
-    indomain: "True"
-    role_info: You are an AI assistant that helps people find information.
-  provider: AzureOpenAI
-  connection: {aoaiconnectionname}
-  api: chat
-  module: promptflow.tools.aoai
-  activate:
-    when: ${shouldGenerateReply.output}
-    is: true
-  use_variants: false
-node_variants: {}
-environment:
-  python_requirements_txt: requirements.txt
