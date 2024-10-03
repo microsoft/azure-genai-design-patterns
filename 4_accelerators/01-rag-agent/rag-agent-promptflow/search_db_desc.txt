@@ -1,0 +1,13 @@
+## Target Database Description
+The target search database is an Azure AI Search resource that contains the following fields:
+
+* product | a searchable, filterable string field that denotes the name of the product associated with the title and content fields
+* title | A brief, searchable summary or heading of a document or its segment, representing the main topic or subject
+* content | The main body of text or a detailed description of a document segment, including comprehensive information for full-text search
+
+The products in the product field are:
+* Dall-e 3
+* GPT-4
+* GPT-4v
+* GPT-4o
+* GPT-o1

@@ -1,33 +1,48 @@
-id: template_chat_flow
-name: Template Chat Flow
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/Flow.schema.json
 environment:
   python_requirements_txt: requirements.txt
 inputs:
   chat_history:
     type: list
-    is_chat_input: false
+    default: []
     is_chat_history: true
-  question:
+    is_chat_input: false
+  chat_input:
     type: string
+    default: ""
     is_chat_input: true
-outputs:
-  answer:
+  search_database_description:
     type: string
-    reference: ${conversation_continuation_detection.output}
+    default: "## Target Database Description The target search database is an Azure
+      AI Search resource that contains the following fields:  * product | a
+      searchable, filterable string field that denotes the name of the product
+      associated with the title and content fields * title | A brief, searchable
+      summary or heading of a document or its segment, representing the main
+      topic or subject * content | The main body of text or a detailed
+      description of a document segment, including comprehensive information for
+      full-text search  The products in the product field are: * Dall-e 3 *
+      GPT-4 * GPT-4v * GPT-4o * GPT-o1"
+    is_chat_input: false
+outputs:
+  chat_output:
+    type: string
+    reference: ${topic_tracking_node_and_query_rewrite_node.output}
     is_chat_output: true
 nodes:
-- name: conversation_continuation_detection
+- name: topic_tracking_node_and_query_rewrite_node
   type: llm
   source:
     type: code
-    path: conversation_continuation_detection.jinja2
+    path: topic_tracking_query_modification.jinja2
   inputs:
-    deployment_name: gpt-4o-mini-global
-    temperature: 0
-    max_tokens: 200
+    deployment_name: gpt-4o-global
+    temperature: 0.7
+    max_tokens: 16000
     response_format:
       type: text
+    top_p: 0.2
     chat_history: ${inputs.chat_history}
-    question: ${inputs.question}
+    chat_input: ${inputs.chat_input}
+    search_database_description: ${inputs.search_database_description}
   connection: ragagent20aiservices_aoai
   api: chat

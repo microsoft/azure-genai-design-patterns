@@ -1,27 +1,21 @@
 {
   "nodes": {
-    "chat": {
-      "variant_0": {
-        "inputs": {},
-        "inputsValue": {}
-      }
-    },
-    "intent_detection_and_rewrite": {
-      "variant_0": {
-        "inputs": {
-          "response_format": [],
-          "chat_history": [],
-          "question": [],
-          "conversation": []
-        }
-      }
-    },
-    "conversation_continuation_detection": {
+    "topic_tracking": {
       "variant_0": {
         "inputs": {
           "response_format": [],
           "chat_history": [],
           "question": []
+        }
+      }
+    },
+    "topic_tracking_node_and_query_rewrite_node": {
+      "variant_0": {
+        "inputs": {
+          "response_format": [],
+          "chat_history": [],
+          "search_database_description": [],
+          "chat_input": []
         }
       }
     }

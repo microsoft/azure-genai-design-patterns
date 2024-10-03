@@ -1,47 +1,38 @@
 {
   "package": {},
   "code": {
-    "chat.jinja2": {
-      "type": "llm",
+    "hello.jinja2": {
+      "type": "prompt",
       "inputs": {
         "chat_history": {
           "type": [
             "string"
           ]
         },
-        "question": {
+        "chat_input": {
           "type": [
             "string"
           ]
         }
       },
-      "source": "chat.jinja2"
+      "source": "hello.jinja2"
     },
-    "intent_detection_and_rewrite.jinja2": {
-      "type": "llm",
+    "hello.py": {
+      "type": "python",
       "inputs": {
-        "question": {
-          "type": [
-            "string"
-          ]
-        },
-        "conversation": {
-          "type": [
-            "string"
-          ]
-        },
-        "chat_history": {
+        "input1": {
           "type": [
             "string"
           ]
         }
       },
-      "source": "intent_detection_and_rewrite.jinja2"
+      "source": "hello.py",
+      "function": "my_python_tool"
     },
-    "conversation_continuation_detection.jinja2": {
+    "topic_tracking_query_modification.jinja2": {
       "type": "llm",
       "inputs": {
-        "items": {
+        "search_database_description": {
           "type": [
             "string"
           ]
@@ -51,13 +42,13 @@
             "string"
           ]
         },
-        "question": {
+        "chat_input": {
           "type": [
             "string"
           ]
         }
       },
-      "source": "conversation_continuation_detection.jinja2"
+      "source": "topic_tracking_query_modification.jinja2"
     }
   }
 }

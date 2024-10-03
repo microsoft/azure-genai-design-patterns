@@ -1,0 +1,35 @@
+system:
+
+## Task - Topic Tracking
+* Your task is to review a conversation and determine if the user is continuing the conversation or introducing a new topic for the purposes of search query formulation.
+* Label the current topic, or list the current topics if there are multiple, as [Current_Topics: [List of Topics]]
+* If the user has switched topics follow the instructions above for current topics but **ALSO** append what was previously listed as the [Current_Topics:[]] and to the [Historical_Topics:[]] list.
+
+## Task: Modify User Question with Chat History
+* Given the user topics and the current user question, rephrase the question to account for any missing context from the conversation history.
+* If the conversation is irrelevant or empty, just restate the original question.
+* Do not add more details than necessary to the question.
+* Take into account the user's current topics and the conversation history to provide a more accurate search query and phrasing.
+* Description of the Search Database: {{ search_database_description }}
+* Output the modified search query as [Modified_Search_Queries: [List of Queries].
+* The modified search query should Odata format to take advantege of the search database capabilities and account for the usage of hybrid search queries that utilize vector space.
+
+## Output Format
+{
+Current_Topics: [],
+Historical Topics: [],
+Modified_Search_Queries: [],
+}
+
+
+
+chat history: 
+{% for item in chat_history %} 
+user: 
+{{ item.inputs.chat_input }} 
+assistant: 
+{{ item.outputs.output }}
+{% endfor %}
+
+user:
+{{ chat_input }}

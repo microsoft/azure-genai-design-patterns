@@ -3,33 +3,43 @@
     {
       "name": "default",
       "inputs": {
-        "question": "Are you able to tell me about GPT-4o and the omni models?",
+        "question": "Help me out here",
         "chat_history": [
           {
             "inputs": {
-              "question": "Let's run a test"
+              "chat_input": "I am interested in learning about GPT-4 omni and it's overall capabilities as they compare to GPT4 with vision"
             },
             "outputs": {
-              "answer": "[New Topic] [New topic: test]"
+              "chat_output": "[Current Topics: [GPT-4 omni, GPT-4 with vision]]\n[Historical Topics: []]\n[Modified_Search_Query: [Comparison of GPT-4 omni capabilities with GPT-4 with vision]]"
             }
           },
           {
             "inputs": {
-              "question": "Hello, how are you doing today?"
+              "chat_input": "What models does the search database cover?"
             },
             "outputs": {
-              "answer": "[Continuation] [Current topic: test]"
+              "chat_output": "{\nCurrent_Topics: [Search Database Models],\nHistorical Topics: [GPT-4 omni capabilities vs GPT-4 with vision],\nModified_Search_Queries: [\"What models does the search database cover?\"]\n}"
             }
           },
           {
             "inputs": {
-              "question": "Are you able to tell me about GPT-4o and the omni models?"
+              "chat_input": "I need to know how dall-e 3 scored on human assessment tests"
             },
             "outputs": {
-              "answer": "[New Topic] [New topic: GPT-4o and omni models]"
+              "chat_output": "{\nCurrent_Topics: [Dall-e 3, Human Assessment Tests],\nHistorical Topics: [GPT-4o, GPT-4v],\nModified_Search_Queries: [\"$filter=product eq 'Dall-e 3' and content eq 'human assessment tests'\"]\n}"
+            }
+          },
+          {
+            "inputs": {
+              "chat_input": "GPT-4 omni vs GPT-4v vision comparisons"
+            },
+            "outputs": {
+              "chat_output": "{\nCurrent_Topics: [GPT-4 omni vs GPT-4v vision comparisons],\nHistorical Topics: [GPT-4 omni vs GPT-4v vision comparisons, Dall-e 3 human assessment tests],\nModified_Search_Queries: [\"$filter=product eq 'GPT-4o' or product eq 'GPT-4v'&search='GPT-4 omni vs GPT-4v vision comparisons'\"]\n}"
             }
           }
-        ]
+        ],
+        "chat_input": "GPT-4 omni vs GPT-4v vision comparisons",
+        "search_database_description": "## Target Database Description The target search database is an Azure AI Search resource that contains the following fields:  * product | a searchable, filterable string field that denotes the name of the product associated with the title and content fields * title | A brief, searchable summary or heading of a document or its segment, representing the main topic or subject * content | The main body of text or a detailed description of a document segment, including comprehensive information for full-text search  The products in the product field are: * Dall-e 3 * GPT-4 * GPT-4v * GPT-4o * GPT-o1"
       }
     }
   ],

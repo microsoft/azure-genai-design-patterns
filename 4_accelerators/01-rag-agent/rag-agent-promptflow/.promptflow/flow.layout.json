@@ -1,5 +1,4 @@
 {
-  "orientation": "Vertical",
   "nodeLayouts": {
     "inputs": {
       "x": 290,
@@ -11,20 +10,11 @@
       "y": 310,
       "index": -1
     },
-    "conversation_continuation_detection": {
+    "topic_tracking_node_and_query_rewrite_node": {
       "x": 140,
       "y": 176,
       "index": 0
     }
   },
-  "viewport": {
-    "transformMatrix": [
-      1,
-      0,
-      0,
-      1,
-      110.8359375,
-      738
-    ]
-  }
+  "orientation": "Vertical"
 }
