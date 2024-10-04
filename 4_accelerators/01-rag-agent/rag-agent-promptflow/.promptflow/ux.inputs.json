@@ -7,14 +7,22 @@
         "chat_history": [
           {
             "inputs": {
-              "chat_input": "Provide an analysis of all products in the target search database"
+              "chat_input": "I am trying to do comparisons of the GPT-4o, GPT-o1, and the new GPT-4o realtime-preview model particularly in the human evaluations scenarios"
             },
             "outputs": {
-              "chat_output": "{\n    \"current_entities\": [\"Dall-e 3\", \"GPT-4\", \"GPT-4v\", \"GPT-4o\", \"GPT-o1\"],\n    \"historical_entities\": [],\n    \"current_topics\": [\"Analysis of all products in the target search database\"],\n    \"historical_topics\": [],\n    \"modified_search_queries\": [\n        \"search=*&$filter=product eq 'Dall-e 3' or product eq 'GPT-4' or product eq 'GPT-4v' or product eq 'GPT-4o' or product eq 'GPT-o1'\"\n    ]\n}"
+              "chat_output": "{\n    \"current_entities\": [\"GPT-4o\", \"GPT-o1\", \"GPT-4o realtime-preview\", \"human evaluations\"],\n    \"historical_entities\": [],\n    \"current_topics\": [\"Comparisons of GPT-4o, GPT-o1, and GPT-4o realtime-preview in human evaluation scenarios\"],\n    \"historical_topics\": [],\n    \"modified_search_queries\": [\n        {\n            \"search_text\": \"Comparisons of GPT-4o, GPT-o1, and GPT-4o realtime-preview in human evaluation scenarios\",\n            \"filter\": \"product eq 'GPT-4o' or product eq 'GPT-o1'\",\n            \"search_fields\": [\"title\", \"content\"]\n        }\n    ]\n}"
+            }
+          },
+          {
+            "inputs": {
+              "chat_input": "What models work with text to speech and speech to text?"
+            },
+            "outputs": {
+              "chat_output": "{\n    \"current_entities\": [\"text to speech\", \"speech to text\"],\n    \"historical_entities\": [\"GPT-4o\", \"GPT-o1\", \"GPT-4o realtime-preview\"],\n    \"current_topics\": [\"Models that work with text to speech and speech to text\"],\n    \"historical_topics\": [\"Comparisons of GPT-4o, GPT-o1, and GPT-4o realtime-preview in human evaluations\"],\n    \"modified_search_queries\": [\n        {\n            \"search_text\": \"Models that support text to speech and speech to text\",\n            \"filter\": \"\",\n            \"search_fields\": [\"product\", \"title\", \"content\"]\n        }\n    ]\n}"
             }
           }
         ],
-        "chat_input": "Provide an analysis of all products in the target search database",
+        "chat_input": "What models work with text to speech and speech to text?",
         "search_database_description": "## Target Database Description The target search database is an Azure AI Search resource that contains the following fields:  * product | a searchable, filterable string field that denotes the name of the product associated with the title and content fields * title | A brief, searchable summary or heading of a document or its segment, representing the main topic or subject * content | The main body of text or a detailed description of a document segment, including comprehensive information for full-text search  The products in the product field are: * Dall-e 3 * GPT-4 * GPT-4v * GPT-4o * GPT-o1"
       }
     }

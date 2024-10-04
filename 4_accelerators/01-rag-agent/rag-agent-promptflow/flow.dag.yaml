@@ -23,6 +23,68 @@ inputs:
       full-text search  The products in the product field are: * Dall-e 3 *
       GPT-4 * GPT-4v * GPT-4o * GPT-o1"
     is_chat_input: false
+  search_client_description:
+    type: string
+    default: "## Search Client Description Parameters:     search_text (str or None,
+      Optional): A full-text search query expression. Use \"*\" or omit this
+      parameter to match all documents.  Keyword-only
+      Parameters:     include_total_count (bool, Optional): Specifies whether to
+      fetch the total count of results. Default is False.     facets (List[str],
+      Optional): The list of facet expressions to apply to the search
+      query.     filter (str, Optional): The OData $filter expression to apply
+      to the search query.     highlight_fields (str, Optional): Comma-separated
+      list of field names to use for hit highlights.     highlight_post_tag
+      (str, Optional): String tag appended to hit highlights. Must be set with
+      highlight_pre_tag.     highlight_pre_tag (str, Optional): String tag
+      prepended to hit highlights. Must be set with
+      highlight_post_tag.     minimum_coverage (float, Optional): Percentage of
+      the index that must be covered by a search query. Default is
+      100.     order_by (List[str], Optional): List of OData $orderby
+      expressions by which to sort the results.     query_type (str or
+      QueryType, Optional): Specifies the syntax of the search query. Possible
+      values include 'simple', 'full', 'semantic'. Default is
+      'simple'.     scoring_parameters (List[str], Optional): List of parameter
+      values to be used in scoring functions.     scoring_profile (str,
+      Optional): Name of a scoring profile to evaluate match
+      scores.     semantic_query (str, Optional): Separate search query used
+      solely for semantic reranking, captions, and answers.     search_fields
+      (List[str], Optional): List of field names to scope the full-text
+      search.     search_mode (str or SearchMode, Optional): Specifies whether
+      any or all of the search terms must be matched. Possible values include
+      'any', 'all'.     query_answer (str or QueryAnswerType, Optional): If set,
+      the query returns answers extracted from key passages. Possible values
+      include 'none', 'extractive'.     query_answer_count (int, Optional):
+      Configures the number of answers returned when query_answer is
+      'extractive'. Default is 1.     query_answer_threshold (float, Optional):
+      Confidence threshold for answers. Default is 0.7.     query_caption (str
+      or QueryCaptionType, Optional): If set, the query returns captions
+      extracted from key passages. Possible values include 'none', 'extractive'.
+      Default is 'none'.     query_caption_highlight_enabled (bool, Optional):
+      Determines whether highlighting is enabled for captions. Default is
+      True.     semantic_configuration_name (str, Optional): Name of the
+      semantic configuration used when processing documents for semantic
+      queries.     select (List[str], Optional): List of fields to retrieve. If
+      unspecified, all retrievable fields are included.     skip (int,
+      Optional): Number of search results to skip. Cannot exceed
+      100,000.     top (int, Optional): Number of search results to
+      retrieve.     scoring_statistics (str or ScoringStatistics, Optional):
+      Specifies whether to calculate scoring statistics globally or locally.
+      Possible values include 'local', 'global'. Default is
+      'local'.     session_id (str, Optional): Value used to create a sticky
+      session for consistent results.     vector_queries (List[VectorQuery],
+      Optional): Query parameters for vector and hybrid search
+      queries.     vector_filter_mode (str or VectorFilterMode, Optional):
+      Determines whether filters are applied before or after the vector search.
+      Possible values include 'preFilter', 'postFilter'. Default is
+      'preFilter'.     semantic_error_mode (str or SemanticErrorMode, Optional):
+      Allows choosing whether a semantic call should fail completely or return
+      partial results. Possible values include 'partial',
+      'fail'.     semantic_max_wait_in_milliseconds (int, Optional): Upper bound
+      on the time for semantic enrichment processing before the request fails."
+  product_list:
+    type: string
+    default: "## Product List The products in the product field of the search
+      database are: * Dall-e 3 * GPT-4 * GPT-4v * GPT-4o * GPT-o1"
 outputs:
   chat_output:
     type: string
@@ -44,5 +106,7 @@ nodes:
     chat_history: ${inputs.chat_history}
     chat_input: ${inputs.chat_input}
     search_database_description: ${inputs.search_database_description}
+    search_client_description: ${inputs.search_client_description}
+    product_list: ${inputs.product_list}
   connection: ragagent20aiservices_aoai
   api: chat

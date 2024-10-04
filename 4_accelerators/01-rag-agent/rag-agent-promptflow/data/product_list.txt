@@ -1,0 +1,7 @@
+## Product List
+The products in the product field of the search database are:
+* Dall-e 3
+* GPT-4
+* GPT-4v
+* GPT-4o
+* GPT-o1

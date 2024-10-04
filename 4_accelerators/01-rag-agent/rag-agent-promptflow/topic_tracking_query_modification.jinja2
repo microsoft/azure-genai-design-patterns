@@ -12,20 +12,38 @@ system:
 * Given the user topics and the current user question, rephrase the question to account for any missing context from the conversation history.
 * Do not add more details than necessary to the question.
 * Take into account the current_entities, historical_entities, current_topics, historical_topics, and format of the target database when modifying the user question.
-* Description of the Search Database: 
+* *Description of the Search Database*: 
     {{ search_database_description }}
 * Format the modified_search_queries as defined in the ## Output Format section.
-* The modified_search_queries should utilize the Odata format to take advantege of the Azure AI Search database capabilities and account for the usage of hybrid search queries that utilize vector space.
-* The modified_search_queries should account for the usage of hybrid search queries that utilize vector space.
+* The modified_search_queries should be a Python dictionary that matches the parameters of the SearchClient.search() method from the Azure SDK for Python.
+    - Each modified_search_query should include keys such as search_text, filter, search_fields, top, etc., as appropriate.
+    - Ensure that the search_text includes the modified user question.
+    - Ensure that the search_fields are scoped to the relevant fields in the target database.
+    - Ensure that the filter accounts for the entities and topics being discussed.
+    - Ensure that the queries account for hybrid search capabilities, including vector space utilization, as per the provided documentation.
+    - DO NOT provide a key or value for top - it will be provided in the final search call.
+    - The available fields to format a modified_search_queries are:
+        {{search_client_description}}
+    - The product list which can be used to filter the product filed in search is:
+        {{product_list}}
+    
 
 ## Output Format - python dictionary
 {
-current_entities: [],
-historical_entities: [],
-current_topics: [],
-historical_topics: [],
-modified_search_queries: [],
+    current_entities: [],
+    historical_entities: [],
+    current_topics: [],
+    historical_topics: [],
+    modified_search_queries: [
+        {
+            'search_text': '',
+            'filter': '',
+            'search_fields': [],
+            # Include other relevant parameters as needed
+        }
+    ],
 }
+
 
 
 

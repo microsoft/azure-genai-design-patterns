@@ -37,6 +37,16 @@
             "string"
           ]
         },
+        "search_client_description": {
+          "type": [
+            "string"
+          ]
+        },
+        "product_list": {
+          "type": [
+            "string"
+          ]
+        },
         "chat_history": {
           "type": [
             "string"
@@ -49,6 +59,18 @@
         }
       },
       "source": "topic_tracking_query_modification.jinja2"
+    },
+    "azure_ai_search_python_node.py": {
+      "type": "python",
+      "inputs": {
+        "input1": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "azure_ai_search_python_node.py",
+      "function": "my_python_tool"
     }
   }
 }

@@ -15,7 +15,9 @@
           "response_format": [],
           "chat_history": [],
           "search_database_description": [],
-          "chat_input": []
+          "chat_input": [],
+          "search_client_description": [],
+          "product_list": []
         }
       }
     }
