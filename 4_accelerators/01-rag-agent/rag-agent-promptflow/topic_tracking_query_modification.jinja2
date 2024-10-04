@@ -24,8 +24,8 @@ system:
     - DO NOT provide a key or value for top - it will be provided in the final search call.
     - The available fields to format a modified_search_queries are:
         {{search_client_description}}
-    - The product list which can be used to filter the product filed in search is:
-        {{product_list}}
+    - The filters which can be applied to the field named filterable_field are:
+        {{filter_list}}
     
 
 ## Output Format - python dictionary
@@ -37,7 +37,7 @@ system:
     modified_search_queries: [
         {
             'search_text': '',
-            'filter': '',
+            'filter': 'filterable_field eq value',
             'search_fields': [],
             # Include other relevant parameters as needed
         }

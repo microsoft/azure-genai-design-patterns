@@ -42,7 +42,7 @@
             "string"
           ]
         },
-        "product_list": {
+        "filter_list": {
           "type": [
             "string"
           ]
@@ -63,14 +63,35 @@
     "azure_ai_search_python_node.py": {
       "type": "python",
       "inputs": {
-        "input1": {
+        "chat_output_str": {
           "type": [
             "string"
           ]
         }
       },
       "source": "azure_ai_search_python_node.py",
-      "function": "my_python_tool"
+      "function": "azure_ai_search_tool"
+    },
+    "RAG_response_node.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "search_results": {
+          "type": [
+            "string"
+          ]
+        },
+        "chat_history": {
+          "type": [
+            "string"
+          ]
+        },
+        "user_input": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "RAG_response_node.jinja2"
     }
   }
 }

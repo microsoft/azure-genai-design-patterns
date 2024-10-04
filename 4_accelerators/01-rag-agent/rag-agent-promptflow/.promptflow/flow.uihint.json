@@ -17,7 +17,26 @@
           "search_database_description": [],
           "chat_input": [],
           "search_client_description": [],
-          "product_list": []
+          "product_list": [],
+          "filter_list": []
+        }
+      }
+    },
+    "ai_search_query_python_node": {
+      "variant_0": {
+        "inputs": {
+          "chat_output_str": []
+        }
+      }
+    },
+    "RAG_response_node": {
+      "variant_0": {
+        "inputs": {
+          "response_format": [],
+          "chat_history": [],
+          "question": [],
+          "search_results": [],
+          "user_input": []
         }
       }
     }

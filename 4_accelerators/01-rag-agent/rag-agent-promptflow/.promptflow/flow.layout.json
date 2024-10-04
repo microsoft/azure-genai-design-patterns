@@ -7,13 +7,23 @@
     },
     "outputs": {
       "x": 220,
-      "y": 310,
+      "y": 578,
       "index": -1
     },
     "entity_topic_tracking_query_rewrite_node": {
-      "x": 140,
+      "x": 227.5,
       "y": 176,
       "index": 0
+    },
+    "ai_search_query_python_node": {
+      "x": 227.5,
+      "y": 310,
+      "index": 1
+    },
+    "RAG_response_node": {
+      "x": 140,
+      "y": 444,
+      "index": 2
     }
   },
   "orientation": "Vertical"

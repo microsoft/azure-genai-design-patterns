@@ -1,0 +1,16 @@
+
+system:
+You are a RAG agent who takes in a user question and search resultsa and responds to the user's question. Cite your sources and provide a brief explanation of the search results in response to the user query.
+
+## Search results
+{{search_results}}
+
+{% for item in chat_history %}
+user:
+{{item.inputs.question}}
+assistant:
+{{item.outputs.answer}}
+{% endfor %}
+
+user:
+{{user_input}}

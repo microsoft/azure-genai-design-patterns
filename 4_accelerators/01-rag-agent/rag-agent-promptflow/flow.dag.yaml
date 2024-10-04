@@ -14,14 +14,13 @@ inputs:
   search_database_description:
     type: string
     default: "## Target Database Description The target search database is an Azure
-      AI Search resource that contains the following fields:  * product | a
-      searchable, filterable string field that denotes the name of the product
-      associated with the title and content fields * title | A brief, searchable
-      summary or heading of a document or its segment, representing the main
-      topic or subject * content | The main body of text or a detailed
-      description of a document segment, including comprehensive information for
-      full-text search  The products in the product field are: * Dall-e 3 *
-      GPT-4 * GPT-4v * GPT-4o * GPT-o1"
+      AI Search resource that contains the following fields:  * filterable_field
+      | a searchable, filterable string field which can be populated with
+      elements of the ## Filter List  * title | A brief, searchable summary or
+      heading of a document or its segment, representing the main topic or
+      subject * content | The main body of text or a detailed description of a
+      document segment, including comprehensive information for full-text
+      search"
     is_chat_input: false
   search_client_description:
     type: string
@@ -81,14 +80,15 @@ inputs:
       partial results. Possible values include 'partial',
       'fail'.     semantic_max_wait_in_milliseconds (int, Optional): Upper bound
       on the time for semantic enrichment processing before the request fails."
-  product_list:
+  filter_list:
     type: string
-    default: "## Product List The products in the product field of the search
-      database are: * Dall-e 3 * GPT-4 * GPT-4v * GPT-4o * GPT-o1"
+    default: "## Filter List The strings that may be used in in the filterable_field
+      of the search database are: DO NOT USE THE filterable_field as it is not
+      populated"
 outputs:
   chat_output:
     type: string
-    reference: ${entity_topic_tracking_query_rewrite_node.output}
+    reference: ${RAG_response_node.output}
     is_chat_output: true
 nodes:
 - name: entity_topic_tracking_query_rewrite_node
@@ -98,8 +98,8 @@ nodes:
     path: topic_tracking_query_modification.jinja2
   inputs:
     deployment_name: gpt-4o-global
-    temperature: 0.7
-    max_tokens: 16000
+    temperature: 0.25
+    max_tokens: 6000
     response_format:
       type: text
     top_p: 0.2
@@ -107,6 +107,29 @@ nodes:
     chat_input: ${inputs.chat_input}
     search_database_description: ${inputs.search_database_description}
     search_client_description: ${inputs.search_client_description}
-    product_list: ${inputs.product_list}
+    filter_list: ${inputs.filter_list}
+  connection: ragagent20aiservices_aoai
+  api: chat
+- name: ai_search_query_python_node
+  type: python
+  source:
+    type: code
+    path: azure_ai_search_python_node.py
+  inputs:
+    chat_output_str: ${entity_topic_tracking_query_rewrite_node.output}
+- name: RAG_response_node
+  type: llm
+  source:
+    type: code
+    path: RAG_response_node.jinja2
+  inputs:
+    deployment_name: gpt-4o-global
+    temperature: 0.25
+    max_tokens: 16000
+    response_format:
+      type: text
+    chat_history: ${inputs.chat_history}
+    search_results: ${ai_search_query_python_node.output}
+    user_input: ${inputs.chat_input}
   connection: ragagent20aiservices_aoai
   api: chat
