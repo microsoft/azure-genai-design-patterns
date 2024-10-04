@@ -26,10 +26,10 @@ inputs:
 outputs:
   chat_output:
     type: string
-    reference: ${topic_tracking_node_and_query_rewrite_node.output}
+    reference: ${entity_topic_tracking_query_rewrite_node.output}
     is_chat_output: true
 nodes:
-- name: topic_tracking_node_and_query_rewrite_node
+- name: entity_topic_tracking_query_rewrite_node
   type: llm
   source:
     type: code

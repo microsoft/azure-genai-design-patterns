@@ -10,7 +10,7 @@
       "y": 310,
       "index": -1
     },
-    "topic_tracking_node_and_query_rewrite_node": {
+    "entity_topic_tracking_query_rewrite_node": {
       "x": 140,
       "y": 176,
       "index": 0

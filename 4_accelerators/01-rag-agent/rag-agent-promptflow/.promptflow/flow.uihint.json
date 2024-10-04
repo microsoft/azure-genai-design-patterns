@@ -9,7 +9,7 @@
         }
       }
     },
-    "topic_tracking_node_and_query_rewrite_node": {
+    "entity_topic_tracking_query_rewrite_node": {
       "variant_0": {
         "inputs": {
           "response_format": [],
