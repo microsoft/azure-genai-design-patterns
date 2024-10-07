@@ -1,33 +1,47 @@
 {
   "package": {},
   "code": {
-    "hello.jinja2": {
-      "type": "prompt",
+    "azure_ai_search_python_node.py": {
+      "type": "python",
       "inputs": {
-        "chat_history": {
+        "chat_output_str": {
           "type": [
             "string"
           ]
         },
-        "chat_input": {
+        "top": {
+          "type": [
+            "int"
+          ]
+        },
+        "query_type": {
           "type": [
             "string"
           ]
-        }
-      },
-      "source": "hello.jinja2"
-    },
-    "hello.py": {
-      "type": "python",
-      "inputs": {
-        "input1": {
+        },
+        "semantic_configuration_name": {
           "type": [
             "string"
           ]
+        },
+        "openai_embedding_model": {
+          "type": [
+            "string"
+          ]
+        },
+        "aoai_api_version": {
+          "type": [
+            "string"
+          ]
+        },
+        "dimensions": {
+          "type": [
+            "int"
+          ]
         }
       },
-      "source": "hello.py",
-      "function": "my_python_tool"
+      "source": "azure_ai_search_python_node.py",
+      "function": "azure_ai_search_tool"
     },
     "topic_tracking_query_modification.jinja2": {
       "type": "llm",
@@ -59,18 +73,6 @@
         }
       },
       "source": "topic_tracking_query_modification.jinja2"
-    },
-    "azure_ai_search_python_node.py": {
-      "type": "python",
-      "inputs": {
-        "chat_output_str": {
-          "type": [
-            "string"
-          ]
-        }
-      },
-      "source": "azure_ai_search_python_node.py",
-      "function": "azure_ai_search_tool"
     },
     "RAG_response_node.jinja2": {
       "type": "llm",

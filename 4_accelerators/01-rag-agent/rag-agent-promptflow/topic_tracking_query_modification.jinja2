@@ -28,17 +28,18 @@ system:
         {{filter_list}}
     
 
-## Output Format - python dictionary
+## Output Format - python dictionary with json double quotes
+* NOTE: DO NOT SET ANY VALUE FOR "filterable_field eq value" as filterable_field is not being used in the search database.
 {
-    current_entities: [],
-    historical_entities: [],
-    current_topics: [],
-    historical_topics: [],
-    modified_search_queries: [
+    "current_entities": [],
+    "historical_entities": [],
+    "current_topics": [],
+    "historical_topics": [],
+    "modified_search_queries": [
         {
-            'search_text': '',
-            'filter': 'filterable_field eq value',
-            'search_fields': [],
+            "search_text": "",
+            "filter": "filterable_field eq value",
+            "search_fields": [],
             # Include other relevant parameters as needed
         }
     ],

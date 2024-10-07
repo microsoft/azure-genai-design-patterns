@@ -85,6 +85,24 @@ inputs:
     default: "## Filter List The strings that may be used in in the filterable_field
       of the search database are: DO NOT USE THE filterable_field as it is not
       populated"
+  top:
+    type: int
+    default: 10
+  query_type:
+    type: string
+    default: semantic
+  semantic_configuration_name:
+    type: string
+    default: akb-semantic-config
+  openai_embedding_model:
+    type: string
+    default: text-embedding-3-large
+  aoai_api_version:
+    type: string
+    default: 2024-06-01
+  dimensions:
+    type: int
+    default: 3072
 outputs:
   chat_output:
     type: string
@@ -117,6 +135,12 @@ nodes:
     path: azure_ai_search_python_node.py
   inputs:
     chat_output_str: ${entity_topic_tracking_query_rewrite_node.output}
+    top: ${inputs.top}
+    query_type: ${inputs.query_type}
+    semantic_configuration_name: ${inputs.semantic_configuration_name}
+    openai_embedding_model: ${inputs.openai_embedding_model}
+    aoai_api_version: ${inputs.aoai_api_version}
+    dimensions: ${inputs.dimensions}
 - name: RAG_response_node
   type: llm
   source:
