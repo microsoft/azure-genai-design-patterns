@@ -87,7 +87,7 @@ inputs:
       populated"
   top:
     type: int
-    default: 10
+    default: 20
   query_type:
     type: string
     default: semantic
@@ -103,6 +103,18 @@ inputs:
   dimensions:
     type: int
     default: 3072
+  subscription_id:
+    type: string
+    default: ca68cf94-f445-43f1-8379-3d0100e293a2
+  resource_group:
+    type: string
+    default: rg-ragagent2.0
+  workspace_name:
+    type: string
+    default: ragagent20aihub
+  ai_search_index_name:
+    type: string
+    default: rag-agent-langchainsplitter
 outputs:
   chat_output:
     type: string
@@ -141,6 +153,10 @@ nodes:
     openai_embedding_model: ${inputs.openai_embedding_model}
     aoai_api_version: ${inputs.aoai_api_version}
     dimensions: ${inputs.dimensions}
+    subscription_id: ${inputs.subscription_id}
+    resource_group: ${inputs.resource_group}
+    workspace_name: ${inputs.workspace_name}
+    ai_search_index_name: ${inputs.ai_search_index_name}
 - name: RAG_response_node
   type: llm
   source:
