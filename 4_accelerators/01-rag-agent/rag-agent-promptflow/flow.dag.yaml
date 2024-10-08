@@ -125,7 +125,7 @@ nodes:
   type: llm
   source:
     type: code
-    path: topic_tracking_query_modification.jinja2
+    path: topic_tracking_query_modification_node.jinja2
   inputs:
     deployment_name: gpt-4o-global
     temperature: 0.25

@@ -1,7 +1,7 @@
 {
   "package": {},
   "code": {
-    "topic_tracking_query_modification.jinja2": {
+    "topic_tracking_query_modification_node.jinja2": {
       "type": "llm",
       "inputs": {
         "search_database_description": {
@@ -30,7 +30,7 @@
           ]
         }
       },
-      "source": "topic_tracking_query_modification.jinja2"
+      "source": "topic_tracking_query_modification_node.jinja2"
     },
     "azure_ai_search_python_node.py": {
       "type": "python",
