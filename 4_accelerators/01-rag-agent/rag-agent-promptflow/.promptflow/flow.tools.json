@@ -102,6 +102,11 @@
             "string"
           ]
         },
+        "entities_and_topics": {
+          "type": [
+            "string"
+          ]
+        },
         "chat_history": {
           "type": [
             "string"

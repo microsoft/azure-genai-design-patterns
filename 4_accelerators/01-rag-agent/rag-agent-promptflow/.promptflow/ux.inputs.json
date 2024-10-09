@@ -3,18 +3,8 @@
     {
       "name": "default",
       "inputs": {
-        "chat_input": "What safety enhancements were built into the new o1 model?",
-        "chat_history": [
-          {
-            "inputs": {
-              "chat_input": "What safety enhancements were built into the new o1 model?"
-            },
-            "outputs": {
-              "chat_output": "The new o1 model incorporates several safety enhancements aimed at improving its performance and reducing risks:\n\n1. **Chain of Thought Reasoning**: The model uses advanced reasoning capabilities to better adhere to safety policies and guidelines, improving its ability to handle potentially unsafe prompts (OpenAI o1 System Card).\n\n2. **Disallowed Content Evaluations**: The o1 models are evaluated against a suite of tests to ensure they do not comply with requests for harmful content, such as hateful or criminal advice. They perform well on these evaluations, often better than previous models (o1_system_card.pdf).\n\n3. **Hallucination Monitoring**: The o1 models have been tested for hallucination rates, with o1-preview showing fewer hallucinations compared to previous models, although anecdotal feedback suggests it might still hallucinate more frequently in certain domains (o1_system_card.pdf).\n\n4. **Deception Monitoring**: A monitor checks for instances where the model might deceive users by providing incorrect information. The o1-preview model showed a low rate of intentional deception (o1_system_card.pdf).\n\n5. **Bias Evaluations**: The model has been evaluated for fairness and bias, showing improvements over previous models in selecting non-stereotyped options (o1_system_card.pdf).\n\n6. **Persuasion and Manipulation Mitigations**: Evaluations like MakeMePay and MakeMeSay assess the model's manipulative capabilities, with safety mitigations reducing its capacity for manipulation (o1_system_card.pdf).\n\nThese enhancements collectively aim to make the o1 model safer and more reliable in various applications."
-            }
-          }
-        ],
-        "top": 20
+        "chat_input": "What modalities does GPT-4o offer?",
+        "chat_history": []
       }
     }
   ],
