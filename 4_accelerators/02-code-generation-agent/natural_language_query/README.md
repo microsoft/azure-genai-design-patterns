@@ -1,5 +1,5 @@
 ## Overview
-This application showcases the concept of a smart analytical agent designed to assist in answering business inquiries by executing advanced data analytics tasks on a business database. The agent is endowed with a learning capability; for problems it has never encountered before, it undergoes comprehensive reasoning steps including researching the database schema and interpreting the definitions of business metrics before proceeding to write code. However, for problems similar to those it has previously solved successfully (in memory recall mode), it quickly leverages its knowledge and reuses the code. The LLM that powers the full reasoning mode is GPT-4o, while the LLM that facilitates the memory recall mode can be GPT-3.5-Turbo.
+This application showcases the concept of a smart analytical agent designed to assist in answering business inquiries by executing advanced data analytics tasks on a business database. The agent is endowed with a learning capability; for problems it has never encountered before, it undergoes comprehensive reasoning steps including researching the database schema and interpreting the definitions of business metrics before proceeding to write code. However, for problems similar to those it has previously solved successfully (in memory recall mode), it quickly leverages its knowledge and reuses the code. The LLM that powers the full reasoning mode is GPT-4o, while the LLM that facilitates the memory recall mode can be GPT-4o-mini.
 
 To determine the quality of the solution or answer to a question, the application provides users with a feedback mechanism. Answers that receive positive feedback are memorized and subsequently utilized by the agent, enhancing its efficiency and accuracy over time.
 
@@ -89,14 +89,7 @@ natural_language_query/
 └── README.md  
 ```
 ## Installation  
-    
-### Option: Local Run  
-  
-  Run the application:  
-    ```  
-    streamlit run src/app/copilot.py  
-    ```  
-  
+      
 ### Option: Deploy to Local Docker Environment  
   
 1. Build and Start Containers:  
