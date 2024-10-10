@@ -114,7 +114,7 @@ def transform_tools(tools):
   
 async def execute_python_code(assumptions, goal, python_code, session_id):  
     url = f"{PYTHON_SERVICE_URL}/execute/"  # Change this if your FastAPI service is running on a different host/port  
-  
+    print("url ", url)
     payload = {  
         "assumptions": assumptions,  
         "goal": goal,  

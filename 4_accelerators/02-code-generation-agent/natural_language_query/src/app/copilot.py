@@ -12,7 +12,7 @@ from plotly.graph_objects import Figure as PlotlyFigure
 from matplotlib.figure import Figure as MatplotFigure  
 import pandas as pd  
 import asyncio  
-  
+print("Streamlit version: ", st.__version__)
   
 # Function to transform tools into the desired format  
 st.set_page_config(layout="wide", page_title="Smart Analytic Copilot Demo Application using LLM")  
