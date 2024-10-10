@@ -7,6 +7,7 @@ settings:
 
 inputs:
   pipeline_job_gpt4o_deployment_name: "gpt-4o-global"
+  pipeline_job_gpt4o_mini_deployment_name: "gpt-4o-mini-global"
   pipeline_job_whisper_deployment_name: "whisper"
   pipeline_job_openai_embedding_model: "text-embedding-3-large"
   pipeline_job_aoai_api_version: "2024-06-01"
@@ -28,6 +29,7 @@ jobs:
         mode: ro_mount
         path: azureml://datastores/datalake/paths/rag-agent/docs
       gpt4o_deployment_name: ${{parent.inputs.pipeline_job_gpt4o_deployment_name}}
+      gpt4o_mini_deployment_name: ${{parent.inputs.pipeline_job_gpt4o_mini_deployment_name}}
       whisper_deployment_name: ${{parent.inputs.pipeline_job_whisper_deployment_name}}
       openai_embedding_model: ${{parent.inputs.pipeline_job_openai_embedding_model}}
       aoai_api_version: ${{parent.inputs.pipeline_job_aoai_api_version}}
@@ -66,6 +68,7 @@ jobs:
         --chunks_folder ${{outputs.chunks_folder}}
         --log_file ${{outputs.log_file}}
         --gpt4o_deployment_name ${{inputs.gpt4o_deployment_name}}
+        --gpt4o_mini_deployment_name ${{inputs.gpt4o_mini_deployment_name}}
         --whisper_deployment_name ${{inputs.whisper_deployment_name}}
         --openai_embedding_model ${{inputs.openai_embedding_model}}
         --aoai_api_version ${{inputs.aoai_api_version}}

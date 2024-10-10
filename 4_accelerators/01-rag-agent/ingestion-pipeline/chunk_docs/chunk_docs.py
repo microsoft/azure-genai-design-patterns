@@ -11,7 +11,6 @@ import document_intelligence_reader as docreader
 import numpy as np
 import pandas as pd
 import speech_transcription as st
-import tiktoken
 from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.ai.documentintelligence.models import AnalyzeDocumentRequest
 from azure.core.credentials import AzureKeyCredential
@@ -65,15 +64,59 @@ def generate_text_embeddings(text):
         .embedding
     )
 
+system_message_categorization = """
+    Categorize the provided content into one of the following categories based on the Document Name, Title, and Content.
+    
+    The categories are the name of models created by OpenAI and the content will discuss these models.
+    
+    You may label it with more than one category if it fits multiple categories.
+    Return only a list of categories such as: Category1, Category2, Category3
+    DO NOT RETURN ANYTHING EXCEPT THE LIST OF CATEGORIES.
+    
+    Possible categories:
+    DALL-E 3
+    GPT-4
+    GPT-4v
+    GPT-4o
+    o1
+    """
+
+def create_filter_field(document_name, title, content):
+    """Categorizes a chunk using GPT-4o-mini based on a list of categories."""
+    try:
+        response = aoai_client.chat.completions.create(
+            model=gpt4o_deployment_name,
+            messages=[
+                {"role": "system", "content": system_message_vision_to_text},
+                {
+                    "role": "user",
+                    "content": [
+                        f"Document Name: {document_name}, Title: {title}, Content: {content}",
+                    ],
+                },
+            ],
+            max_tokens=2000,
+            temperature=0.0,
+            top_p=0.1
+        )
+    except Exception as e:
+        logger.error("Error categorizing chunk: %s", e)
+        print("Error categorizing chunk: ", e)
+        raise e
+
+    return response.choices[0].message.content
+
 
 def build_chunk(chunk_type, chunk_index, title, content, doc_layout):
     """Builds a chunk dictionary with metadata for a document segment."""
     document_name = doc_layout["document_name"]
     document_id = f"{document_name}_{chunk_type}_{chunk_index}"
+    filter_field = create_filter_field(document_name, title, content)
     chunk = {
         "id": hashlib.md5(document_id.encode()).hexdigest(),
-        "filepath": document_name,
         "url": document_name,  # TODO: replace with actual URL
+        "filepath": document_name,
+        "filterable_field": filter_field,
         "title": title,
         "content": content,
         "contentVector": generate_text_embeddings(content),
@@ -293,6 +336,8 @@ def init():
     # Setup Azure OpenAI client for GPT-4o for vision and Whisper for Speech Transcription
     global gpt4o_deployment_name
     gpt4o_deployment_name = args.gpt4o_deployment_name
+    global gpt4o_mini_deployment_name
+    gpt4o_mini_deployment_name = args.gpt4o_mini_deployment_name
     global whisper_deployment_name
     whisper_deployment_name = args.whisper_deployment_name
     global openai_embedding_model

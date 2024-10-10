@@ -38,7 +38,7 @@ fields = [
     SimpleField(name="id", type=SearchFieldDataType.String, key=True),
     SimpleField(name="url", type=SearchFieldDataType.String),
     SimpleField(name="filepath", type=SearchFieldDataType.String),
-    SimpleField(name="meta_json_string", type=SearchFieldDataType.String),
+    SimpleField(name="filterable_field", type=SearchFieldDataType.String, filterable=True, sortable=True),
     SearchableField(name="title", type=SearchFieldDataType.String),
     SearchableField(name="content", type=SearchFieldDataType.String),
     SearchField(

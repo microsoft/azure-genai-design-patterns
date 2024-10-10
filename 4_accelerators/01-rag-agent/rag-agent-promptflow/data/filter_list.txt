@@ -1,7 +1,33 @@
 ## Filter List
 The strings that may be used in in the filterable_field of the search database are:
-* Dall-e 3
+* DALL-E 3
 * GPT-4
 * GPT-4v
 * GPT-4o
-* GPT-o1
+* o1
+
+A filter in the OData language is a Boolean expression, which in turn can be one of several types of expression, as shown by the following EBNF (Extended Backus-Naur Form):
+
+boolean_expression ::=
+    collection_filter_expression
+    | logical_expression
+    | comparison_expression
+    | boolean_literal
+    | boolean_function_call
+    | '(' boolean_expression ')'
+    | variable
+
+/* This can be a range variable in the case of a lambda, or a field path. */
+variable ::= identifier | field_path
+
+The types of Boolean expressions include:
+
+Collection filter expressions using any or all. These apply filter criteria to collection fields. 
+Logical expressions that combine other Boolean expressions using the operators and, or, and not.
+Comparison expressions, which compare fields or range variables to constant values using the operators eq, ne, gt, lt, ge, and le. 
+The Boolean literals true and false. These constants can be useful sometimes when programmatically generating filters, but otherwise don't tend to be used in practice.
+Calls to Boolean functions, including:
+search.in, which compares a field or range variable with each value in a list of values. 
+search.ismatch and search.ismatchscoring, which execute full-text search operations in a filter context. 
+Field paths or range variables of type Edm.Boolean. For example, if your index has a Boolean field called IsEnabled and you want to return all documents where this field is true, your filter expression can just be the name IsEnabled.
+Boolean expressions in parentheses. Using parentheses can help to explicitly determine the order of operations in a filter. 
