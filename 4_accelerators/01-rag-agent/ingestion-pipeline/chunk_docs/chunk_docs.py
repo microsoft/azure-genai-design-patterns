@@ -15,6 +15,7 @@ from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.ai.documentintelligence.models import AnalyzeDocumentRequest
 from azure.core.credentials import AzureKeyCredential
 from azureml.core import Run, Workspace
+from azureml.exceptions import RunEnvironmentException, WorkspaceException
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_openai.embeddings import AzureOpenAIEmbeddings
 from openai import AzureOpenAI
@@ -44,14 +45,15 @@ def azure_ai_vision_generate_image_vector(image_path):
 
 
 # Get keys from Azure Key Vault
-try:
-    keyvault = Run.get_context().experiment.workspace.get_default_keyvault()
-except RunEnvironmentException or WorkspaceException as e:
+    # try:
+    #     keyvault = Run.get_context().experiment.workspace.get_default_keyvault()
+    # except RunEnvironmentException or WorkspaceException as e:
     keyvault = Workspace.from_config().get_default_keyvault()
 
 
 def getenv(key):
     """Retrieves the secret value for the given key from Azure Key Vault."""
+    keyvault = Workspace.from_config().get_default_keyvault()
     return keyvault.get_secret(name=key)
 
 
@@ -59,7 +61,7 @@ def getenv(key):
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 def generate_text_embeddings(text):
     return (
-        aoai_client.embeddings.create(input=[text], model=openai_embedding_model)
+        aoai_client.embeddings.create(input=[str(text)], model=openai_embedding_model)
         .data[0]
         .embedding
     )
@@ -87,11 +89,12 @@ def create_filter_field(document_name, title, content):
         response = aoai_client.chat.completions.create(
             model=gpt4o_deployment_name,
             messages=[
-                {"role": "system", "content": system_message_vision_to_text},
+                {"role": "system", "content": system_message_categorization},
                 {
                     "role": "user",
                     "content": [
-                        f"Document Name: {document_name}, Title: {title}, Content: {content}",
+                        {"type": "text", "text": f"Document Name: {document_name}, Title: {title}, Content: {content}"}
+                        
                     ],
                 },
             ],
@@ -99,6 +102,7 @@ def create_filter_field(document_name, title, content):
             temperature=0.0,
             top_p=0.1
         )
+        
     except Exception as e:
         logger.error("Error categorizing chunk: %s", e)
         print("Error categorizing chunk: ", e)
@@ -319,16 +323,16 @@ def init():
     logger.info("chunk_docs.init()")
     # Retrieve output from arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--chunks_folder", type=str)
-    parser.add_argument("--gpt4o_deployment_name", type=str)
-    parser.add_argument("--whisper_deployment_name", type=str)
-    parser.add_argument("--openai_embedding_model", type=str)
-    parser.add_argument("--aoai_api_version", type=str)
-    parser.add_argument("--doc_intel_api_version", type=str)
-    parser.add_argument("--speech_region", type=str)
-    parser.add_argument("--max_chunk_size", type=int)
-    parser.add_argument("--breakpoint_threshold_type", type=str)
-    parser.add_argument("--breakpoint_threshold_amount", type=float)
+    parser.add_argument("--chunks_folder", type=str, default="../data-chunks")
+    parser.add_argument("--gpt4o_deployment_name", type=str, default="gpt-4o-global")
+    parser.add_argument("--whisper_deployment_name", type=str, default="whisper")
+    parser.add_argument("--openai_embedding_model", type=str, default="text-embedding-3-large")
+    parser.add_argument("--aoai_api_version", type=str, default="2024-06-01")
+    parser.add_argument("--doc_intel_api_version", type=str, default="2024-02-29-preview")
+    parser.add_argument("--speech_region", type=str, default="eastus")
+    parser.add_argument("--max_chunk_size", type=int, default=3000)
+    parser.add_argument("--breakpoint_threshold_type", type=str, default="standard_deviation")
+    parser.add_argument("--breakpoint_threshold_amount", type=float, default=2.5)
     args, _ = parser.parse_known_args()
     global chunks_folder_path
     chunks_folder_path = args.chunks_folder
@@ -336,8 +340,8 @@ def init():
     # Setup Azure OpenAI client for GPT-4o for vision and Whisper for Speech Transcription
     global gpt4o_deployment_name
     gpt4o_deployment_name = args.gpt4o_deployment_name
-    global gpt4o_mini_deployment_name
-    gpt4o_mini_deployment_name = args.gpt4o_mini_deployment_name
+    # global gpt4o_mini_deployment_name
+    # gpt4o_mini_deployment_name = args.gpt4o_mini_deployment_name
     global whisper_deployment_name
     whisper_deployment_name = args.whisper_deployment_name
     global openai_embedding_model
@@ -474,12 +478,15 @@ if __name__ == "__main__":
     # Simulate init()
     init()
     global chunks_folder_path
-    chunks_folder_path = "..\\..\\data-chunks"
+    chunks_folder_path = "../data-chunks"
     # Simulate framework setup for parallel step
-    docs_folder_path = "../../data-test"
+    docs_folder_path = "../../data"
     docs_files = [
         os.path.join(docs_folder_path, f)
         for f in os.listdir(docs_folder_path)
-        if f.endswith(".pdf")
+        # if f.endswith(".pdf")
     ]
-    logger.info(run(docs_files))
+    # print(docs_files[3])
+    logger.info(run([docs_files[3]]))
+    # for x in docs_files[:3]:
+        # logger.info(run([x]))

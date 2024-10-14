@@ -31,7 +31,7 @@ def init():
 
     print("index_chunks.init()")
     parser = argparse.ArgumentParser()
-    parser.add_argument("--azure_ai_search_index_name", type=str)
+    parser.add_argument("--azure_ai_search_index_name", type=str, default="withfilterable")
     args, _ = parser.parse_known_args()
     # setup AI Search index client
     global azure_ai_search_index_name
@@ -73,7 +73,7 @@ def run(mini_batch):
 if __name__ == "__main__":
     # simulate AML parallel run framework init() call
     init()
-    json_folder_path = "..\\data-json"
+    json_folder_path = "../data-chunks" #"..\\data-json"
     # simulate AML parallel run framework run() call
     json_files = [
         os.path.join(json_folder_path, f)
