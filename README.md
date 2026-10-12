@@ -7,7 +7,9 @@ Every asset in this repository is reviewed by a curator before it is merged, fol
 ## Catalog
 
 <!-- catalog:start -->
-_No assets have been published yet._
+| Asset | Kind | Maturity | Summary |
+|-------|------|----------|---------|
+| [Agent Path to Production](assets/agent-path-to-production/README.md) | `playbook` | experimental | An evidence-led delivery playbook for taking an agentic application from early design or a pilot to an operable production workload, with specialist routing, readiness gates, and reusable learning. |
 <!-- catalog:end -->
 
 The catalog above is generated from each asset's `manifest.yaml` by `python tools/assets.py catalog`. Do not edit it by hand.
