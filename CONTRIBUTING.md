@@ -21,37 +21,41 @@ The validation workflow scans for common mistakes, but it cannot catch everythin
 
 ## Adding an asset
 
-Before authoring, read the **[Contribution & Pattern Standardization Guide](docs/contribution-guide.md)** for the full generalization methodology, depth requirements by `kind`, and offline self-test standards.
+Read the **[Contribution & Pattern Standardization Guide](docs/contribution-guide.md)** for the generalization method, depth requirements by `kind`, and self-test standards, and **[Path to production](docs/path-to-production.md)** for how assets map to the six pillars.
 
-1. **Choose the category (`<category>`)** under [`assets/`](assets/README.md):
+1. **Propose it.** Open a **Pattern proposal** issue so a curator can confirm the scope, category, and pillars before you write content.
+2. **Choose the category (`<category>`)** under [`assets/`](assets/README.md):
    - `delivery-and-ops` — Delivery playbooks, readiness gates, evaluation frameworks, and AgentOps
    - `m365-and-copilot` — Microsoft 365 Copilot, Teams, Declarative Agents, Custom Engine Agents, MCP plug-ins, and Cowork
    - `security-and-governance` — Entra Agent ID, tool governance, guardrails, Purview, and Sentinel observability
    - `landing-zones-and-infra` — Private Microsoft Foundry landing zones, Bicep/Terraform IaC, and CI/CD pipelines
-   - `orchestration-and-workflows` — Multi-agent routers, planner-specialist handoffs, durable state/caching
-   - `data-and-tools` — Governed MCP servers, OBO data connectors, RAG grounding, and action safety gates
-2. **Pick a stable `id`:** lowercase words separated by hyphens, for example `human-approval-gate`.
-3. **Scaffold the asset from `templates/asset/`:**
+   - `orchestration-and-workflows` *(planned)* — Multi-agent routers, planner-specialist handoffs, durable state/caching
+   - `data-and-tools` *(planned)* — Governed MCP servers, OBO data connectors, RAG grounding, and action safety gates
+
+   Planned categories have no folder yet; the scaffolding command creates it with the first asset.
+3. **Pick a stable `id`:** lowercase words separated by hyphens, for example `human-approval-gate`.
+4. **Scaffold the asset from `templates/asset/`:**
 
    ```bash
-   pip install -r tools/requirements.txt
-   python tools/assets.py new --category <category> --id <asset-id> --kind <kind> --title "<Title>"
+   pip install -r scripts/requirements.txt
+   python scripts/assets.py new --category <category> --id <asset-id> --kind <kind> --title "<Title>" [--with-infra] [--with-src]
    ```
 
-4. **Generalize and author the content:**
+5. **Generalize and author the content:**
    - Frame the pattern as **domain-agnostic** (demonstrating applicability across at least three domains such as ITSM/SecOps, CRM/Sales, and FinOps/HR/Ops via Domain Packs rather than a single customer case study).
-   - Complete `manifest.yaml` ([`schema/manifest.schema.json`](schema/manifest.schema.json)) and `README.md`.
+   - Complete `manifest.yaml` (validated against [`scripts/manifest.schema.json`](scripts/manifest.schema.json)), including the `pillars` it serves, and `README.md`.
    - Author deep architecture, identity/authentication, and evaluation/troubleshooting guides in `docs/`, plus at least one ADR in `docs/decisions/`.
-   - Include runnable, zero-dependency reference code with an offline `--self-test` mode in `samples/` and/or compilable Bicep/Terraform templates in `infra/`. Delete unused template folders (`infra/` or `src/` or `samples/`).
-5. **Validate and regenerate the catalogs:**
+   - Include runnable, zero-dependency reference code with an offline `--self-test` mode in `samples/` and/or compilable Bicep/Terraform templates in `infra/`. Delete `samples/` if it does not apply.
+6. **Validate, scan, and regenerate the catalogs** (the same checks CI runs):
 
    ```bash
-   python tools/assets.py catalog
-   python tools/assets.py validate
-   python tools/assets.py catalog --check
+   python scripts/assets.py catalog
+   python scripts/assets.py validate
+   python scripts/assets.py catalog --check
+   python scripts/assets.py scan
    ```
 
-6. **Open a pull request** using the pull request template. One asset per pull request.
+7. **Open a pull request** using the pull request template. One asset per pull request.
 
 ### Files and sizes
 

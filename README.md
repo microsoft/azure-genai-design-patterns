@@ -1,8 +1,23 @@
 # Agentic AI Design Patterns
 
-Field-proven design patterns, reference architectures and solution accelerators for building agentic AI systems on Azure and Microsoft Foundry.
+Field-proven design patterns, reference architectures, solution accelerators and delivery playbooks for taking agentic AI systems on Azure and Microsoft Foundry from pilot to production.
 
-Every asset in this repository is reviewed by a curator before it is merged, follows the same folder layout, and carries a machine-readable `manifest.yaml`, so you can browse it here or discover it through search tools.
+Every asset is generalized from repeated field work into a domain-agnostic pattern, reviewed by a curator before merge, follows the same folder layout, and carries a machine-readable `manifest.yaml`, so you can browse it here or discover it through search tools.
+
+## Start here: path to production
+
+Most agentic projects stall between a working pilot and an operable production workload. The assets here are organized around six path-to-production pillars, so you can go from "what is blocking us" to the right pattern. Use the [path-to-production guide](docs/path-to-production.md) to frame a review, and the [Agent Path to Production playbook](assets/delivery-and-ops/agent-path-to-production/README.md) to run one.
+
+<!-- pillars:start -->
+| Pillar | Focus | Assets |
+|--------|-------|--------|
+| [1. AI CoE & Governance](assets/delivery-and-ops/agent-path-to-production/docs/pillars/01-ai-coe-and-governance.md) | Operating model, intake and graduation, responsible AI policy, agent inventory, cost accountability. | [Agent Path to Production](assets/delivery-and-ops/agent-path-to-production/README.md), [Enterprise Agent Security and Tool Governance](assets/security-and-governance/agent-security-and-governance/README.md) |
+| [2. AI Landing Zones](assets/delivery-and-ops/agent-path-to-production/docs/pillars/02-ai-landing-zones.md) | Network topology, private connectivity, identity and RBAC, policy, environments, regional design. | [Agent Path to Production](assets/delivery-and-ops/agent-path-to-production/README.md), [Secured Microsoft Foundry Landing Zone for Enterprise Agents](assets/landing-zones-and-infra/secured-foundry-landing-zone/README.md) |
+| [3. Agent Ops](assets/delivery-and-ops/agent-path-to-production/docs/pillars/03-agent-ops.md) | CI/CD, versioning, tracing, evaluation gates, monitoring, incident runbooks. | [Agent Path to Production](assets/delivery-and-ops/agent-path-to-production/README.md), [Microsoft 365 Integration with Azure Custom Engine Agent](assets/m365-and-copilot/m365-azure-custom-agent/README.md), [Enterprise Agent Security and Tool Governance](assets/security-and-governance/agent-security-and-governance/README.md) |
+| [4. AI Security & Observability](assets/delivery-and-ops/agent-path-to-production/docs/pillars/04-ai-security-and-observability.md) | Agent and tool authorization, prompt-injection defenses, sensitive data, red teaming, audit trails. | [Agent Path to Production](assets/delivery-and-ops/agent-path-to-production/README.md), [Enterprise Agent Security and Tool Governance](assets/security-and-governance/agent-security-and-governance/README.md) |
+| [5. Solution Optimization](assets/delivery-and-ops/agent-path-to-production/docs/pillars/05-solution-optimization.md) | Performance, latency, cost, retrieval quality, semantic layers, scaling. | [Agent Path to Production](assets/delivery-and-ops/agent-path-to-production/README.md), [Microsoft 365 Integration with Azure Custom Engine Agent](assets/m365-and-copilot/m365-azure-custom-agent/README.md) |
+| [6. Proven Patterns for Agent Architectures](assets/delivery-and-ops/agent-path-to-production/docs/pillars/06-proven-patterns-for-agent-architectures.md) | Orchestration, quality controls, interoperability, state, front doors, scale. | [Agent Path to Production](assets/delivery-and-ops/agent-path-to-production/README.md), [Microsoft 365 Integration with Azure Custom Engine Agent](assets/m365-and-copilot/m365-azure-custom-agent/README.md), [Microsoft 365 Copilot Integration with MCP via Plug-ins](assets/m365-and-copilot/m365-mcp-plugin-integration/README.md) |
+<!-- pillars:end -->
 
 ## Catalog
 
@@ -39,9 +54,11 @@ Private Microsoft Foundry landing zones, network isolation, Bicep/Terraform IaC,
 | Asset | Kind | Maturity | Summary |
 |-------|------|----------|---------|
 | [Secured Microsoft Foundry Landing Zone for Enterprise Agents](assets/landing-zones-and-infra/secured-foundry-landing-zone/README.md) | `solution-accelerator` | preview | A two-stage Microsoft Foundry landing zone and Bicep reference setup that starts with an authenticated functional validation profile and progresses to a network-isolated, private-by-default enterprise foundation for Prompt and Hosted Agents that call private MCP tools. |
+
+**Planned categories** (folder is created with the first asset): Orchestration and Workflows (`orchestration-and-workflows`), Data and Tools (`data-and-tools`). See [docs/path-to-production.md](docs/path-to-production.md) for related content today.
 <!-- catalog:end -->
 
-The catalog above is generated from each asset's `manifest.yaml` by `python tools/assets.py catalog`. Do not edit it by hand.
+The pillar map and catalog above are generated from each asset's `manifest.yaml` by `python scripts/assets.py catalog`. Do not edit them by hand.
 
 ## Asset kinds
 
@@ -56,36 +73,43 @@ The catalog above is generated from each asset's `manifest.yaml` by `python tool
 ## Repository layout
 
 ```text
-assets/
+assets/                           the catalog: one folder per category, one folder per asset
   README.md                       category directory and decision flowchart
-  <category>/                     architectural category folder (6 standard categories)
-    README.md                     category decision guide and auto-generated category catalog
+  <category>/                     architectural category
+    README.md                     category decision guide and generated category catalog
     <asset-id>/                   one folder per asset; the folder name is the stable asset id
-      manifest.yaml               metadata: category, kind, summary, tags, owners, version, maturity
-      README.md                   overview, Domain Pack map, when to use, architecture, getting started
+      manifest.yaml               metadata: category, kind, pillars, tags, owners, version, maturity
+      README.md                   overview, domain map, when to use, architecture, getting started
       CHANGELOG.md                what changed in each version
-      docs/                       architecture deep dive, identity/auth, evaluation/troubleshooting, ADRs
-      samples/                    runnable reference implementations with offline --self-test (optional)
-      infra/                      infrastructure as code + reference CI/CD pipelines (optional)
+      docs/                       architecture deep dives, identity, evaluation, troubleshooting, ADRs
+      samples/                    runnable reference code with an offline --self-test
+      infra/                      infrastructure as code (optional)
       src/                        source code (optional)
 docs/
-  contribution-guide.md           field-to-pattern generalization standard, depth bar, and sanitization rules
+  path-to-production.md           pillar-by-pillar navigation into the catalog
+  contribution-guide.md           generalization method, depth bar and public-safety rules
+scripts/                          maintenance tooling run locally and in CI
+  assets.py                       scaffold, validate, catalog and scan assets
+  manifest.schema.json            JSON Schema for manifest.yaml
 templates/
-  asset/                          standardized starting point for `python tools/assets.py new`
-  category/                       starting point for a category README decision guide
-schema/
-  manifest.schema.json            JSON schema for manifest.yaml
-tools/
-  assets.py                       validation, catalog generation, and new-asset scaffolding
+  asset/                          starting point copied by `scripts/assets.py new`
+  optional/                       infra/ and src/ folders added with --with-infra / --with-src
+  category/                       starting point for a new category README
+.github/                          CI workflow, CODEOWNERS, issue and pull request templates
 ```
 
-Assets are grouped into six stable architectural categories under [`assets/`](assets/README.md):
-- [`delivery-and-ops`](assets/delivery-and-ops/README.md) — Delivery playbooks, readiness gates, and AgentOps lifecycles
-- [`m365-and-copilot`](assets/m365-and-copilot/README.md) — Microsoft 365 Copilot, Teams, Declarative Agents, Custom Engine Agents, and Cowork
-- [`security-and-governance`](assets/security-and-governance/README.md) — Agent identity, four-gate tool governance, guardrails, Purview, and Sentinel
-- [`landing-zones-and-infra`](assets/landing-zones-and-infra/README.md) — Private Microsoft Foundry landing zones, Bicep/Terraform IaC, and CI/CD
-- [`orchestration-and-workflows`](assets/orchestration-and-workflows/README.md) — Multi-agent routers, handoff contracts, and durable state/caching
-- [`data-and-tools`](assets/data-and-tools/README.md) — Governed MCP servers, OBO data connectors, and action safety gates
+Assets are grouped into architectural categories under [`assets/`](assets/README.md):
+
+| Category | Scope | Status |
+|----------|-------|--------|
+| [`delivery-and-ops`](assets/delivery-and-ops/README.md) | Delivery playbooks, readiness gates, evaluation and AgentOps | Published |
+| [`m365-and-copilot`](assets/m365-and-copilot/README.md) | Microsoft 365 Copilot, Teams, declarative and custom engine agents, MCP plug-ins | Published |
+| [`security-and-governance`](assets/security-and-governance/README.md) | Agent identity, tool governance, guardrails, audit | Published |
+| [`landing-zones-and-infra`](assets/landing-zones-and-infra/README.md) | Private Microsoft Foundry landing zones and infrastructure as code | Published |
+| `orchestration-and-workflows` | Multi-agent routing, handoff contracts, durable workflows | Planned |
+| `data-and-tools` | Governed MCP servers, data connectors, grounding, action safety | Planned |
+
+Planned categories get a folder with their first asset. Until then, [docs/path-to-production.md](docs/path-to-production.md#planned-categories-where-to-look-today) shows where those topics are covered today.
 
 ## Using an asset
 
@@ -93,12 +117,14 @@ Start with the category's `README.md` to compare sibling patterns, then open the
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Contribution & Pattern Standardization Guide](docs/contribution-guide.md). To scaffold a new asset:
+Propose a pattern with the **Pattern proposal** issue form, then follow [CONTRIBUTING.md](CONTRIBUTING.md) and the [contribution guide](docs/contribution-guide.md). To scaffold and check a new asset:
 
 ```bash
-python tools/assets.py new --category <category> --id <asset-id> --kind <kind> --title "<Title>"
-python tools/assets.py validate
-python tools/assets.py catalog
+pip install -r scripts/requirements.txt
+python scripts/assets.py new --category <category> --id <asset-id> --kind <kind> --title "<Title>"
+python scripts/assets.py catalog
+python scripts/assets.py validate
+python scripts/assets.py scan
 ```
 
 A curator reviews every contribution. Everything in this repository is public: do not commit customer names, customer data, internal links, unreleased product information, or secrets.

@@ -30,3 +30,5 @@ related:
   - agent-path-to-production
   - m365-azure-custom-agent
   - agent-security-and-governance
+pillars:
+  - agent-architecture-patterns

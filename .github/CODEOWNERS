@@ -1,3 +1,19 @@
-# Curators must approve every change. Replace with a curator team once one exists,
-# for example @microsoft/agenticai-design-patterns-curators.
-* @james-tn
+# Curators must approve every change. Replace these handles with a curator team once one
+# exists, for example @microsoft/agenticai-design-patterns-curators. Per-category entries let
+# category curators be added without changing the default.
+
+*                                   @james-tn
+
+# Repository structure, tooling and policy
+/.github/                           @james-tn
+/scripts/                           @james-tn
+/templates/                         @james-tn
+/docs/                              @james-tn
+
+# Asset categories
+/assets/delivery-and-ops/           @james-tn
+/assets/m365-and-copilot/           @james-tn
+/assets/security-and-governance/    @james-tn
+/assets/landing-zones-and-infra/    @james-tn
+/assets/orchestration-and-workflows/ @james-tn
+/assets/data-and-tools/             @james-tn

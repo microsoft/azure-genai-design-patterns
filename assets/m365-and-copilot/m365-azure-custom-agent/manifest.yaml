@@ -37,3 +37,7 @@ related:
   - m365-mcp-plugin-integration
   - agent-security-and-governance
   - secured-foundry-landing-zone
+pillars:
+  - agent-architecture-patterns
+  - agent-ops
+  - solution-optimization

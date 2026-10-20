@@ -22,7 +22,7 @@ Keep the core architecture, wire contracts, and safety gates domain-agnostic. Sh
 |---|---|---|
 | **Core Topology & Wire Contracts** | [`docs/architecture.md`](docs/architecture.md) · [`ADR 0001`](docs/decisions/0001-decision-title.md) | [`samples/reference_sample.py`](samples/reference_sample.py) — Runnable reference module with offline `--self-test` |
 | **Identity, Authentication & Entitlements** | [`docs/authentication-and-governance.md`](docs/authentication-and-governance.md) | Token validation, OBO / RBAC enforcement, and two-principal isolation harness |
-| **Evaluation, Release Gates & Troubleshooting** | [`docs/evaluation-and-troubleshooting.md`](docs/evaluation-and-troubleshooting.md) | [`samples/README.md`](samples/README.md) · [`infra/README.md`](infra/README.md) |
+| **Evaluation, Release Gates & Troubleshooting** | [`docs/evaluation-and-troubleshooting.md`](docs/evaluation-and-troubleshooting.md) | [`samples/README.md`](samples/README.md) · `infra/README.md` (only if scaffolded with `--with-infra`) |
 
 ## When to use
 

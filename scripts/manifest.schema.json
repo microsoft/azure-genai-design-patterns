@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/microsoft/agenticai-design-patterns/schema/manifest.schema.json",
+  "$id": "https://github.com/microsoft/agenticai-design-patterns/scripts/manifest.schema.json",
   "title": "Asset manifest",
   "description": "Metadata for one asset in assets/<category>/<id>/manifest.yaml.",
   "type": "object",
@@ -82,10 +82,22 @@
       "type": "string",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
     },
-    "catalog_record_key": {
-      "description": "Optional key that links this asset to an external catalog record.",
-      "type": "string",
-      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    "pillars": {
+      "description": "Path-to-production pillars this asset supports.",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "coe-and-governance",
+          "landing-zones",
+          "agent-ops",
+          "security-and-observability",
+          "solution-optimization",
+          "agent-architecture-patterns"
+        ]
+      }
     }
   },
   "allOf": [

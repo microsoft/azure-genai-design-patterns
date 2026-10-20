@@ -1,0 +1,42 @@
+name: Asset feedback
+description: Report a problem, gap or improvement for an existing asset.
+title: "[Feedback]: "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **This repository is public.** Do not include customer names, customer data, internal links or secrets in this issue.
+  - type: input
+    id: asset
+    attributes:
+      label: Asset id
+      description: The folder name under assets/<category>/, for example agent-path-to-production.
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: Feedback type
+      options:
+        - Incorrect or outdated content
+        - Broken link or sample
+        - Missing guidance
+        - Improvement suggestion
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: What is wrong or missing, where (file and section), and what you expected.
+    validations:
+      required: true
+  - type: checkboxes
+    id: public-safety
+    attributes:
+      label: Public safety
+      options:
+        - label: This issue contains no customer names, customer data, internal links, unreleased product information or secrets.
+          required: true

@@ -14,4 +14,4 @@ This directory contains runnable, zero-external-dependency reference implementat
 python assets/<category>/<asset-id>/samples/reference_sample.py --self-test
 ```
 
-Delete any generated `__pycache__/` directory before running `python tools/assets.py validate`.
+Delete any generated `__pycache__/` directory before running `python scripts/assets.py validate`.

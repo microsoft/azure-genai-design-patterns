@@ -41,3 +41,5 @@ related:
   - agent-path-to-production
   - agent-security-and-governance
   - m365-azure-custom-agent
+pillars:
+  - landing-zones

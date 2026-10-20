@@ -37,3 +37,7 @@ related:
   - m365-azure-custom-agent
   - m365-mcp-plugin-integration
   - secured-foundry-landing-zone
+pillars:
+  - coe-and-governance
+  - security-and-observability
+  - agent-ops

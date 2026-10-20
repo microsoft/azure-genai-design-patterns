@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contribution guide
+    url: https://github.com/microsoft/agenticai-design-patterns/blob/main/docs/contribution-guide.md
+    about: How assets are structured, reviewed and published.

@@ -20,6 +20,8 @@ Playbooks, readiness frameworks, evaluation methodologies, and operational runbo
 
 The `agent-path-to-production` playbook organizes delivery around **six pillars**, each backed by deep technical reference architectures and solution accelerators in sibling categories:
 
+For the full pillar definitions, the asset-to-pillar matrix, and the planned categories, see [Path to production](../../docs/path-to-production.md).
+
 | Path-to-Production Pillar | Primary Category & Reference Assets |
 |---|---|
 | **Pillar 1 — AI CoE & Governance** | [`security-and-governance/agent-security-and-governance`](../security-and-governance/agent-security-and-governance/README.md) |

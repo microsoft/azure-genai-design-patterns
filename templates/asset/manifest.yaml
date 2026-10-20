@@ -1,5 +1,5 @@
-# Copy this folder to assets/<category>/<asset-id>/ (or run `python tools/assets.py new --category <category> --id <asset-id>`) and replace every value below.
-# Schema: schema/manifest.schema.json
+# Copy this folder to assets/<category>/<asset-id>/ (or run `python scripts/assets.py new --category <category> --id <asset-id>`) and replace every value below.
+# Schema: scripts/manifest.schema.json
 schema_version: 1
 id: asset-id
 category: m365-and-copilot # delivery-and-ops | m365-and-copilot | security-and-governance | landing-zones-and-infra | orchestration-and-workflows | data-and-tools
@@ -20,3 +20,5 @@ owners:
 last_reviewed: 2026-01-01
 related:
   - agent-path-to-production
+pillars: # coe-and-governance | landing-zones | agent-ops | security-and-observability | solution-optimization | agent-architecture-patterns
+  - agent-architecture-patterns

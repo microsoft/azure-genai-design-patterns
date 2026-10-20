@@ -14,7 +14,7 @@ Diagnose failures in strict stage order so transport, schema, authentication, an
 
 | Stage | Seam | Symptom | Diagnostic Check & Fix |
 |---|---|---|---|
-| **Stage 1** | Package / Manifest / IaC Validation | Schema lint or `az bicep build` fails | Run `python tools/assets.py validate` and tool/Bicep linters |
+| **Stage 1** | Package / Manifest / IaC Validation | Schema lint or `az bicep build` fails | Run `python scripts/assets.py validate` and tool/Bicep linters |
 | **Stage 2** | Network & DNS Reachability | Connection timeout, `502`, TLS SNI mismatch | Verify Private DNS CNAME chain (`privatelink.*`) and subnet delegation |
 | **Stage 3** | Tool Schema & Protocol Negotiation | Tools missing or rejected at `tools/list` | Verify protocol version (`2025-06-18`) and flat JSON Schema compliance |
 | **Stage 4** | Authentication & OBO Exchange | `401 Unauthorized` or `AADSTS*` error | Check `aud`, `iss`, `scp`, pre-authorized client IDs, and CAE claims |

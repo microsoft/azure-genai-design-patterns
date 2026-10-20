@@ -1,0 +1,82 @@
+name: Pattern proposal
+description: Propose a new reusable agentic AI pattern, reference architecture, accelerator, playbook or sample.
+title: "[Proposal]: "
+labels: ["proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing an asset. Read the [contribution guide](https://github.com/microsoft/agenticai-design-patterns/blob/main/docs/contribution-guide.md) first.
+        **This repository is public.** Do not include customer names, customer data, internal links, unreleased product information or secrets in this issue.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Recurring problem
+      description: What architectural problem does this solve, and why does it block teams on the path to production?
+    validations:
+      required: true
+  - type: textarea
+    id: approach
+    attributes:
+      label: Proposed approach
+      description: The pattern in a few sentences, the main components, and the key design decisions.
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - delivery-and-ops
+        - m365-and-copilot
+        - security-and-governance
+        - landing-zones-and-infra
+        - orchestration-and-workflows
+        - data-and-tools
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - design-pattern
+        - reference-architecture
+        - solution-accelerator
+        - playbook
+        - sample
+        - Not sure
+    validations:
+      required: true
+  - type: checkboxes
+    id: pillars
+    attributes:
+      label: Path-to-production pillars
+      description: Which pillars does this asset help with?
+      options:
+        - label: "1. AI CoE & Governance (coe-and-governance)"
+        - label: "2. AI Landing Zones (landing-zones)"
+        - label: "3. Agent Ops (agent-ops)"
+        - label: "4. AI Security & Observability (security-and-observability)"
+        - label: "5. Solution Optimization (solution-optimization)"
+        - label: "6. Proven Patterns for Agent Architectures (agent-architecture-patterns)"
+  - type: textarea
+    id: domains
+    attributes:
+      label: Domains where it applies
+      description: List at least two industries or business domains where the same pattern applies, to show it generalizes.
+    validations:
+      required: true
+  - type: textarea
+    id: overlap
+    attributes:
+      label: Overlap with existing assets
+      description: Which existing assets are closest, and why should this be new rather than an update to one of them?
+  - type: checkboxes
+    id: public-safety
+    attributes:
+      label: Public safety
+      options:
+        - label: This issue contains no customer names, customer data, internal links, unreleased product information or secrets.
+          required: true

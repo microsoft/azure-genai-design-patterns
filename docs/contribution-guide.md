@@ -2,6 +2,8 @@
 
 This guide defines the engineering, architectural, and public-safety standards for every asset in `microsoft/agenticai-design-patterns`. Whether you are authoring a contribution by hand or using an AI coding agent, follow this guide so every asset in the catalog is **domain-agnostic, production-deep, runnable offline, and 100% public-safe**.
 
+For how the catalog maps to the six path-to-production pillars, see [Path to production](path-to-production.md). For the short version of the rules, see [CONTRIBUTING.md](../CONTRIBUTING.md).
+
 ---
 
 ## 1. Repository Hierarchy & Category Taxonomy
@@ -10,7 +12,7 @@ Assets are organized in a two-level hierarchy:
 
 ```text
 assets/<category>/<asset-id>/
-├── manifest.yaml                 # Validated against schema/manifest.schema.json
+├── manifest.yaml                 # Validated against scripts/manifest.schema.json
 ├── README.md                     # Entry point, Domain Pack map, decision matrix, quickstart
 ├── CHANGELOG.md                  # Semantic version history
 ├── docs/
@@ -20,7 +22,8 @@ assets/<category>/<asset-id>/
 │   └── decisions/
 │       └── 0001-*.md             # Architecture Decision Records (ADRs)
 ├── samples/                      # Zero-dependency runnable reference modules (--self-test)
-└── infra/                        # Compilable Bicep / Terraform + reference CI/CD pipelines
+├── infra/                        # Optional (--with-infra): compilable Bicep / Terraform + CI/CD pipelines
+└── src/                          # Optional (--with-src): deployable application code
 ```
 
 ### Choosing the right `<category>`
@@ -33,10 +36,27 @@ Every asset belongs to exactly one primary category folder under `assets/`. If a
 | `m365-and-copilot` | **Microsoft 365 and Copilot Integration** | Declarative agents, custom engine agents, MCP plug-ins, MCP Apps (`ui://` widgets), Teams bots, and Cowork surface integrations | `m365-azure-custom-agent`, `m365-mcp-plugin-integration` |
 | `security-and-governance` | **Security and Governance** | Tool-call governance, Entra Agent ID, Foundry Toolbox allow-lists, runtime guardrails, Purview DSPM for AI, and Sentinel KQL audit | `agent-security-and-governance` |
 | `landing-zones-and-infra` | **Landing Zones and Infrastructure** | Private Microsoft Foundry landing zones, Private Link / DNS topologies, Bicep/Terraform IaC, and multi-stage CI/CD promotion pipelines | `secured-foundry-landing-zone` |
-| `orchestration-and-workflows` | **Orchestration and Workflows** | Standalone multi-agent routers, planner/specialist handoff protocols, durable state/caching engines, and workflow patterns | Planner-specialist routers, memory compaction |
-| `data-and-tools` | **Data and Tools** | Standalone MCP server reference architectures, On-Behalf-Of (OBO) data-platform connectors, Foundry IQ / RAG grounding, and action gates | Governed MCP servers, Unity Catalog OBO bridges |
+| `orchestration-and-workflows` | **Orchestration and Workflows** | Standalone multi-agent routers, planner/specialist handoff protocols, durable state/caching engines, and workflow patterns | *Planned* — the folder is created with the first asset |
+| `data-and-tools` | **Data and Tools** | Standalone MCP server reference architectures, On-Behalf-Of (OBO) data-platform connectors, Foundry IQ / RAG grounding, and action gates | *Planned* — the folder is created with the first asset |
 
-Each `assets/<category>/README.md` acts as a **Category Decision Guide** with a comparison matrix showing when to choose each sibling asset in that category, plus an auto-generated `<!-- category-catalog:start --> ... <!-- category-catalog:end -->` table maintained by `python tools/assets.py catalog`.
+Each `assets/<category>/README.md` acts as a **Category Decision Guide** with a comparison matrix showing when to choose each sibling asset in that category, plus an auto-generated `<!-- category-catalog:start --> ... <!-- category-catalog:end -->` table maintained by `python scripts/assets.py catalog`.
+
+Planned categories have no folder yet. Until their first asset lands, [Path to production](path-to-production.md#planned-categories-where-to-look-today) points to the published assets that cover those topics today. `python scripts/assets.py new` creates the category folder and its README from `templates/category/README.md` the first time an asset is added to it.
+
+### Mapping to the path-to-production pillars
+
+Every manifest declares `pillars:` — one or more of the six pillars the asset helps a team move through on the way to production:
+
+| Pillar id | Pillar |
+|---|---|
+| `coe-and-governance` | 1. AI CoE & Governance |
+| `landing-zones` | 2. AI Landing Zones |
+| `agent-ops` | 3. Agent Ops |
+| `security-and-observability` | 4. AI Security & Observability |
+| `solution-optimization` | 5. Solution Optimization |
+| `agent-architecture-patterns` | 6. Proven Patterns for Agent Architectures |
+
+List only the pillars where the asset gives a reader something concrete to do (a gate, a template, a runnable sample, or IaC), not every pillar it mentions. The pillar table in the root `README.md` is generated from this field.
 
 ---
 
@@ -84,7 +104,7 @@ When an asset includes Python reference modules in `samples/`:
 - **Hermetic offline self-test:** Every module must be runnable with `python samples/<module>.py` (or `--self-test`) using the Python standard library and in-memory fakes when cloud environment variables are absent.
 - **Production adapter seams:** Pair every in-memory fake used by the self-test with the real production adapter class or protocol (for example, `CosmosDocumentStore`, `MsalOboBroker`, `StreamableHttpMcpClient`, `BotConnectorSender`) in the same module.
 - **Explicit pass/fail assertions:** Print each verified scenario (`PASS <scenario>`) and exit with code `0` on success or `1` on failure so CI can execute the suite directly.
-- **No committed `__pycache__` or `.pyc` files:** Clean up bytecode artifacts before committing (`tools/assets.py validate` rejects `.pyc` files).
+- **No committed `__pycache__` or `.pyc` files:** Clean up bytecode artifacts before committing (`scripts/assets.py validate` rejects `.pyc` files).
 
 ### Standards for Infrastructure-as-Code (`infra/*.bicep`)
 
@@ -103,7 +123,7 @@ This repository is public under the MIT License. Contributions must contain **ze
 | Category | Strictly Prohibited | Required Public-Safe Replacement |
 |---|---|---|
 | **Customer & Partner Names** | Real customer names, project codenames, internal team/product names from engagements | Neutral placeholders (`Contoso`, `Fabrikam`, `Northwind`, `Woodgrove`) or domain-pack names (`secops`, `sales`, `ops`) |
-| **People & Aliases** | Workshop participant names, employee aliases, real email addresses | Role titles (`Platform Engineer`, `Security Architect`, `user-a@contoso.example`) |
+| **People & Aliases** | Workshop participant names, employee aliases, real email addresses | Role titles (`Platform Engineer`, `Security Architect`) and placeholder addresses (`user-a@contoso.com`) |
 | **Identifiers & GUIDs** | Real Microsoft Entra tenant IDs, Azure subscription IDs, app registration client IDs | Documentation-reserved UUIDs (`00000000-0000-0000-0000-000000000000`, `11111111-1111-1111-1111-111111111111`) or `<TENANT_ID>` placeholders |
 | **Hosts & URLs** | `*.sharepoint.com`, `*.corp.microsoft.com`, `*.devtunnels.ms`, `*.microsofticm.com`, internal `aka.ms` links, customer domains | RFC 2606 / example domains (`*.contoso.com`, `*.example.com`) and public `https://learn.microsoft.com/...` URLs |
 | **Internal Org Terminology** | Internal sales/field acronyms, internal program tracking IDs, commercial terms | Standard public industry and Azure Cloud Adoption Framework / Well-Architected terminology |
@@ -113,22 +133,31 @@ This repository is public under the MIT License. Contributions must contain **ze
 
 ## 5. Step-by-Step Contribution Workflow
 
+### Step 0: Propose the pattern
+
+Open a **Pattern proposal** issue (from the issue templates) before writing content. A curator confirms that the pattern is not already covered, agrees the category, `kind`, and pillars, and flags any public-safety concerns early.
+
 ### Step 1: Scaffold the asset
 
-Use `tools/assets.py new` to create a new asset folder pre-populated from `templates/asset/`:
+Install the tooling once, then use `scripts/assets.py new` to create the asset folder from `templates/asset/`:
 
 ```bash
-python tools/assets.py new \
+pip install -r scripts/requirements.txt
+
+python scripts/assets.py new \
   --category m365-and-copilot \
   --id my-pattern-id \
   --kind design-pattern \
   --title "Human-Readable Pattern Title"
 ```
 
+- Add `--with-infra` to include an `infra/` folder (IaC and pipelines) and `--with-src` to include a `src/` folder (deployable application code). Both come from `templates/optional/`.
+- If the category is still planned, the command also creates `assets/<category>/README.md` from `templates/category/README.md`. Fill in its decision guide.
+
 ### Step 2: Author the documentation, ADRs, and runnable samples/IaC
 
-1. Fill out `manifest.yaml` (verify `category`, `kind`, `maturity`, `tags`, `azure_services`, `owners`, `related`).
-2. Author `README.md` and `docs/` following the depth bar in Section 3. Delete unused template folders (`infra/` or `src/` or `samples/`) if they do not apply to your asset `kind`.
+1. Fill out `manifest.yaml` (verify `category`, `kind`, `maturity`, `pillars`, `tags`, `azure_services`, `owners`, `related`).
+2. Author `README.md` and `docs/` following the depth bar in Section 3. Delete `samples/` if your asset has no runnable modules; `infra/` and `src/` only exist if you asked for them.
 3. Run all Python self-tests and/or Bicep builds locally:
    ```bash
    # Run any Python reference module self-tests
@@ -138,20 +167,30 @@ python tools/assets.py new \
    az bicep build --file assets/<category>/<asset-id>/infra/<template>.bicep --stdout > /dev/null
    ```
 
-### Step 3: Validate and regenerate catalogs
+### Step 3: Validate, scan, and regenerate catalogs
 
-Run the repository validator and catalog generator before opening a pull request:
+Run the same checks as CI before opening a pull request:
 
 ```bash
-python tools/assets.py catalog
-python tools/assets.py validate
-python tools/assets.py catalog --check
+python scripts/assets.py catalog         # regenerate the pillar map and catalogs
+python scripts/assets.py validate        # structure, schema, required sections, links
+python scripts/assets.py catalog --check # fail if a generated table is stale
+python scripts/assets.py scan            # public-safety scan across the repository
 ```
 
-`python tools/assets.py validate` verifies:
-- Every asset lives inside a valid `assets/<category>/<asset-id>/` folder.
-- Every `manifest.yaml` conforms to `schema/manifest.schema.json`, `id` matches `<asset-id>`, and `category` matches `<category>`.
-- Every category has a valid `assets/<category>/README.md`.
+`python scripts/assets.py validate` verifies:
+- Every asset lives inside a valid `assets/<category>/<asset-id>/` folder; unknown category folders are errors.
+- Every `manifest.yaml` conforms to `scripts/manifest.schema.json`, `id` matches `<asset-id>`, and `category` matches `<category>`.
+- Every category folder has an `assets/<category>/README.md`.
 - Every asset `README.md` has required sections (`## When to use`, `## When not to use`, `## Architecture`, `## Getting started`).
-- Every relative Markdown link in `README.md`, `CONTRIBUTING.md`, `docs/`, `assets/<category>/README.md`, and `assets/<category>/<asset-id>/**/*.md` resolves to an existing file.
-- No blocked file extensions (`.pfx`, `.pem`, `.key`, `.env`, `.pyc`), oversized files (`> 10 MB`), or blocked patterns (internal URLs, secrets, confidentiality markings) exist.
+- Asset ids are unique and every `related` / `deprecated_by` reference points to an existing asset.
+- Every relative Markdown link in the root `README.md` and `CONTRIBUTING.md`, `assets/`, `docs/`, `scripts/README.md`, `.github/`, and `templates/` resolves to an existing file.
+- No blocked file extensions (`.pfx`, `.pem`, `.key`, `.env`, `.pyc`) or oversized files (`> 10 MB`) exist inside an asset.
+
+`python scripts/assets.py scan` checks every text file in the repository for internal URLs, secrets, confidentiality markings, GUIDs that are not documentation placeholders, and email addresses outside the placeholder domains. It is a safety net, not a substitute for curator review. See [scripts/README.md](../scripts/README.md) for details.
+
+### Step 4: Open the pull request
+
+- Keep one asset (or one asset update) per pull request.
+- Complete the pull request template checklist, including the public-safety confirmation.
+- A curator listed in `.github/CODEOWNERS` reviews the content against this guide, and the `validate` workflow must pass before merge.
