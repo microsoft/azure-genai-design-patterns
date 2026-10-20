@@ -1,0 +1,43 @@
+schema_version: 1
+id: secured-foundry-landing-zone
+category: landing-zones-and-infra
+title: Secured Microsoft Foundry Landing Zone for Enterprise Agents
+summary: >-
+  A two-stage Microsoft Foundry landing zone and Bicep reference setup that
+  starts with an authenticated functional validation profile and progresses to
+  a network-isolated, private-by-default enterprise foundation for Prompt and
+  Hosted Agents that call private MCP tools.
+kind: solution-accelerator
+maturity: preview
+version: 0.1.0
+tags:
+  - landing-zone
+  - microsoft-foundry
+  - private-networking
+  - bicep
+  - private-endpoints
+  - private-dns
+  - cicd
+  - mcp
+  - zero-trust
+  - managed-identity
+  - oauth-passthrough
+  - hosted-agents
+  - microsoft-365
+azure_services:
+  - Microsoft Foundry
+  - Azure Container Apps
+  - Azure Virtual Network
+  - Azure Private Link
+  - Azure Private DNS
+  - Azure AI Search
+  - Azure Cosmos DB
+  - Azure Key Vault
+  - Azure Bot Service
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-20"
+related:
+  - agent-path-to-production
+  - agent-security-and-governance
+  - m365-azure-custom-agent

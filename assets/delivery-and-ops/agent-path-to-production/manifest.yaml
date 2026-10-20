@@ -1,0 +1,30 @@
+schema_version: 1
+id: agent-path-to-production
+category: delivery-and-ops
+title: Agent Path to Production
+summary: >-
+  An evidence-led delivery playbook for taking an agentic application from
+  early design or a pilot to an operable production workload, with specialist
+  routing, readiness gates, and reusable learning.
+kind: playbook
+maturity: experimental
+version: 0.1.0
+tags:
+  - agentic-ai
+  - path-to-production
+  - production-readiness
+  - agentops
+  - governance
+  - security
+  - reliability
+azure_services:
+  - Microsoft Foundry
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-20"
+related:
+  - agent-security-and-governance
+  - m365-azure-custom-agent
+  - m365-mcp-plugin-integration
+  - secured-foundry-landing-zone
+

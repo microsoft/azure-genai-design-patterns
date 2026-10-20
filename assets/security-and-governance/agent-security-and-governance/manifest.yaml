@@ -1,0 +1,39 @@
+schema_version: 1
+id: agent-security-and-governance
+category: security-and-governance
+title: Enterprise Agent Security and Tool Governance
+summary: >-
+  A defense-in-depth reference architecture for securing and governing
+  enterprise AI agents at the tool call, using Microsoft Foundry, Entra Agent
+  ID, Foundry Toolbox, and Microsoft Agent 365 so identity, tool reach, approval,
+  and data entitlements are enforced by the platform and the source, not the prompt.
+kind: reference-architecture
+maturity: preview
+version: 0.1.0
+tags:
+  - security
+  - governance
+  - entra-agent-id
+  - agent-365
+  - foundry-toolbox
+  - guardrails
+  - observability
+  - mcp
+  - human-in-the-loop
+  - least-privilege
+  - prompt-injection
+azure_services:
+  - Microsoft Foundry
+  - Microsoft Entra ID
+  - Azure Monitor
+  - Microsoft Defender for Cloud
+  - Microsoft Purview
+  - Azure Container Apps
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-20"
+related:
+  - agent-path-to-production
+  - m365-azure-custom-agent
+  - m365-mcp-plugin-integration
+  - secured-foundry-landing-zone

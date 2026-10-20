@@ -1,0 +1,39 @@
+schema_version: 1
+id: m365-azure-custom-agent
+category: m365-and-copilot
+title: Microsoft 365 Integration with Azure Custom Engine Agent
+summary: >-
+  Reference architecture for publishing an Azure-hosted custom engine agent
+  (Microsoft Foundry Hosted Agent or Azure Container Apps) to Microsoft Teams and
+  Microsoft 365 Copilot, composed with declarative agents and Cowork over one
+  governed MCP tool layer with OBO identity, durable state, and gated actions.
+kind: reference-architecture
+maturity: preview
+version: 0.1.0
+tags:
+  - m365-copilot
+  - microsoft-teams
+  - custom-engine-agent
+  - declarative-agent
+  - foundry-hosted-agents
+  - multi-agent
+  - obo
+  - cosmos-db
+  - mcp
+  - proactive-messaging
+  - action-safety
+azure_services:
+  - Microsoft Foundry
+  - Azure Bot Service
+  - Azure Container Apps
+  - Azure Cosmos DB
+  - Azure Databricks
+  - Microsoft Entra ID
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-20"
+related:
+  - agent-path-to-production
+  - m365-mcp-plugin-integration
+  - agent-security-and-governance
+  - secured-foundry-landing-zone

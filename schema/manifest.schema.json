@@ -2,17 +2,29 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/microsoft/agenticai-design-patterns/schema/manifest.schema.json",
   "title": "Asset manifest",
-  "description": "Metadata for one asset in assets/<id>/manifest.yaml.",
+  "description": "Metadata for one asset in assets/<category>/<id>/manifest.yaml.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "id", "title", "summary", "kind", "maturity", "version", "tags", "owners", "last_reviewed"],
+  "required": ["schema_version", "id", "category", "title", "summary", "kind", "maturity", "version", "tags", "owners", "last_reviewed"],
   "properties": {
     "schema_version": { "const": 1 },
     "id": {
-      "description": "Stable asset id. Must equal the folder name.",
+      "description": "Stable asset id. Must equal the asset folder name.",
       "type": "string",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
       "maxLength": 64
+    },
+    "category": {
+      "description": "Architectural category folder under assets/<category>/<id>/.",
+      "type": "string",
+      "enum": [
+        "delivery-and-ops",
+        "m365-and-copilot",
+        "security-and-governance",
+        "landing-zones-and-infra",
+        "orchestration-and-workflows",
+        "data-and-tools"
+      ]
     },
     "title": { "type": "string", "minLength": 5, "maxLength": 100 },
     "summary": {

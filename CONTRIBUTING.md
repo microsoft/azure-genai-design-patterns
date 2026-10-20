@@ -21,19 +21,37 @@ The validation workflow scans for common mistakes, but it cannot catch everythin
 
 ## Adding an asset
 
-1. Pick an id: lowercase words separated by hyphens, for example `human-approval-gate`. The id is also the folder name and never changes.
-2. Copy the template: `cp -r templates/asset assets/<asset-id>`.
-3. Fill in `manifest.yaml`. The schema is in [`schema/manifest.schema.json`](schema/manifest.schema.json).
-4. Write `README.md`, keeping the template's headings. Put deeper material in `docs/`, infrastructure in `infra/` and code in `src/`. Delete optional folders you don't use.
-5. Validate and regenerate the catalog:
+Before authoring, read the **[Contribution & Pattern Standardization Guide](docs/contribution-guide.md)** for the full generalization methodology, depth requirements by `kind`, and offline self-test standards.
+
+1. **Choose the category (`<category>`)** under [`assets/`](assets/README.md):
+   - `delivery-and-ops` — Delivery playbooks, readiness gates, evaluation frameworks, and AgentOps
+   - `m365-and-copilot` — Microsoft 365 Copilot, Teams, Declarative Agents, Custom Engine Agents, MCP plug-ins, and Cowork
+   - `security-and-governance` — Entra Agent ID, tool governance, guardrails, Purview, and Sentinel observability
+   - `landing-zones-and-infra` — Private Microsoft Foundry landing zones, Bicep/Terraform IaC, and CI/CD pipelines
+   - `orchestration-and-workflows` — Multi-agent routers, planner-specialist handoffs, durable state/caching
+   - `data-and-tools` — Governed MCP servers, OBO data connectors, RAG grounding, and action safety gates
+2. **Pick a stable `id`:** lowercase words separated by hyphens, for example `human-approval-gate`.
+3. **Scaffold the asset from `templates/asset/`:**
 
    ```bash
    pip install -r tools/requirements.txt
-   python tools/assets.py validate
-   python tools/assets.py catalog
+   python tools/assets.py new --category <category> --id <asset-id> --kind <kind> --title "<Title>"
    ```
 
-6. Open a pull request using the template. One asset per pull request.
+4. **Generalize and author the content:**
+   - Frame the pattern as **domain-agnostic** (demonstrating applicability across at least three domains such as ITSM/SecOps, CRM/Sales, and FinOps/HR/Ops via Domain Packs rather than a single customer case study).
+   - Complete `manifest.yaml` ([`schema/manifest.schema.json`](schema/manifest.schema.json)) and `README.md`.
+   - Author deep architecture, identity/authentication, and evaluation/troubleshooting guides in `docs/`, plus at least one ADR in `docs/decisions/`.
+   - Include runnable, zero-dependency reference code with an offline `--self-test` mode in `samples/` and/or compilable Bicep/Terraform templates in `infra/`. Delete unused template folders (`infra/` or `src/` or `samples/`).
+5. **Validate and regenerate the catalogs:**
+
+   ```bash
+   python tools/assets.py catalog
+   python tools/assets.py validate
+   python tools/assets.py catalog --check
+   ```
+
+6. **Open a pull request** using the pull request template. One asset per pull request.
 
 ### Files and sizes
 

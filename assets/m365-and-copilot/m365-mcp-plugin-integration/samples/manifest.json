@@ -1,0 +1,52 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.29/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.29",
+  "version": "1.4.0",
+  "id": "${{TEAMS_APP_ID}}",
+  "developer": {
+    "name": "Contoso Ltd",
+    "websiteUrl": "https://www.contoso.com",
+    "privacyUrl": "https://www.contoso.com/privacy",
+    "termsOfUseUrl": "https://www.contoso.com/terms",
+    "mpnId": ""
+  },
+  "name": {
+    "short": "Account Workbench",
+    "full": "Contoso Account Workbench for Microsoft 365 Copilot"
+  },
+  "description": {
+    "short": "Account reviews, opportunities, and orders from Contoso CRM in Copilot.",
+    "full": "Contoso Account Workbench is a declarative agent for Microsoft 365 Copilot. It reads account health and opportunities from Contoso CRM, answers policy questions from the Contoso knowledge base, looks up the product catalog, and drafts and submits orders with confirmation and server-side safeguards. Data stays in Contoso systems and is accessed with the signed-in user's permissions."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#2F5597",
+  "localizationInfo": {
+    "defaultLanguageTag": "en-us"
+  },
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "contosoAccountWorkbench",
+        "file": "declarativeAgent.json"
+      }
+    ]
+  },
+  "permissions": [
+    "identity"
+  ],
+  "validDomains": [
+    "crm-mcp.contoso.com",
+    "knowledge-mcp.contoso.com",
+    "catalog-mcp-dev.contoso.com"
+  ],
+  "webApplicationInfo": {
+    "id": "${{AAD_APP_CLIENT_ID}}",
+    "resource": "api://knowledge-mcp.contoso.com/${{AAD_APP_CLIENT_ID}}"
+  },
+  "devicePermissions": [],
+  "showLoadingIndicator": false,
+  "isFullScreen": false
+}

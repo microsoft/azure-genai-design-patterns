@@ -1,0 +1,295 @@
+# Reference workflow: secured Foundry landing-zone provisioning.
+#
+# Copy to .github/workflows/ in the consuming repository. Paths assume the
+# asset lives at assets/landing-zones-and-infra/secured-foundry-landing-zone. This file is a reference,
+# not a turnkey pipeline: review identities, environments and gates first.
+#
+# Stages
+#   0  lint + preflight  Bicep lint and build of all 8 templates, provider and
+#                        policy preflight (ARM validate), what-if preview.
+#   1  platform          GitHub-hosted runner, OIDC (azure/login@v2) as the
+#                        foundation identity. Deploys the network-owning
+#                        templates; verifies VNet CIDR allocation, subnet
+#                        delegation, private DNS zones and hub/operator peering.
+#   2  private           Self-hosted runner inside the operator VNet. Confirms
+#                        private resolution and capability host health, deploys
+#                        Search, MCP and (optionally) the M365 bot, then asserts
+#                        DNS A records and Private Endpoint "Approved" state.
+#
+# Dependency order: foundation.bicep consumes the subnet and VNet ids that
+# private-foundry-project.bicep outputs (secureNetworking=true). Stage 1 must
+# therefore deploy private-foundry-project.bicep BEFORE foundation.bicep. Both
+# are ARM control-plane calls, so a hosted runner can run them. Anything that
+# needs private DNS or a private data plane runs in Stage 2.
+#
+# Identity: one user-assigned managed identity per environment
+# ("foundation-<env>") federated to GitHub environment platform-<env>
+# (subject repo:<owner>/<repo>:environment:platform-<env>). It holds the custom
+# subscription role in ../bootstrap-subscription-role.example.json plus
+# Contributor and Role Based Access Control Administrator on the landing-zone
+# resource group only. No client secret exists anywhere in this workflow.
+#
+# Environment variables (GitHub environment platform-<env>, not secrets):
+#   AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID, AZURE_FOUNDATION_CLIENT_ID,
+#   LZ_RESOURCE_GROUP, OPERATOR_VNET_NAME, DEPLOY_M365_BOT ('true'|'false'),
+#   LZ_PARAMETERS  populated copy of ../parameters.example.json (one JSON
+#                  document, kept out of git; identifiers are not secrets).
+
+name: foundation-deploy
+
+on:
+  pull_request:
+    paths:
+      - "assets/landing-zones-and-infra/secured-foundry-landing-zone/infra/**"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, test, prod]
+        default: dev
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: foundation-${{ inputs.environment || 'pr' }}
+  cancel-in-progress: false
+
+env:
+  INFRA: assets/landing-zones-and-infra/secured-foundry-landing-zone/infra
+  ENV_NAME: ${{ inputs.environment || 'dev' }}
+
+jobs:
+  # ------------------------------------------------------------------ Stage 0
+  lint:
+    name: "Stage 0a - Bicep lint and build (8 templates)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Bicep CLI
+        run: az bicep install && az bicep version
+      - name: Lint and build every template
+        run: |
+          set -euo pipefail
+          for t in foundation private-foundry-project private-operator private-search \
+                   private-mcp-server managed-m365-bot operator-connectivity modules/environment-dns; do
+            echo "::group::$t.bicep"
+            az bicep lint  --file "$INFRA/$t.bicep"
+            az bicep build --file "$INFRA/$t.bicep" --stdout > /dev/null
+            echo "::endgroup::"
+          done
+      - name: Guardrails on committed files
+        run: |
+          set -euo pipefail
+          # No template may hard-code public network access.
+          if grep -rnE "publicNetworkAccess: '(E|e)nabled'" "$INFRA"; then exit 1; fi
+          # The parameter example must stay blank (fail-closed minLength).
+          if grep -nE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-' "$INFRA/parameters.example.json"; then
+            echo "::error::parameters.example.json contains a populated identifier"; exit 1
+          fi
+          # The runner archive must stay SHA-256 pinned.
+          grep -q "sha256sum" "$INFRA/private-operator-cloud-init.yaml"
+
+  preflight:
+    name: "Stage 0b - provider/policy preflight and what-if"
+    needs: lint
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: platform-${{ inputs.environment }}
+    env:
+      RG: ${{ vars.LZ_RESOURCE_GROUP }}
+      LZ_PARAMETERS: ${{ vars.LZ_PARAMETERS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_FOUNDATION_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Resource providers registered (read-only)
+        run: |
+          set -euo pipefail
+          for ns in Microsoft.CognitiveServices Microsoft.App Microsoft.Network Microsoft.DocumentDB \
+                    Microsoft.Search Microsoft.Storage Microsoft.KeyVault Microsoft.ContainerRegistry \
+                    Microsoft.OperationalInsights Microsoft.Insights Microsoft.ManagedIdentity \
+                    Microsoft.BotService Microsoft.Compute; do
+            state=$(az provider show -n "$ns" --query registrationState -o tsv)
+            echo "$ns: $state"
+            # The custom role can read providers but not register them.
+            [ "$state" = "Registered" ] || { echo "::error::$ns is $state; ask the bootstrap operator"; exit 1; }
+          done
+      - name: Policy assignments in scope
+        run: az policy assignment list -g "$RG" --disable-scope-strict-match --query "[].displayName" -o tsv
+      - name: ARM validate (evaluates deny policies) and what-if
+        run: |
+          set -euo pipefail
+          mkdir -p .local
+          jq '.privateFoundryProject' <<<"$LZ_PARAMETERS" > .local/pfp.json
+          az deployment group validate -g "$RG" -f "$INFRA/private-foundry-project.bicep" -p @.local/pfp.json -o none
+          az deployment group what-if  -g "$RG" -f "$INFRA/private-foundry-project.bicep" -p @.local/pfp.json \
+            --exclude-change-types Ignore NoChange
+          if az deployment group show -g "$RG" -n "pfp-$ENV_NAME" -o none 2>/dev/null; then
+            out=$(az deployment group show -g "$RG" -n "pfp-$ENV_NAME" --query properties.outputs -o json)
+            jq '.foundation' <<<"$LZ_PARAMETERS" > .local/foundation.json
+            az deployment group what-if -g "$RG" -f "$INFRA/foundation.bicep" -p @.local/foundation.json \
+              secureNetworking=true \
+              containerAppsSubnetId="$(jq -r .mcpSubnetId.value <<<"$out")" \
+              privateEndpointSubnetId="$(jq -r .privateEndpointSubnetId.value <<<"$out")" \
+              virtualNetworkId="$(jq -r .virtualNetworkId.value <<<"$out")" \
+              --exclude-change-types Ignore NoChange
+          else
+            echo "::notice::First deployment: foundation what-if runs after Stage 1 creates the VNet."
+          fi
+
+  # ------------------------------------------------------------------ Stage 1
+  platform:
+    name: "Stage 1 - platform deployment (hosted runner, OIDC)"
+    needs: preflight
+    runs-on: ubuntu-latest
+    environment: platform-${{ inputs.environment }}
+    env:
+      RG: ${{ vars.LZ_RESOURCE_GROUP }}
+      LZ_PARAMETERS: ${{ vars.LZ_PARAMETERS }}
+      OPERATOR_VNET: ${{ vars.OPERATOR_VNET_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_FOUNDATION_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy private-foundry-project.bicep (VNet, BYO stores, project, capability host)
+        run: |
+          set -euo pipefail
+          mkdir -p .local
+          jq '.privateFoundryProject' <<<"$LZ_PARAMETERS" > .local/pfp.json
+          az deployment group create -g "$RG" -n "pfp-$ENV_NAME" \
+            -f "$INFRA/private-foundry-project.bicep" -p @.local/pfp.json -o none
+      - name: Deploy foundation.bicep (ACR, Key Vault, observability, internal ACA environment)
+        run: |
+          set -euo pipefail
+          out=$(az deployment group show -g "$RG" -n "pfp-$ENV_NAME" --query properties.outputs -o json)
+          jq '.foundation' <<<"$LZ_PARAMETERS" > .local/foundation.json
+          az deployment group create -g "$RG" -n "foundation-$ENV_NAME" \
+            -f "$INFRA/foundation.bicep" -p @.local/foundation.json secureNetworking=true \
+            containerAppsSubnetId="$(jq -r .mcpSubnetId.value <<<"$out")" \
+            privateEndpointSubnetId="$(jq -r .privateEndpointSubnetId.value <<<"$out")" \
+            virtualNetworkId="$(jq -r .virtualNetworkId.value <<<"$out")" -o none
+      - name: Deploy operator-connectivity.bicep (peering + zone links to operator VNet)
+        run: |
+          set -euo pipefail
+          a=$(az deployment group show -g "$RG" -n "pfp-$ENV_NAME" --query properties.outputs -o json)
+          b=$(az deployment group show -g "$RG" -n "foundation-$ENV_NAME" --query properties.outputs -o json)
+          zones=$(jq -cn --argjson a "$a" --argjson b "$b" \
+            '$a.privateDnsZoneNames.value + $b.privateDnsZoneNames.value | unique')
+          az deployment group create -g "$RG" -n "connectivity-$ENV_NAME" \
+            -f "$INFRA/operator-connectivity.bicep" -p name="lz-$ENV_NAME" \
+            foundationVnetName="$(jq -r .virtualNetworkName.value <<<"$a")" \
+            operatorVnetName="$OPERATOR_VNET" privateDnsZoneNames="$zones" -o none
+      - name: Verify CIDR, delegation, DNS zones and peering
+        run: |
+          set -euo pipefail
+          a=$(az deployment group show -g "$RG" -n "pfp-$ENV_NAME" --query properties.outputs -o json)
+          vnet=$(jq -r .virtualNetworkName.value <<<"$a")
+          want=$(jq -r '.privateFoundryProject.parameters.vnetAddressPrefix.value' <<<"$LZ_PARAMETERS")
+          got=$(az network vnet show -g "$RG" -n "$vnet" --query "addressSpace.addressPrefixes[0]" -o tsv)
+          [ "$got" = "$want" ] || { echo "::error::VNet CIDR $got != $want"; exit 1; }
+          for s in agent-subnet mcp-subnet; do
+            d=$(az network vnet subnet show -g "$RG" --vnet-name "$vnet" -n "$s" --query "delegations[0].serviceName" -o tsv)
+            [ "$d" = "Microsoft.App/environments" ] || { echo "::error::$s delegation is '$d'"; exit 1; }
+          done
+          for z in $(az deployment group show -g "$RG" -n "connectivity-$ENV_NAME" \
+                       --query "properties.outputs.linkedDnsZones.value[]" -o tsv); do
+            states=$(az network private-dns link vnet list -g "$RG" -z "$z" --query "[].virtualNetworkLinkState" -o tsv | sort -u)
+            echo "$z -> $states"
+            [ "$states" = "Completed" ] || { echo "::error::zone $z has incomplete links"; exit 1; }
+          done
+          az network vnet peering list -g "$RG" --vnet-name "$vnet" \
+            --query "[].{name:name,state:peeringState,sync:peeringSyncLevel}" -o table
+          bad=$(az network vnet peering list -g "$RG" --vnet-name "$vnet" \
+            --query "length([?peeringState!='Connected' || peeringSyncLevel!='FullyInSync'])" -o tsv)
+          [ "$bad" = "0" ] || { echo "::error::peering not Connected/FullyInSync"; exit 1; }
+
+  # ------------------------------------------------------------------ Stage 2
+  private:
+    name: "Stage 2 - private data-plane deployment (self-hosted runner)"
+    needs: platform
+    # The environment label pins the job to that environment's runner, whose VNet
+    # is the only one linked to this environment's private DNS zones.
+    runs-on: [self-hosted, foundry-private-operator, "${{ inputs.environment }}"]
+    environment: platform-${{ inputs.environment }}
+    env:
+      RG: ${{ vars.LZ_RESOURCE_GROUP }}
+      LZ_PARAMETERS: ${{ vars.LZ_PARAMETERS }}
+      DEPLOY_M365_BOT: ${{ vars.DEPLOY_M365_BOT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_FOUNDATION_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Private resolution and capability host health (from inside the network)
+        run: |
+          set -euo pipefail
+          a=$(az deployment group show -g "$RG" -n "pfp-$ENV_NAME" --query properties.outputs -o json)
+          host=$(jq -r .projectEndpoint.value <<<"$a" | awk -F/ '{print $3}')
+          ip=$(getent ahostsv4 "$host" | awk 'NR==1{print $1}')
+          echo "$host -> $ip"
+          [[ "$ip" == 10.* ]] || { echo "::error::$host resolved to $ip (public leak)"; exit 1; }
+          pid=$(jq -r .projectResourceId.value <<<"$a")
+          state=$(az rest --method get --url "https://management.azure.com${pid}/capabilityHosts/agents?api-version=2025-04-01-preview" \
+                    --query properties.provisioningState -o tsv)
+          [ "$state" = "Succeeded" ] || { echo "::error::capability host is $state"; exit 1; }
+      - name: Deploy private-search.bicep and private-mcp-server.bicep
+        run: |
+          set -euo pipefail
+          mkdir -p .local
+          a=$(az deployment group show -g "$RG" -n "pfp-$ENV_NAME" --query properties.outputs -o json)
+          b=$(az deployment group show -g "$RG" -n "foundation-$ENV_NAME" --query properties.outputs -o json)
+          principal=$(az rest --method get --url "https://management.azure.com$(jq -r .projectResourceId.value <<<"$a")?api-version=2025-04-01-preview" \
+                        --query identity.principalId -o tsv)
+          jq '.privateSearch' <<<"$LZ_PARAMETERS" > .local/search.json
+          az deployment group create -g "$RG" -n "search-$ENV_NAME" -f "$INFRA/private-search.bicep" \
+            -p @.local/search.json privateEndpointSubnetId="$(jq -r .privateEndpointSubnetId.value <<<"$a")" \
+            virtualNetworkId="$(jq -r .virtualNetworkId.value <<<"$a")" projectPrincipalId="$principal" -o none
+          jq '.privateMcpServer' <<<"$LZ_PARAMETERS" > .local/mcp.json
+          az deployment group create -g "$RG" -n "mcp-$ENV_NAME" -f "$INFRA/private-mcp-server.bicep" \
+            -p @.local/mcp.json environmentId="$(jq -r .environmentId.value <<<"$b")" \
+            environmentDefaultDomain="$(jq -r .environmentDefaultDomain.value <<<"$b")" \
+            registryName="$(jq -r .registryName.value <<<"$b")" keyVaultName="$(jq -r .keyVaultName.value <<<"$b")" \
+            appInsightsConnectionSecretUri="$(jq -r .appInsightsConnectionSecretUri.value <<<"$b")" -o none
+      - name: Deploy managed-m365-bot.bicep (only after the agent is published)
+        if: env.DEPLOY_M365_BOT == 'true'
+        run: |
+          jq '.managedM365Bot' <<<"$LZ_PARAMETERS" > .local/bot.json
+          az deployment group create -g "$RG" -n "bot-$ENV_NAME" -f "$INFRA/managed-m365-bot.bicep" -p @.local/bot.json -o none
+      - name: Assert Private Endpoint approval and DNS A records
+        run: |
+          set -euo pipefail
+          echo "| Private endpoint | Connection state |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          az network private-endpoint list -g "$RG" --query \
+            "[].[name, privateLinkServiceConnections[0].privateLinkServiceConnectionState.status]" -o tsv |
+          while read -r pe st; do
+            echo "| $pe | $st |" >> "$GITHUB_STEP_SUMMARY"
+            [ "$st" = "Approved" ] || { echo "::error::$pe is $st"; exit 1; }
+          done
+          for z in $(az network private-dns zone list -g "$RG" --query "[].name" -o tsv); do
+            az network private-dns record-set a list -g "$RG" -z "$z" \
+              --query "[].[name, aRecords[0].ipv4Address]" -o tsv | while read -r rec want; do
+              if [ "$rec" = "*" ]; then fqdn="probe.$z"; else fqdn="$rec.${z#privatelink.}"; fi
+              fqdn="${fqdn/vaultcore.azure.net/vault.azure.net}"
+              got=$(getent ahostsv4 "$fqdn" | awk 'NR==1{print $1}')
+              echo "$fqdn -> $got (A record $want)"
+              [ "$got" = "$want" ] || { echo "::error::$fqdn resolved to '$got', expected $want"; exit 1; }
+            done
+          done
+      - name: MCP ingress answers with 401 (auth enforced, reachable privately)
+        run: |
+          url=$(az deployment group show -g "$RG" -n "mcp-$ENV_NAME" --query properties.outputs.mcpEndpoint.value -o tsv)
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 -X POST "$url")
+          echo "$url -> HTTP $code"
+          [ "$code" = "401" ] || { echo "::error::expected 401 from unauthenticated MCP call"; exit 1; }

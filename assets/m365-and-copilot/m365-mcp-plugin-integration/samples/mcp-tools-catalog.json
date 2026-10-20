@@ -1,0 +1,204 @@
+{
+  "tools": [
+    {
+      "name": "get_account_summary",
+      "title": "Get account summary",
+      "description": "Return the health, pipeline, and recent orders for one customer account. Use when the user names an account or asks how an account is doing. Do not use to search across accounts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "pattern": "^ACC-[0-9]{4}$",
+            "description": "Account ID, for example ACC-1001."
+          }
+        },
+        "required": ["account_id"],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Get account summary",
+        "readOnlyHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "ui": {
+          "resourceUri": "ui://servicecrm/account-dashboard",
+          "visibility": ["model", "app"]
+        }
+      }
+    },
+    {
+      "name": "search_opportunities",
+      "title": "Search opportunities",
+      "description": "Find open opportunities by stage, minimum amount, and close date. Returns up to 25 rows and a next_cursor. Use for lists of deals. Do not use for one account's summary.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": ["prospecting", "qualification", "proposal", "negotiation"],
+            "description": "Sales stage filter. Omit for all open stages."
+          },
+          "min_amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Minimum opportunity amount in USD, as a plain number."
+          },
+          "close_before": {
+            "type": "string",
+            "format": "date",
+            "description": "Only opportunities expected to close on or before this date (YYYY-MM-DD)."
+          },
+          "owner": {
+            "type": "string",
+            "enum": ["me", "anyone"],
+            "description": "Use me for the signed-in user's opportunities. Defaults to me."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 25,
+            "description": "Maximum rows to return. Defaults to 10."
+          },
+          "cursor": {
+            "type": "string",
+            "description": "The next_cursor value from a previous call, to get more rows."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Search opportunities",
+        "readOnlyHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "save_shortlist",
+      "title": "Save to shortlist",
+      "description": "Save one account and a short note to the signed-in user's shortlist. Saving the same account again updates the note. Use when the user asks to save, pin, or note an account.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "pattern": "^ACC-[0-9]{4}$",
+            "description": "Account ID, for example ACC-1001."
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 280,
+            "description": "Short reason for saving the account."
+          }
+        },
+        "required": ["account_id", "note"],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Save to shortlist",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "_meta": {
+        "ui": {
+          "visibility": ["model", "app"]
+        }
+      }
+    },
+    {
+      "name": "draft_order",
+      "title": "Draft an order",
+      "description": "Create an order draft for one SKU and quantity. Returns a draft_id, line items, and an estimated total. Nothing is sent to fulfillment. Use before submit_order.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "pattern": "^ACC-[0-9]{4}$",
+            "description": "Account ID, for example ACC-1001."
+          },
+          "sku": {
+            "type": "string",
+            "pattern": "^SKU-[0-9]{3}$",
+            "description": "Product SKU, for example SKU-778. Confirm with the catalog if unsure."
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "description": "Number of units."
+          }
+        },
+        "required": ["account_id", "sku", "quantity"],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Draft an order",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "submit_order",
+      "title": "Submit an order",
+      "description": "Submit an existing order draft to fulfillment. Requires the draft_id returned by draft_order. Each draft can be submitted once. Use only when the user explicitly asks to submit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "draft_id": {
+            "type": "string",
+            "pattern": "^DRF-[0-9a-f]{8}$",
+            "description": "The draft_id returned by draft_order."
+          }
+        },
+        "required": ["draft_id"],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Submit an order",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "notify_account_team",
+      "title": "Notify the account team",
+      "description": "Send one message to every member of an account team. Requires an approval_token from the separate approval step. Use only when the user asks and provides the token.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "pattern": "^ACC-[0-9]{4}$",
+            "description": "Account ID, for example ACC-1001."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Message text to send."
+          },
+          "approval_token": {
+            "type": "string",
+            "description": "Approval token issued by the approval step for this account."
+          }
+        },
+        "required": ["account_id", "message", "approval_token"],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Notify the account team",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    }
+  ]
+}

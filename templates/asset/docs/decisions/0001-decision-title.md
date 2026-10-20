@@ -1,20 +1,30 @@
-# 1. Title of the decision
+# 1. Title of the Architectural Decision
 
-- Status: proposed | accepted | superseded by [ADR-n](000n-title.md)
-- Date: YYYY-MM-DD
+- **Status:** proposed | accepted | superseded
+- **Date:** 2026-01-01
+- **Related Documentation:** [Architecture](../architecture.md) · [Authentication and governance](../authentication-and-governance.md)
 
 ## Context
 
-The forces at play and the problem that needs a decision.
+Describe the enterprise constraints, security/identity boundaries, latency/cost budgets, and platform limitations that require an explicit architectural decision.
 
 ## Decision
 
-The choice that was made.
+State the architectural choice and the invariant rules it establishes across surfaces, runtimes, and tools.
 
 ## Consequences
 
-What becomes easier or harder, and the trade-offs accepted.
+### Positive
+
+- What becomes simpler, safer, more testable, or better governed.
+
+### Trade-offs and operational obligations
+
+- What additional components, latency hops, or operational runbooks are required.
 
 ## Alternatives considered
 
-Options that were rejected, and why.
+| Alternative | Why it was rejected | When to reconsider |
+|---|---|---|
+| **Option A** | | |
+| **Option B** | | |

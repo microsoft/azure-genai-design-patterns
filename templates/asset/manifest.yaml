@@ -1,18 +1,22 @@
-# Copy this folder to assets/<asset-id>/ and replace every value below.
+# Copy this folder to assets/<category>/<asset-id>/ (or run `python tools/assets.py new --category <category> --id <asset-id>`) and replace every value below.
 # Schema: schema/manifest.schema.json
 schema_version: 1
 id: asset-id
+category: m365-and-copilot # delivery-and-ops | m365-and-copilot | security-and-governance | landing-zones-and-infra | orchestration-and-workflows | data-and-tools
 title: Short descriptive title
 summary: >-
-  One or two sentences describing what this asset is and the problem it solves.
+  One or two sentences describing what this asset is, the recurring architectural problem it solves, and the measurable outcome it enables.
 kind: design-pattern # design-pattern | reference-architecture | solution-accelerator | playbook | sample
-maturity: experimental # experimental | preview | stable | deprecated
+maturity: preview # experimental | preview | stable | deprecated
 version: 0.1.0
 tags:
   - agentic-ai
+  - mcp
 azure_services:
   - Microsoft Foundry
+  - Microsoft Entra ID
 owners:
   - "@your-github-handle"
 last_reviewed: 2026-01-01
-related: []
+related:
+  - agent-path-to-production

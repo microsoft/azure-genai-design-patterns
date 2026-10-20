@@ -1,0 +1,296 @@
+# Reference workflow: agent release, evaluation gate and Microsoft 365 package.
+#
+# Promotion path: dev -> test -> staging -> prod. Each environment is a
+# separate landing zone (own VNet, private ACR, Foundry project, MCP app) and
+# a separate GitHub environment (release-<env>) federated to that
+# environment's release UAMI. Production approval is the release-prod
+# environment protection rule (required reviewers), not a step in this file.
+#
+# Stages
+#   1  build     Build the MCP image once as an OCI archive, push it to the
+#                dev private ACR (privatelink.azurecr.io) by digest, create
+#                the dev agent version.
+#   2  evaluate  Promote the same digest to test; Foundry evaluation gate,
+#                security smoke suite S1-S8, OBO row-level isolation check.
+#   3  staging   Canary in the staging Foundry project, then build the
+#                Microsoft 365 / Teams package (token substitution,
+#                atk validate, deterministic ZIP, handoff_sha256).
+#   4  prod      Approval gate, promotion, Bot Service endpoint verification,
+#                package for administrator handoff, rollback hook on failure.
+#
+# Every job runs on a self-hosted runner in that environment's operator VNet
+# (private-operator.bicep), because ACR, Foundry and MCP have public network
+# access disabled. Runner labels: [self-hosted, foundry-private-operator, <env>].
+#
+# Release UAMI rights (pre-assigned by the platform team, see
+# docs/deployment-and-cicd.md): RG Reader, Foundry User on the project,
+# AcrPush on the registry, and Contributor scoped to the ONE MCP container
+# app (revision rollout). It cannot assign roles or change networking.
+#
+# Consumer-repo paths (not part of this asset): mcp/ (Dockerfile),
+# agent/agent.yaml, evals/, appPackage/manifest.template.json + icons, and
+# scripts/{release_agent.py,run_evals.py,security_smoke.py,isolation_check.py}.
+#
+# Variables per GitHub environment release-<env> (identifiers, not secrets):
+#   AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID, AZURE_RELEASE_CLIENT_ID,
+#   LZ_RESOURCE_GROUP, ACR_NAME, MCP_APP_NAME, FOUNDRY_PROJECT_ENDPOINT,
+#   BOT_NAME, BOT_APP_ID, AGENT_CLIENT_ID, ACTIVITY_ENDPOINT, TEAMS_APP_ID
+
+name: agent-release-and-package
+
+on:
+  push:
+    branches: [main]
+    paths: ["mcp/**", "agent/**", "evals/**", "appPackage/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: agent-release
+  cancel-in-progress: false
+
+env:
+  AGENT_NAME: sales-guidance
+  IMAGE_REPO: crm-mcp
+  EVAL_DATASET: sales-guidance-v1
+  APP_VERSION: 1.0.${{ github.run_number }}
+
+jobs:
+  # ------------------------------------------------------------------ Stage 1
+  build:
+    name: "Stage 1 - build and push to private ACR (dev)"
+    runs-on: [self-hosted, foundry-private-operator, dev]
+    environment: release-dev
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_RELEASE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Build OCI archive once (promoted unchanged to every environment)
+        run: |
+          docker buildx create --use --name release >/dev/null 2>&1 || docker buildx use release
+          docker buildx build mcp --platform linux/amd64 \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            --output "type=oci,dest=image.oci.tar"
+      - id: push
+        name: Push by digest through the private endpoint
+        env: { ACR: "${{ vars.ACR_NAME }}" }
+        run: |
+          set -euo pipefail
+          ip=$(getent ahostsv4 "$ACR.azurecr.io" | awk 'NR==1{print $1}')
+          [[ "$ip" == 10.* ]] || { echo "::error::$ACR.azurecr.io resolved to $ip, not a private endpoint"; exit 1; }
+          token=$(az acr login -n "$ACR" --expose-token --query accessToken -o tsv)
+          skopeo copy --preserve-digests --dest-creds "00000000-0000-0000-0000-000000000000:$token" \
+            oci-archive:image.oci.tar "docker://$ACR.azurecr.io/$IMAGE_REPO:$GITHUB_SHA"
+          echo "digest=$(skopeo inspect --format '{{.Digest}}' oci-archive:image.oci.tar)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with: { name: image, path: image.oci.tar, retention-days: 30 }
+      - name: Create dev agent version (definition pinned to the image digest)
+        run: |
+          python scripts/release_agent.py create-version --endpoint "${{ vars.FOUNDRY_PROJECT_ENDPOINT }}" \
+            --agent "$AGENT_NAME" --definition agent/agent.yaml \
+            --image "${{ vars.ACR_NAME }}.azurecr.io/$IMAGE_REPO@${{ steps.push.outputs.digest }}"
+
+  # ------------------------------------------------------------------ Stage 2
+  evaluate:
+    name: "Stage 2 - evaluation and security gate (test)"
+    needs: build
+    runs-on: [self-hosted, foundry-private-operator, test]
+    environment: release-test
+    env:
+      ACR: ${{ vars.ACR_NAME }}
+      DIGEST: ${{ needs.build.outputs.digest }}
+      ENDPOINT: ${{ vars.FOUNDRY_PROJECT_ENDPOINT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: image }
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_RELEASE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Promote digest, roll MCP revision, create test agent version
+        run: |
+          set -euo pipefail
+          token=$(az acr login -n "$ACR" --expose-token --query accessToken -o tsv)
+          skopeo copy --preserve-digests --dest-creds "00000000-0000-0000-0000-000000000000:$token" \
+            oci-archive:image.oci.tar "docker://$ACR.azurecr.io/$IMAGE_REPO:$GITHUB_SHA"
+          az containerapp update -g "${{ vars.LZ_RESOURCE_GROUP }}" -n "${{ vars.MCP_APP_NAME }}" \
+            --image "$ACR.azurecr.io/$IMAGE_REPO@$DIGEST" -o none
+          python scripts/release_agent.py create-version --endpoint "$ENDPOINT" --agent "$AGENT_NAME" \
+            --definition agent/agent.yaml --image "$ACR.azurecr.io/$IMAGE_REPO@$DIGEST"
+      - name: Foundry evaluations (grounding, tool-call accuracy, safety) - gate
+        run: |
+          python scripts/run_evals.py --endpoint "$ENDPOINT" --agent "$AGENT_NAME" \
+            --dataset "$EVAL_DATASET" --thresholds evals/thresholds.json --out evidence/evals.json
+      - name: Security smoke suite S1-S8 - gate
+        # S1 Foundry/Search/ACR public access disabled   S2 local auth (keys) disabled
+        # S3 MCP unauthenticated call -> 401             S4 wrong audience or no access_as_user -> 401/403
+        # S5 caller app not in MCP_ALLOWED_APP_IDS -> 403 S6 Host header outside MCP_ALLOWED_HOSTS rejected
+        # S7 write tools refused (MCP_WRITES_ENABLED=false)
+        # S8 prompt-injection / tool-misuse set: no out-of-allow-list tool calls, no secret echo
+        run: |
+          python scripts/security_smoke.py --suite S1-S8 --endpoint "$ENDPOINT" \
+            --resource-group "${{ vars.LZ_RESOURCE_GROUP }}" --mcp-app "${{ vars.MCP_APP_NAME }}" \
+            --out evidence/security-smoke.json
+      - name: OBO row-level isolation (users A, B, C) - gate
+        # A mapped to ACC-1041 sees only ACC-1041; B sees only their account;
+        # C (unmapped) gets no account data. Any cross-row leak fails the run.
+        run: |
+          python scripts/isolation_check.py --endpoint "$ENDPOINT" --agent "$AGENT_NAME" \
+            --tool crm-mcp___get_account --expect evals/isolation-expectations.json \
+            --out evidence/isolation.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: evidence-test, path: evidence/ }
+
+  # ------------------------------------------------------------------ Stage 3
+  staging:
+    name: "Stage 3 - staging canary and M365 package"
+    needs: [build, evaluate]
+    runs-on: [self-hosted, foundry-private-operator, staging]
+    environment: release-staging
+    env:
+      ACR: ${{ vars.ACR_NAME }}
+      DIGEST: ${{ needs.build.outputs.digest }}
+      ENDPOINT: ${{ vars.FOUNDRY_PROJECT_ENDPOINT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: image }
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_RELEASE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Canary deploy to the staging Foundry project
+        run: |
+          set -euo pipefail
+          token=$(az acr login -n "$ACR" --expose-token --query accessToken -o tsv)
+          skopeo copy --preserve-digests --dest-creds "00000000-0000-0000-0000-000000000000:$token" \
+            oci-archive:image.oci.tar "docker://$ACR.azurecr.io/$IMAGE_REPO:$GITHUB_SHA"
+          az containerapp update -g "${{ vars.LZ_RESOURCE_GROUP }}" -n "${{ vars.MCP_APP_NAME }}" \
+            --image "$ACR.azurecr.io/$IMAGE_REPO@$DIGEST" -o none
+          python scripts/release_agent.py create-version --endpoint "$ENDPOINT" --agent "$AGENT_NAME" \
+            --definition agent/agent.yaml --image "$ACR.azurecr.io/$IMAGE_REPO@$DIGEST"
+          # Canary: probe set + error budget from App Insights over the soak window.
+          python scripts/run_evals.py --endpoint "$ENDPOINT" --agent "$AGENT_NAME" --canary \
+            --soak-minutes 30 --max-error-rate 0.02 --out evidence/canary.json
+      - name: Build Microsoft 365 / Teams package (token substitution)
+        env:
+          TEAMS_APP_ID: ${{ vars.TEAMS_APP_ID }}
+          BOT_APP_ID: ${{ vars.BOT_APP_ID }}
+          AGENT_CLIENT_ID: ${{ vars.AGENT_CLIENT_ID }}
+        run: |
+          set -euo pipefail
+          mkdir -p build/pkg
+          python3 - <<'PY'
+          import json, os, re, pathlib
+          src = pathlib.Path("appPackage/manifest.template.json").read_text(encoding="utf-8")
+          out = re.sub(r"\$\{\{([A-Z0-9_]+)\}\}", lambda m: os.environ[m.group(1)], src)
+          json.loads(out)  # fails on broken JSON
+          pathlib.Path("build/pkg/manifest.json").write_text(out, encoding="utf-8")
+          PY
+          # Pattern avoids a literal dollar-brace-brace, which Actions would parse as an expression.
+          if grep -nE '\$\{\{' build/pkg/manifest.json; then echo "::error::unresolved token"; exit 1; fi
+          cp appPackage/color.png appPackage/outline.png build/pkg/
+      - name: Validate (atk) and zip deterministically
+        run: |
+          set -euo pipefail
+          npm install -g @microsoft/m365agentstoolkit-cli >/dev/null
+          cd build/pkg
+          touch -d "1980-01-01T00:00:00Z" manifest.json color.png outline.png
+          TZ=UTC zip -X -D -q "../app-staging.zip" manifest.json color.png outline.png
+          cd ..
+          atk validate --package-file app-staging.zip
+          echo "handoff_sha256=$(sha256sum app-staging.zip | cut -d' ' -f1)" | tee app-staging.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: m365-package-staging
+          path: |
+            build/app-staging.zip
+            build/app-staging.sha256
+            evidence/
+
+  # ------------------------------------------------------------------ Stage 4
+  prod:
+    name: "Stage 4 - production promotion (approval gate)"
+    needs: [build, staging]
+    runs-on: [self-hosted, foundry-private-operator, prod]
+    environment: release-prod   # required reviewers + wait timer configured on the environment
+    env:
+      ACR: ${{ vars.ACR_NAME }}
+      DIGEST: ${{ needs.build.outputs.digest }}
+      ENDPOINT: ${{ vars.FOUNDRY_PROJECT_ENDPOINT }}
+      RG: ${{ vars.LZ_RESOURCE_GROUP }}
+      MCP_APP: ${{ vars.MCP_APP_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: image }
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_RELEASE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - id: before
+        name: Record rollback targets
+        run: |
+          echo "agent_version=$(python scripts/release_agent.py current-version --endpoint "$ENDPOINT" --agent "$AGENT_NAME")" >> "$GITHUB_OUTPUT"
+          echo "mcp_revision=$(az containerapp show -g "$RG" -n "$MCP_APP" --query properties.latestReadyRevisionName -o tsv)" >> "$GITHUB_OUTPUT"
+      - name: Promote digest and agent version
+        run: |
+          set -euo pipefail
+          token=$(az acr login -n "$ACR" --expose-token --query accessToken -o tsv)
+          skopeo copy --preserve-digests --dest-creds "00000000-0000-0000-0000-000000000000:$token" \
+            oci-archive:image.oci.tar "docker://$ACR.azurecr.io/$IMAGE_REPO:$GITHUB_SHA"
+          az containerapp update -g "$RG" -n "$MCP_APP" --image "$ACR.azurecr.io/$IMAGE_REPO@$DIGEST" -o none
+          python scripts/release_agent.py create-version --endpoint "$ENDPOINT" --agent "$AGENT_NAME" \
+            --definition agent/agent.yaml --image "$ACR.azurecr.io/$IMAGE_REPO@$DIGEST" --activate
+      - name: Verify Bot Service wiring (endpoint, single tenant, no local auth)
+        env:
+          BOT_ID: /subscriptions/${{ vars.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ vars.LZ_RESOURCE_GROUP }}/providers/Microsoft.BotService/botServices/${{ vars.BOT_NAME }}
+          WANT_ENDPOINT: ${{ vars.ACTIVITY_ENDPOINT }}
+          WANT_APP: ${{ vars.BOT_APP_ID }}
+        run: |
+          set -euo pipefail
+          read -r ep app type pna dla < <(az resource show --ids "$BOT_ID" --query \
+            "[properties.endpoint, properties.msaAppId, properties.msaAppType, properties.publicNetworkAccess, to_string(properties.disableLocalAuth)]" -o tsv | tr '\n' ' ')
+          [ "$ep" = "$WANT_ENDPOINT" ] || { echo "::error::bot endpoint $ep != $WANT_ENDPOINT"; exit 1; }
+          [ "$app" = "$WANT_APP" ] && [ "$type" = "SingleTenant" ] || { echo "::error::bot identity drift"; exit 1; }
+          [ "$pna" = "Disabled" ] && [ "$dla" = "true" ] || { echo "::error::bot management plane drift"; exit 1; }
+      - name: Post-deploy smoke (S1-S3) on production
+        run: python scripts/security_smoke.py --suite S1-S3 --endpoint "$ENDPOINT" --resource-group "$RG" --mcp-app "$MCP_APP"
+      - name: Production package for administrator handoff
+        env:
+          TEAMS_APP_ID: ${{ vars.TEAMS_APP_ID }}
+          BOT_APP_ID: ${{ vars.BOT_APP_ID }}
+          AGENT_CLIENT_ID: ${{ vars.AGENT_CLIENT_ID }}
+        run: |
+          set -euo pipefail
+          mkdir -p build/pkg && cp appPackage/color.png appPackage/outline.png build/pkg/
+          python3 -c "import os,re,json,pathlib as p; s=p.Path('appPackage/manifest.template.json').read_text(); o=re.sub(r'\\$\\{\\{([A-Z0-9_]+)\\}\\}',lambda m:os.environ[m.group(1)],s); json.loads(o); p.Path('build/pkg/manifest.json').write_text(o)"
+          cd build/pkg && touch -d "1980-01-01T00:00:00Z" ./* && TZ=UTC zip -X -D -q ../app-prod.zip manifest.json color.png outline.png && cd ..
+          npx -y @microsoft/m365agentstoolkit-cli validate --package-file app-prod.zip
+          echo "handoff_sha256=$(sha256sum app-prod.zip | cut -d' ' -f1)" | tee app-prod.sha256
+      - uses: actions/upload-artifact@v4
+        with: { name: m365-package-prod, path: "build/app-prod.*" }
+      - name: Rollback hook (runs only when a production step failed)
+        if: failure() && steps.before.outcome == 'success'
+        run: |
+          set -euo pipefail
+          python scripts/release_agent.py set-active --endpoint "$ENDPOINT" --agent "$AGENT_NAME" \
+            --version "${{ steps.before.outputs.agent_version }}"
+          az containerapp revision activate -g "$RG" -n "$MCP_APP" --revision "${{ steps.before.outputs.mcp_revision }}"
+          az containerapp ingress traffic set -g "$RG" -n "$MCP_APP" \
+            --revision-weight "${{ steps.before.outputs.mcp_revision }}=100" -o none || true
+          python scripts/security_smoke.py --suite S1-S3 --endpoint "$ENDPOINT" --resource-group "$RG" --mcp-app "$MCP_APP"
+          echo "::warning::Rolled back to agent version ${{ steps.before.outputs.agent_version }}"

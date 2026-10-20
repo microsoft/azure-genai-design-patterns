@@ -1,0 +1,123 @@
+{
+  "_comment": "Example only. Every required value is blank so validation fails closed (minLength) until an approved operator populates it. Extract one section per template, for example: jq '.privateFoundryProject' parameters.example.json > .local/private-foundry-project.parameters.json. Never commit populated copies. Supply privateOperator.adminPublicKey at deploy time (for example --parameters adminPublicKey=@~/.ssh/runner.pub), never in a file. Sections are listed in deployment order in infra/README.md; outputs of earlier stages feed the blank resource ids of later stages.",
+  "privateFoundryProject": {
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "name": { "value": "" },
+      "projectName": { "value": "" },
+      "vnetAddressPrefix": { "value": "10.60.0.0/16" },
+      "agentSubnetPrefix": { "value": "10.60.0.0/24" },
+      "privateEndpointSubnetPrefix": { "value": "10.60.1.0/24" },
+      "mcpSubnetPrefix": { "value": "10.60.2.0/24" },
+      "modelName": { "value": "" },
+      "modelVersion": { "value": "" },
+      "modelSkuName": { "value": "GlobalStandard" },
+      "modelCapacity": { "value": 30 },
+      "releasePrincipalId": { "value": "" },
+      "tags": {
+        "value": {
+          "workload": "<workload-name>",
+          "owner": "<owning-team>",
+          "environment": "<dev|test|prod>",
+          "cost_center": "<cost-center>"
+        }
+      }
+    }
+  },
+  "foundation": {
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "name": { "value": "" },
+      "operatorObjectId": { "value": "" },
+      "retentionDays": { "value": 30 },
+      "secureNetworking": { "value": true },
+      "containerAppsSubnetId": { "value": "" },
+      "privateEndpointSubnetId": { "value": "" },
+      "virtualNetworkId": { "value": "" },
+      "useExistingKeyVaultZone": { "value": false },
+      "enablePurgeProtection": { "value": true },
+      "tags": { "value": {} }
+    }
+  },
+  "privateMcpServer": {
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "appName": { "value": "" },
+      "environmentId": { "value": "" },
+      "environmentDefaultDomain": { "value": "" },
+      "registryName": { "value": "" },
+      "keyVaultName": { "value": "" },
+      "appInsightsConnectionSecretUri": { "value": "" },
+      "image": { "value": "" },
+      "tenantId": { "value": "" },
+      "apiClientId": { "value": "" },
+      "requiredScope": { "value": "access_as_user" },
+      "allowedAppIds": { "value": "" },
+      "minReplicas": { "value": 1 },
+      "maxReplicas": { "value": 3 },
+      "tags": { "value": {} }
+    }
+  },
+  "operatorConnectivity": {
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "name": { "value": "" },
+      "foundationVnetName": { "value": "" },
+      "operatorVnetName": { "value": "" },
+      "privateDnsZoneNames": { "value": [] }
+    }
+  },
+  "privateOperator": {
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "name": { "value": "" },
+      "createVirtualNetwork": { "value": true },
+      "operatorVnetPrefix": { "value": "10.70.0.0/16" },
+      "runnerSubnetPrefix": { "value": "10.70.0.0/24" },
+      "vmSize": { "value": "Standard_D2as_v6" },
+      "zone": { "value": "1" },
+      "adminUsername": { "value": "azureops" },
+      "adminPublicKey": { "value": "" },
+      "imageVersion": { "value": "latest" },
+      "osDiskSizeGb": { "value": 64 },
+      "tags": { "value": {} }
+    }
+  },
+  "privateSearch": {
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "name": { "value": "" },
+      "privateEndpointSubnetId": { "value": "" },
+      "virtualNetworkId": { "value": "" },
+      "useExistingSearchZone": { "value": true },
+      "projectPrincipalId": { "value": "" },
+      "grantIndexWrite": { "value": false },
+      "sku": { "value": "standard" },
+      "replicaCount": { "value": 1 },
+      "partitionCount": { "value": 1 },
+      "semanticSearch": { "value": "free" },
+      "tags": { "value": {} }
+    }
+  },
+  "managedM365Bot": {
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "name": { "value": "" },
+      "displayName": { "value": "" },
+      "activityEndpoint": { "value": "" },
+      "agentClientId": { "value": "" },
+      "tenantId": { "value": "" },
+      "sku": { "value": "F0" },
+      "enableTeamsChannel": { "value": true },
+      "enableM365ExtensionChannel": { "value": false },
+      "tags": { "value": {} }
+    }
+  }
+}

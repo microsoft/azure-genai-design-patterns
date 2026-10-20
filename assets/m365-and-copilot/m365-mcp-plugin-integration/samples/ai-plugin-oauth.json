@@ -1,0 +1,155 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.4/schema.json",
+  "schema_version": "v2.4",
+  "name_for_human": "Contoso CRM",
+  "description_for_human": "Account health, opportunities, shortlists, and orders from Contoso CRM.",
+  "description_for_model": "Live Contoso CRM data. Use for account summaries and health, opportunity searches, saving account notes to the user's shortlist, and drafting and submitting orders. Do not use for policy questions or product catalog lookups.",
+  "namespace": "servicecrm",
+  "logo_url": "https://crm-mcp.contoso.com/static/logo.png",
+  "contact_email": "crm-platform@contoso.com",
+  "legal_info_url": "https://www.contoso.com/terms",
+  "privacy_policy_url": "https://www.contoso.com/privacy",
+  "functions": [
+    {
+      "name": "get_account_summary",
+      "description": "Use when the user asks how an account is doing, for account health, revenue trend, open orders, or risks for one account. Do not use to search across accounts.",
+      "capabilities": {
+        "confirmation": { "type": "None" }
+      },
+      "states": {
+        "reasoning": {
+          "description": "Returns health score, trailing revenue, open orders, and top risks for one account ID (ACC-####).",
+          "instructions": "If the user gives an account name, ask for or confirm the ACC-#### ID first."
+        },
+        "responding": {
+          "description": "Summary of one account, with an optional interactive dashboard view.",
+          "instructions": "Lead with health and the single most important risk. Show open orders as a table with order ID, status, and amount. Add a one-sentence text summary even when the dashboard view is shown."
+        }
+      }
+    },
+    {
+      "name": "search_opportunities",
+      "description": "Use when the user asks to find or list opportunities by stage, amount, close date, or owner. Do not use for a single known opportunity's history.",
+      "capabilities": {
+        "confirmation": { "type": "None" }
+      },
+      "states": {
+        "reasoning": {
+          "description": "Searches open opportunities with filters. Returns up to 25 rows and a next_cursor.",
+          "instructions": "Map 'this quarter' to close_before at the quarter end. Pass min_amount as a number without currency symbols."
+        },
+        "responding": {
+          "description": "A list of matching opportunities.",
+          "instructions": "Show a table with ID, account, stage, amount, and close date, sorted by close date. Say how many more exist if next_cursor is present."
+        }
+      }
+    },
+    {
+      "name": "save_shortlist",
+      "description": "Use when the user asks to save, pin, or note an account on their shortlist. Writes to the user's own shortlist only.",
+      "capabilities": {
+        "confirmation": {
+          "type": "AdaptiveCard",
+          "title": "Save to your shortlist?",
+          "body": "**Account**: {{function.parameters.account_id}}\n\n**Note**: {{function.parameters.note}}"
+        }
+      },
+      "states": {
+        "reasoning": {
+          "description": "Saves one account and a short note to the user's shortlist. Safe to repeat.",
+          "instructions": "Keep the note under 280 characters."
+        },
+        "responding": {
+          "description": "Confirmation that the shortlist entry was saved.",
+          "instructions": "Confirm in one sentence and include the receipt ID."
+        }
+      }
+    },
+    {
+      "name": "draft_order",
+      "description": "Use when the user asks to create, prepare, or draft an order. Creates a draft only; nothing is sent to fulfillment.",
+      "capabilities": {
+        "confirmation": {
+          "type": "AdaptiveCard",
+          "title": "Create an order draft?",
+          "body": "**Account**: {{function.parameters.account_id}}\n\n**SKU**: {{function.parameters.sku}}\n\n**Quantity**: {{function.parameters.quantity}}\n\nThis creates a draft only. Nothing is submitted."
+        }
+      },
+      "states": {
+        "reasoning": {
+          "description": "Creates an order draft and returns a draft_id, line items, and an estimated total.",
+          "instructions": "Confirm the SKU with the catalog first if the user gave a product name."
+        },
+        "responding": {
+          "description": "The draft summary and draft_id.",
+          "instructions": "Show the draft as a table and ask the user whether to submit it. Do not submit automatically."
+        }
+      }
+    },
+    {
+      "name": "submit_order",
+      "description": "Use only after a draft exists and the user explicitly asks to submit it. Requires the draft_id returned by draft_order.",
+      "capabilities": {
+        "confirmation": {
+          "type": "AdaptiveCard",
+          "title": "Submit this order? This cannot be undone.",
+          "body": "**Draft**: {{function.parameters.draft_id}}\n\nSubmitting sends the order to fulfillment and the customer is billed. Each draft can be submitted once."
+        }
+      },
+      "states": {
+        "reasoning": {
+          "description": "Submits a previously created draft. Refused by the server without a valid, unused draft_id.",
+          "instructions": "Never call without an explicit user request to submit. Never invent or reuse a draft_id."
+        },
+        "responding": {
+          "description": "The submitted order ID and receipt, or a refusal reason.",
+          "instructions": "On success, show the order ID and receipt ID. On refusal, explain the reason and the next step."
+        }
+      }
+    },
+    {
+      "name": "notify_account_team",
+      "description": "Use only when the user asks to message the account team and provides an approval token from the approval step. Sends messages to other people.",
+      "capabilities": {
+        "confirmation": {
+          "type": "AdaptiveCard",
+          "title": "Send a message to the account team? This cannot be undone.",
+          "body": "**Account**: {{function.parameters.account_id}}\n\n**Message**: {{function.parameters.message}}\n\nEveryone on the account team receives this message."
+        }
+      },
+      "states": {
+        "reasoning": {
+          "description": "Sends one message to every member of an account team. Refused by the server without a valid approval token.",
+          "instructions": "If the user has no approval token, explain how to request approval instead of calling this tool."
+        },
+        "responding": {
+          "description": "Delivery receipt or refusal reason.",
+          "instructions": "Report how many people were notified and the receipt ID."
+        }
+      }
+    }
+  ],
+  "runtimes": [
+    {
+      "type": "RemoteMCPServer",
+      "auth": {
+        "type": "OAuthPluginVault",
+        "reference_id": "${{CRM_OAUTH_REFERENCE_ID}}"
+      },
+      "spec": {
+        "url": "https://crm-mcp.contoso.com/mcp",
+        "mcp_tool_description": {
+          "file": "mcp-tools-catalog.json"
+        }
+      },
+      "run_for_functions": [
+        "get_account_summary",
+        "search_opportunities",
+        "save_shortlist",
+        "draft_order",
+        "submit_order",
+        "notify_account_team"
+      ]
+    }
+  ]
+}

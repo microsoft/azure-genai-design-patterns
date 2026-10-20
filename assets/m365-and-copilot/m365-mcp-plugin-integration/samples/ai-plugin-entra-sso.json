@@ -1,0 +1,28 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.4/schema.json",
+  "schema_version": "v2.4",
+  "name_for_human": "Contoso Knowledge",
+  "description_for_human": "Policies, playbooks, and contract guidance from the Contoso knowledge base.",
+  "description_for_model": "Searches and reads Contoso policies, sales playbooks, contract terms, and how-to articles that the signed-in user is allowed to see. Use for policy and process questions. Do not use for live account, order, or product data.",
+  "namespace": "serviceknowledge",
+  "logo_url": "https://knowledge-mcp.contoso.com/static/logo.png",
+  "contact_email": "knowledge-platform@contoso.com",
+  "legal_info_url": "https://www.contoso.com/terms",
+  "privacy_policy_url": "https://www.contoso.com/privacy",
+  "functions": [],
+  "runtimes": [
+    {
+      "type": "RemoteMCPServer",
+      "auth": {
+        "type": "OAuthPluginVault",
+        "reference_id": "${{KNOWLEDGE_SSO_REFERENCE_ID}}"
+      },
+      "spec": {
+        "url": "https://knowledge-mcp.contoso.com/mcp"
+      },
+      "run_for_functions": [
+        "*"
+      ]
+    }
+  ]
+}

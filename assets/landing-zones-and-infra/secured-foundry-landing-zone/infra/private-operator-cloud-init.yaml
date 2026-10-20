@@ -1,0 +1,75 @@
+#cloud-config
+# Operator runner bootstrap for private-operator.bicep.
+#
+# Installs pinned dependencies only. It does NOT register a CI runner and does
+# NOT log in to Azure: runner registration needs a short-lived registration
+# token, and Azure access comes from OIDC federation inside each CI job.
+#
+# Re-pin RUNNER_VERSION and RUNNER_SHA256 from the official GitHub Actions
+# runner release page before use. The values below are examples of the pinning
+# pattern and must be checked against the release you intend to run.
+package_update: true
+package_upgrade: true
+packages:
+  - ca-certificates
+  - curl
+  - git
+  - jq
+  - unzip
+  - tar
+  - libicu74
+  - python3
+  - python3-venv
+  - dnsutils
+  - netcat-openbsd
+
+users:
+  - default
+  - name: runner
+    shell: /bin/bash
+    lock_passwd: true
+    groups: [docker]
+
+write_files:
+  - path: /usr/local/sbin/operator-setup
+    permissions: '0750'
+    owner: root:root
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      RUNNER_VERSION="2.337.0"
+      RUNNER_SHA256="70920811a4f8ad4328818682bca5c6469c1c942fab52448868071d0063816613"
+      RUNNER_HOME="/home/runner/actions-runner"
+
+      log() { printf '%s operator-setup: %s\n' "$(date -u +%FT%TZ)" "$*"; }
+
+      log "installing Docker engine"
+      DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io
+      systemctl enable --now docker
+      usermod -aG docker runner
+
+      log "installing Azure CLI from the Microsoft package repository"
+      curl -fsSL https://aka.ms/InstallAzureCLIDeb -o /tmp/install-azure-cli.sh
+      bash /tmp/install-azure-cli.sh
+      rm -f /tmp/install-azure-cli.sh
+      az bicep install || true
+
+      log "downloading GitHub Actions runner ${RUNNER_VERSION}"
+      install -d -o runner -g runner "${RUNNER_HOME}"
+      archive="/tmp/actions-runner-${RUNNER_VERSION}.tar.gz"
+      curl -fsSL -o "${archive}" \
+        "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz"
+      echo "${RUNNER_SHA256}  ${archive}" | sha256sum -c -
+      tar -xzf "${archive}" -C "${RUNNER_HOME}"
+      chown -R runner:runner "${RUNNER_HOME}"
+      rm -f "${archive}"
+      "${RUNNER_HOME}/bin/installdependencies.sh" || true
+
+      log "dependencies ready; runner is not registered yet"
+      touch /var/lib/operator-setup.done
+
+runcmd:
+  - [bash, -c, '/usr/local/sbin/operator-setup > /var/log/operator-setup.log 2>&1']
+
+final_message: "operator bootstrap finished after $UPTIME seconds; see /var/log/operator-setup.log"

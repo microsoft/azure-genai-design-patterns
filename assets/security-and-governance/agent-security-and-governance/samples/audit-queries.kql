@@ -1,0 +1,203 @@
+// Audit and detection queries for the Four-Gate tool governance pattern.
+// Query numbers are referenced by docs/threat-model-and-control-matrix.md and
+// docs/evaluation-and-release-gates.md. Keep the order stable.
+//
+// Tables (adapt names and columns to your workspace):
+// - MCPToolAudit_CL: one row per decision from the governed MCP server (Gate 3).
+//   Ingest it with the Logs Ingestion API and a data collection rule, or derive
+//   it from console logs with query 0. Expected columns:
+//     TimeGenerated, event, outcome (allowed | denied | ok), status (int),
+//     reason, principal_name, principal_type, principal_oid, tool,
+//     tool_class (R | W), org, claimed_tenant, record_id, change_id,
+//     approval_id, actor, correlation_id
+// - AppRequests / AppDependencies: workspace-based Application Insights tables
+//   for the hosted agent. The agent stamps correlation_id into span properties.
+// - AzureDiagnostics: Foundry / Azure OpenAI diagnostic logs carrying guardrail
+//   (content filter) annotations. Category and column names vary by resource
+//   and API version; validate them before you build alerts on query 4 or 5.
+// - AuditLogs and AzureActivity: Entra ID and control-plane changes.
+// Run each query separately. Thresholds are starting points, not tuned values.
+
+// 0. (Optional) Derive MCPToolAudit from console logs. Save as a function named
+//    MCPToolAudit and replace MCPToolAudit_CL with MCPToolAudit() below.
+ContainerAppConsoleLogs_CL
+| where Log_s has_any ("GOV_AUDIT", "TOOL_AUDIT")
+| extend a = parse_json(substring(Log_s, indexof(Log_s, "{")))
+| project TimeGenerated,
+          event = tostring(a.event), outcome = tostring(a.outcome),
+          status = toint(a.status), reason = tostring(a.reason),
+          principal_name = coalesce(tostring(a.principal.name), tostring(a.principal)),
+          principal_type = tostring(a.principal.type), principal_oid = tostring(a.principal.oid),
+          tool = tostring(a.tool), tool_class = tostring(a.tool_class),
+          org = tostring(a.org), claimed_tenant = tostring(a.claimed_tenant),
+          record_id = tostring(a.record_id), change_id = tostring(a.change_id),
+          approval_id = tostring(a.approval_id), actor = tostring(a.actor),
+          correlation_id = tostring(a.correlation_id)
+
+// 1. Cross-tenant probe detection (AV-03, test S3)
+//    A caller named one partition but the server derived another, or the caller
+//    asked for a partition it is not entitled to. Also surfaces unknown callers.
+MCPToolAudit_CL
+| where TimeGenerated > ago(24h) and event == "tool_call"
+| where (isnotempty(claimed_tenant) and claimed_tenant != org)
+     or reason in ("org_not_entitled", "unmapped_principal")
+| summarize probes = count(), partitions_claimed = make_set(claimed_tenant, 10),
+            partitions_hit = make_set(org, 10), tools = make_set(tool, 10),
+            first_seen = min(TimeGenerated), last_seen = max(TimeGenerated),
+            sample_cids = make_set(correlation_id, 5)
+    by principal_name, principal_oid, principal_type
+| extend severity = iff(probes >= 5 or array_length(partitions_claimed) > 1, "High", "Medium")
+| order by probes desc
+
+// 2. Privilege escalation attempts: read entitlement calling a write tool (AV-04, S4)
+MCPToolAudit_CL
+| where TimeGenerated > ago(7d) and event == "tool_call"
+| where reason == "insufficient_level" or (tool_class == "W" and status == 403)
+| summarize attempts = count(), write_tools = make_set(tool, 10), orgs = make_set(org, 10),
+            first_seen = min(TimeGenerated), last_seen = max(TimeGenerated),
+            sample_cids = make_set(correlation_id, 5)
+    by principal_name, principal_oid
+// A read-only agent should never even see a write tool (Gate 1). Any row here
+// means a toolset leaked a write tool or someone called the server directly.
+| order by attempts desc
+
+// 3. Unapproved or tampered write attempts (AV-05, S5)
+MCPToolAudit_CL
+| where TimeGenerated > ago(7d) and event == "tool_call" and status == 409
+| summarize attempts = count(),
+            missing = countif(reason == "confirmation_required"),
+            mismatched = countif(reason == "approval_mismatch"),
+            replayed = countif(reason == "approval_replayed"),
+            expired_or_invalid = countif(reason in ("approval_expired", "approval_invalid")),
+            records = make_set(record_id, 10), last_seen = max(TimeGenerated)
+    by principal_name, tool
+// Mismatched or replayed approvals indicate payload swap or replay, not user error.
+| extend suspicious = mismatched + replayed > 0
+| order by suspicious desc, attempts desc
+
+// 4. End-to-end trace: agent request -> guardrail verdicts -> source decisions
+//    Use for incident review and for the red-team "unauthorized write" metric.
+let window = 24h;
+let agent = AppRequests
+    | where TimeGenerated > ago(window)
+    | extend correlation_id = tostring(Properties["correlation_id"])
+    | where isnotempty(correlation_id)
+    | summarize agent_start = min(TimeGenerated), agent_ms = sum(DurationMs),
+                agent_ok = min(toint(Success)), agent_role = any(AppRoleName)
+        by correlation_id;
+let guardrail = AzureDiagnostics
+    | where TimeGenerated > ago(window) and ResourceProvider == "MICROSOFT.COGNITIVESERVICES"
+    | extend p = parse_json(column_ifexists("properties_s", "{}"))
+    | extend correlation_id = coalesce(tostring(p.correlation_id),
+                                       tostring(column_ifexists("CorrelationId", "")))
+    | where isnotempty(correlation_id)
+    | summarize guardrail_events = count(),
+                guardrail_blocks = countif(tostring(p.action) in ("block", "block_or_refuse")),
+                filters = make_set(tostring(p.filter), 10)
+        by correlation_id;
+let source = MCPToolAudit_CL
+    | where TimeGenerated > ago(window) and isnotempty(correlation_id)
+    | summarize calls = countif(event == "tool_call"),
+                writes_allowed = countif(event == "tool_call" and tool_class == "W" and status == 200),
+                denials = countif(event == "tool_call" and status >= 400),
+                reasons = make_set_if(reason, status >= 400, 10),
+                tools = make_set(tool, 10)
+        by correlation_id;
+agent
+| join kind=fullouter guardrail on correlation_id
+| extend correlation_id = coalesce(correlation_id, correlation_id1)
+| project-away correlation_id1
+| join kind=fullouter source on correlation_id
+| extend correlation_id = coalesce(correlation_id, correlation_id1)
+| project-away correlation_id1
+// Writes with no agent request are direct calls that bypassed the agent.
+| extend bypassed_agent = isnull(agent_start) and writes_allowed > 0
+| order by agent_start desc
+
+// 5. Poisoned tool output (XPIA) blocks (AV-02, S7)
+AzureDiagnostics
+| where TimeGenerated > ago(7d) and ResourceProvider == "MICROSOFT.COGNITIVESERVICES"
+| extend p = parse_json(column_ifexists("properties_s", "{}"))
+| where tostring(p.filter) in ("IndirectPromptInjection", "indirect_attack")
+     or tostring(p.content_filter_results) has "indirect_attack"
+| extend correlation_id = coalesce(tostring(p.correlation_id), tostring(column_ifexists("CorrelationId", "")))
+| join kind=leftouter (
+    MCPToolAudit_CL
+    | where TimeGenerated > ago(7d) and event == "tool_call" and tool_class == "R"
+    | project correlation_id, source_tool = tool, source_record = record_id, org
+  ) on correlation_id
+| summarize blocks = count(), poisoned_records = make_set(source_record, 20),
+            tools = make_set(source_tool, 10), last_seen = max(TimeGenerated)
+    by org
+// Quarantine the records listed here and find who wrote the injected text.
+| order by blocks desc
+
+// 6. Per-principal write velocity anomaly (AV-08, runaway loops and abuse)
+let lookback = 14d;
+MCPToolAudit_CL
+| where TimeGenerated > ago(lookback) and event == "tool_call" and tool_class == "W"
+| make-series writes = count() default = 0 on TimeGenerated from ago(lookback) to now() step 1h
+    by principal_name
+| extend (flags, score, baseline) = series_decompose_anomalies(writes, 3.0, -1, "linefit")
+| mv-expand TimeGenerated to typeof(datetime), writes to typeof(long),
+            flags to typeof(int), score to typeof(double), baseline to typeof(double)
+| where TimeGenerated > ago(24h) and flags > 0 and writes >= 5
+| project TimeGenerated, principal_name, writes, baseline = round(baseline, 1),
+          score = round(score, 2)
+| order by score desc
+
+// 7. Kill-switch activation and refusal timeline (S8, Tier 1-3 rehearsals)
+let window = 7d;
+union
+  (MCPToolAudit_CL
+   | where TimeGenerated > ago(window)
+   | where event in ("kill_switch_activated", "kill_switch_released",
+                     "deny_list_added", "deny_list_removed")
+        or reason in ("writes_disabled", "principal_revoked")
+   | project TimeGenerated, layer = "Gate 3: MCP server", action = coalesce(reason, event),
+             who = coalesce(actor, principal_name), target = tool, correlation_id),
+  (AzureActivity
+   | where TimeGenerated > ago(window)
+   | where OperationNameValue has "MICROSOFT.COGNITIVESERVICES/ACCOUNTS/PROJECTS"
+       and OperationNameValue has_any ("TOOLBOX", "CONNECTIONS", "AGENTS")
+   | project TimeGenerated, layer = "Gate 1: Toolbox", action = OperationNameValue,
+             who = Caller, target = _ResourceId, correlation_id = CorrelationId),
+  (AuditLogs
+   | where TimeGenerated > ago(window)
+   | where OperationName in ("Update service principal", "Remove app role assignment from service principal",
+                             "Add app role assignment to service principal")
+   | project TimeGenerated, layer = "Gate 2: Entra ID", action = OperationName,
+             who = tostring(InitiatedBy.user.userPrincipalName),
+             target = tostring(TargetResources[0].displayName), correlation_id = CorrelationId)
+| order by TimeGenerated asc
+// Rehearsal evidence: activation, refusals while active, release, and a
+// successful canary write afterwards, all within the expected time budget.
+
+// 8. Unused or over-privileged toolset entitlements (AV-06, AV-10; access reviews)
+let lookback = 30d;
+let holders = AuditLogs
+    | where TimeGenerated > ago(90d)
+    | where OperationName in ("Add app role assignment to service principal",
+                              "Remove app role assignment from service principal")
+    | mv-expand tr = TargetResources
+    | mv-expand mp = tr.modifiedProperties
+    | where tostring(mp.displayName) == "AppRole.Value"
+    | extend role = trim('"', tostring(mp.newValue)), principal_name = tostring(tr.displayName)
+    | where role in ("MCP.Tools.Read", "MCP.Tools.Operate")
+    | summarize arg_max(TimeGenerated, OperationName) by principal_name, role
+    | where OperationName startswith "Add"
+    | project principal_name, role;
+let usage = MCPToolAudit_CL
+    | where TimeGenerated > ago(lookback) and event == "tool_call" and status == 200
+    | summarize reads = countif(tool_class == "R"), writes = countif(tool_class == "W"),
+                last_call = max(TimeGenerated)
+        by principal_name;
+holders
+| join kind=leftouter usage on principal_name
+| extend reads = coalesce(reads, 0), writes = coalesce(writes, 0)
+| extend finding = case(reads + writes == 0, "unused: remove assignment and toolset binding",
+                        role == "MCP.Tools.Operate" and writes == 0, "over-privileged: downgrade to Read",
+                        "in use")
+| where finding != "in use"
+| project principal_name, role, reads, writes, last_call, finding
+// MCP.Tools.Operate should be PIM-eligible; a standing assignment is itself a finding.

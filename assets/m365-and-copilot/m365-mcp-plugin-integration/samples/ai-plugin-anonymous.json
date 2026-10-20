@@ -1,0 +1,27 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.4/schema.json",
+  "schema_version": "v2.4",
+  "name_for_human": "Contoso Catalog (dev)",
+  "description_for_human": "Development-only lookup of public Contoso product names, SKUs, list prices, and availability.",
+  "description_for_model": "Read-only lookup of public Contoso product catalog data: product names, SKU codes (SKU-###), list prices, and availability. Use to confirm a SKU before drafting an order. Do not use for discounts, customer-specific pricing, accounts, or orders.",
+  "namespace": "servicecatalog",
+  "logo_url": "https://catalog-mcp-dev.contoso.com/static/logo.png",
+  "contact_email": "catalog-platform@contoso.com",
+  "legal_info_url": "https://www.contoso.com/terms",
+  "privacy_policy_url": "https://www.contoso.com/privacy",
+  "functions": [],
+  "runtimes": [
+    {
+      "type": "RemoteMCPServer",
+      "auth": {
+        "type": "None"
+      },
+      "spec": {
+        "url": "https://catalog-mcp-dev.contoso.com/mcp"
+      },
+      "run_for_functions": [
+        "*"
+      ]
+    }
+  ]
+}

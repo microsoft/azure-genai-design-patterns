@@ -18,7 +18,9 @@ jobs:
           python-version: "3.12"
       - name: Install tools
         run: pip install -r tools/requirements.txt
-      - name: Validate assets
+      - name: Validate assets and relative links
         run: python tools/assets.py validate
-      - name: Check catalog is current
+      - name: Check root and category catalogs are current
         run: python tools/assets.py catalog --check
+      - name: Run template sample self-test
+        run: python templates/asset/samples/reference_sample.py --self-test

@@ -1,0 +1,23 @@
+{
+  "Name": "Landing zone subscription deployment operator (<scope-name>)",
+  "IsCustom": true,
+  "Description": "Least-privilege subscription-scope orchestration for the Foundation UAMI. Allows reading subscription metadata, checking resource-provider registration, and creating, validating and what-if-ing ARM deployments. It grants no resource write, delete, deployment cancel, provider registration, or role-assignment rights; those come from resource-group-scoped Contributor and Role Based Access Control Administrator assignments.",
+  "Actions": [
+    "Microsoft.Resources/subscriptions/read",
+    "Microsoft.Resources/subscriptions/providers/read",
+    "Microsoft.Resources/subscriptions/locations/read",
+    "Microsoft.Resources/subscriptions/operationresults/read",
+    "Microsoft.Resources/deployments/read",
+    "Microsoft.Resources/deployments/write",
+    "Microsoft.Resources/deployments/validate/action",
+    "Microsoft.Resources/deployments/whatIf/action",
+    "Microsoft.Resources/deployments/operations/read",
+    "Microsoft.Resources/deployments/operationstatuses/read"
+  ],
+  "NotActions": [],
+  "DataActions": [],
+  "NotDataActions": [],
+  "AssignableScopes": [
+    "/subscriptions/<subscription-id>"
+  ]
+}

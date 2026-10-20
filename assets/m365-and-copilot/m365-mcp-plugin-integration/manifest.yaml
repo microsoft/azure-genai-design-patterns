@@ -1,0 +1,32 @@
+schema_version: 1
+id: m365-mcp-plugin-integration
+category: m365-and-copilot
+title: Microsoft 365 Copilot Integration with MCP via Plug-ins
+summary: >-
+  Integrate one or more remote Model Context Protocol (MCP) servers into
+  Microsoft 365 Copilot using declarative-agent plug-ins, progressive agent
+  skills, and OAuth or Microsoft Entra SSO, with clear guidance on tool
+  discovery modes, action confirmation, and MCP Apps.
+kind: design-pattern
+maturity: preview
+version: 0.1.0
+tags:
+  - m365-copilot
+  - mcp
+  - declarative-agent
+  - plugins
+  - oauth
+  - entra-sso
+  - mcp-apps
+  - agent-skills
+azure_services:
+  - Microsoft Entra ID
+  - Azure Container Apps
+  - Azure Key Vault
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-20"
+related:
+  - agent-path-to-production
+  - m365-azure-custom-agent
+  - agent-security-and-governance
