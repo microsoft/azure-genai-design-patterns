@@ -641,6 +641,7 @@ Every item below should be checked against current Microsoft Learn documentation
 - [Verify Before Approve](../../../orchestration-and-workflows/verify-before-approve/README.md)
 - [Multi-Tenant MCP Gateway on Azure API Management](../../../ai-gateway/multi-tenant-mcp-gateway/README.md)
 - [Backend Identity Propagation for MCP and Agent Gateways](../../../ai-gateway/backend-identity-propagation/README.md)
+- [Code-execution governance (Gate 5) in Enterprise Agent Security and Tool Governance](../../../security-and-governance/agent-security-and-governance/docs/code-execution-governance.md)
 - [Azure Container Apps dynamic sessions](https://learn.microsoft.com/azure/container-apps/sessions)
 - [Serverless code interpreter sessions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/sessions-code-interpreter)
 - [Custom container sessions in Azure Container Apps](https://learn.microsoft.com/azure/container-apps/sessions-custom-container)

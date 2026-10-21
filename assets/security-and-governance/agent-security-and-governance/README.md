@@ -30,6 +30,9 @@ source system. Prompt instructions are a usability aid, never a control.
   kill switches independently of the developers who ship agent code.
 - You are planning for tenant-wide agent governance with Microsoft Agent 365 and
   want the identity design you build in Foundry today to carry forward.
+- The agent writes and runs code (analysis scripts, generated SQL, uploaded
+  notebooks or tenant-published skills). Add Gate 5, the execution boundary,
+  from the [code-execution governance guide](docs/code-execution-governance.md).
 
 ## When not to use
 
@@ -112,6 +115,24 @@ Each gate is designed to contain the failure of any other single gate. The
 blast-radius analysis is in the
 [threat model](docs/threat-model-and-control-matrix.md).
 
+### Gate 5: when the agent executes code
+
+Gates 1 to 4 govern which tools an agent may call. Once the agent can write and
+run code, a single prompt injection becomes arbitrary code execution (OWASP
+Agentic ASI05). Gate 5 assumes that has already happened and limits what the
+code can reach:
+
+| Control-matrix gate | Primary controls | Verified by |
+|---------------------|------------------|-------------|
+| **Gate 5:** Execution boundary | Generated code never runs in the agent process; hypervisor-isolated sandbox sessions keyed by the broker per user conversation; no identity, secrets or outbound network inside the sandbox; pre-screen, budgets and an output guard; digest-pinned runtimes, skills and prompts under change control; side effects only through governed tools and Gate 3; an execution record for every run | Isolation probe, `CX-T1` to `CX-T12`, KQL queries 9 to 11 |
+
+The [code-execution governance guide](docs/code-execution-governance.md) sets
+out ten principles, controls by code author (model, user, tenant or coding
+agent), execution tiers 0 to 4, threats `CX-01` to `CX-15` and a production
+checklist. The runtime mechanics (session pools, the session broker and an
+offline simulator) are in
+[Code Execution Sandboxes with Session Pools](../../agent-runtime/code-execution-sandbox-session-pools/README.md).
+
 ### Domain packs
 
 The pattern is domain-agnostic. A domain pack supplies the tools, the partition
@@ -143,7 +164,10 @@ queries stay the same. The samples use generic `list_records`, `get_record` and
 | [`samples/governed_agent_example.py`](samples/governed_agent_example.py) | Hosted agent with no tool code, bound to a Toolbox |
 | [`samples/provision_toolbox_and_guardrails.py`](samples/provision_toolbox_and_guardrails.py) | Desired-state provisioning and drift detection for Gates 1, 2 and 4 |
 | [`samples/kill_switch_and_smoke_test.py`](samples/kill_switch_and_smoke_test.py) | `S1` to `S8` and the three-tier kill-switch rehearsal, runnable offline |
-| [`samples/audit-queries.kql`](samples/audit-queries.kql) | Eight detection and review queries joined on `correlation_id` |
+| [Code-execution governance](docs/code-execution-governance.md) | Gate 5 for agents that write or run code: principles, controls by author, execution tiers, threats `CX-01` to `CX-15`, red-team cases and a production checklist |
+| [ADR 0002: Execution boundary for generated code](docs/decisions/0002-execution-boundary-for-generated-code.md) | Why generated code runs out of process with no identity and no egress |
+| [`samples/execution_isolation_probe.py`](samples/execution_isolation_probe.py) | Gate 5 probe: run it inside a sandbox to prove no secrets, identity endpoint, metadata address or outbound network are reachable |
+| [`samples/audit-queries.kql`](samples/audit-queries.kql) | Eleven detection and review queries joined on `correlation_id`; queries 9 to 11 cover code execution |
 
 ## Key design decisions
 
@@ -156,6 +180,7 @@ queries stay the same. The samples use generic `list_records`, `get_record` and
 | Data entitlements | Enforced by the source from `roles` / `scp` claims, deny by default | Data rules live where the data lives and apply to every client | Each source must validate tokens and map roles |
 | Evidence | Platform traces plus a uniform source audit schema | Answers "who saw what and why" without trusting agent logs | Extra Log Analytics ingestion cost |
 | Tenant-scale governance | Microsoft Agent 365 and Entra ID Governance on the same identity object | No rework when the fleet grows; adds sponsors, reviews and expiry | Requires additional licensing and admin activation |
+| Code execution | Out-of-process session pool behind a broker; no identity, secrets or egress in the sandbox; side effects only through governed tools | A fooled model that writes hostile code reaches nothing worth stealing or changing | Session capacity, cold starts and state loss to design for; custom images to patch and pin |
 
 Significant decisions are recorded as ADRs in [`docs/decisions/`](docs/decisions/).
 
@@ -201,6 +226,11 @@ Significant decisions are recorded as ADRs in [`docs/decisions/`](docs/decisions
    [`samples/kill_switch_and_smoke_test.py`](samples/kill_switch_and_smoke_test.py)
    offline, then rehearse all three kill-switch tiers (Toolbox detach, server
    write flag, identity disable) in a test environment and record time-to-stop.
+9. **If the agent executes code, add Gate 5.** Pick the lowest
+   [execution tier](docs/code-execution-governance.md#4-execution-tiers) that
+   works, run
+   [`samples/execution_isolation_probe.py`](samples/execution_isolation_probe.py)
+   inside every pool before release, and schedule KQL queries 9 to 11.
 
 See [`samples/README.md`](samples/README.md) for what each sample demonstrates and
 how to adapt it.
@@ -238,6 +268,9 @@ Entra objects are not removed when you delete an Azure resource group.
   | Shadow agents or stale entitlements | Sponsor and expiry on every agent identity; access reviews; entitlement-review query |
   | Compromised or runaway agent | Three-tier kill switch: Toolbox detach, server write flag, identity disable |
   | Silent regressions after a model, prompt or framework change | Evaluation release gate with deterministic checks |
+  | Generated code reaches the agent's identity, secrets or network | Gate 5: out-of-process sandbox with no identity and egress off, proved by the isolation probe |
+  | Poisoned or drifting runtime image, package or skill | Digest and lock-hash pinning, review before promotion, read-back after deployment, KQL query 10 |
+  | The model reports results from code that never ran | Treat an answer as computed only when a matching execution record exists |
 
   The full analysis, with OWASP and MITRE ATLAS mappings and per-gate blast
   radius, is in the
@@ -262,6 +295,11 @@ Entra objects are not removed when you delete an Azure resource group.
   platform supplies validated identity, not row-level authorization.
 - Microsoft Agent 365 requires licensing and admin activation; registry sync and
   activity data have prerequisites described in the mapping document.
+- Parts of the code-execution stack are in preview, including some session-pool
+  types, settings and regional availability. Provisioning can succeed while a
+  setting is ignored, so the guide requires read-back and an isolation probe
+  for each pool; see its
+  [preview caveats](docs/code-execution-governance.md#20-preview-caveats).
 
 ## References
 
@@ -277,4 +315,5 @@ Entra objects are not removed when you delete an Azure resource group.
 - [Microsoft Purview for Foundry](https://learn.microsoft.com/purview/ai-azure-foundry)
 - [Microsoft Agent Framework](https://learn.microsoft.com/agent-framework/overview/agent-framework-overview)
 - [Model Context Protocol](https://modelcontextprotocol.io/)
-- Related assets: [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md), [Microsoft 365 Integration with Azure Custom Engine Agent](../../m365-and-copilot/m365-azure-custom-agent/README.md), [Secured Microsoft Foundry Landing Zone](../../landing-zones-and-infra/secured-foundry-landing-zone/README.md)
+- [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/)
+- Related assets: [Code Execution Sandboxes with Session Pools](../../agent-runtime/code-execution-sandbox-session-pools/README.md), [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md), [Microsoft 365 Integration with Azure Custom Engine Agent](../../m365-and-copilot/m365-azure-custom-agent/README.md), [Secured Microsoft Foundry Landing Zone](../../landing-zones-and-infra/secured-foundry-landing-zone/README.md)

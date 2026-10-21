@@ -196,6 +196,7 @@ stateDiagram-v2
 | [Verify Before Approve](../../orchestration-and-workflows/verify-before-approve/README.md) | Side effects proposed by sandbox output go through deterministic checks and human approval |
 | [Multi-Tenant MCP Gateway on Azure API Management](../../ai-gateway/multi-tenant-mcp-gateway/README.md) | Fronts your own MCP tool for custom-container pools with tenant-aware policy |
 | [Backend Identity Propagation](../../ai-gateway/backend-identity-propagation/README.md) | How user identity reaches back ends; this asset deliberately keeps it out of the sandbox |
+| [Enterprise Agent Security and Tool Governance](../../security-and-governance/agent-security-and-governance/README.md) | Governs this runtime as Gate 5: execution tiers, approval rules, threat catalog, isolation probe and audit queries in its [code-execution governance guide](../../security-and-governance/agent-security-and-governance/docs/code-execution-governance.md) |
 
 ## Production-readiness pillar mapping
 

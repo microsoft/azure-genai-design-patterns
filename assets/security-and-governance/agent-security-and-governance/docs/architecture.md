@@ -369,8 +369,9 @@ Combine the source audit with:
   beta), to prove which identity obtained which token.
 
 [`../samples/audit-queries.kql`](../samples/audit-queries.kql) turns these
-streams into eight detections, each tied to a smoke test in the
-[threat model](threat-model-and-control-matrix.md):
+streams into eleven detections, each tied to a smoke test or red-team case in
+the [threat model](threat-model-and-control-matrix.md). Queries 1 to 8 cover the
+tool-call gates:
 
 | # | Query | Signal | Smoke test |
 |---|-------|--------|------------|
@@ -385,6 +386,19 @@ streams into eight detections, each tied to a smoke test in the
 
 Wire queries 1, 2, 5 and 6 as Sentinel analytics rules; use 3, 4, 7 and 8 for
 hunting, incident timelines and the access review.
+
+Queries 9 to 11 read `SandboxExecAudit_CL`, the execution broker's audit stream,
+and apply only when the agent executes code (Gate 5 in the
+[code-execution governance guide](code-execution-governance.md)):
+
+| # | Query | Signal | Red-team case |
+|---|-------|--------|---------------|
+| 9 | Egress, metadata and secret indicators | Refused outbound or metadata-address attempts, secrets in code, quarantined output | CX-T2, CX-T3, CX-T12 |
+| 10 | Unapproved runtime | An image digest or lock hash that is not on the approved list | CX-T5 |
+| 11 | Capacity and budget | Capacity rejections, budget stops and state loss per pool | CX-T11 |
+
+Wire query 9 and query 10 as analytics rules. Use query 11 for capacity alerts
+and the operational review.
 
 ### Kill switch
 

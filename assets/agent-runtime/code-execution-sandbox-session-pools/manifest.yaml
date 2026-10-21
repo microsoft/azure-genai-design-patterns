@@ -41,6 +41,7 @@ related:
   - governed-context-aware-agent-harness
   - verify-before-approve
   - multi-tenant-mcp-gateway
+  - agent-security-and-governance
 pillars:
   - agent-architecture-patterns
   - security-and-observability

@@ -198,4 +198,5 @@ Post-deployment read-back matters because preview resource providers can accept 
 - [ADR 0003: Built-in pool for MCP, custom container for packages](decisions/0003-built-in-pool-for-mcp-custom-container-for-packages.md)
 - [Production Hosted Agents on Foundry](../../production-hosted-agents-on-foundry/README.md)
 - [Agent Security and Governance](../../../security-and-governance/agent-security-and-governance/README.md)
+- [Code-execution governance (Gate 5)](../../../security-and-governance/agent-security-and-governance/docs/code-execution-governance.md): execution tiers, approval rules, threat catalog, isolation probe and audit queries
 - [Secured Foundry Landing Zone](../../../landing-zones-and-infra/secured-foundry-landing-zone/README.md)

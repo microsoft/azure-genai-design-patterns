@@ -16,6 +16,13 @@
 //   (content filter) annotations. Category and column names vary by resource
 //   and API version; validate them before you build alerts on query 4 or 5.
 // - AuditLogs and AzureActivity: Entra ID and control-plane changes.
+// - SandboxExecAudit_CL: one row per upload, execute, download, delete or
+//   refusal from the code-execution broker (Gate 5, queries 9 to 11). See
+//   docs/code-execution-governance.md section 15. Expected columns:
+//     TimeGenerated, correlationId, event, tenantRef, userRef, sessionRef,
+//     pool, poolType, codeSha256, codeBytes, findings (pre-screen, egress and
+//     output-guard indicators), outcome, errorCode, stateLost,
+//     stdoutTruncated, quarantined, platformTraceId, imageDigest, lockSha256
 // Run each query separately. Thresholds are starting points, not tuned values.
 
 // 0. (Optional) Derive MCPToolAudit from console logs. Save as a function named
@@ -201,3 +208,79 @@ holders
 | where finding != "in use"
 | project principal_name, role, reads, writes, last_call, finding
 // MCP.Tools.Operate should be PIM-eligible; a standing assignment is itself a finding.
+
+// 9. Egress, metadata and secret indicators from executed code
+//    (CX-02, CX-03, CX-13, CX-14; Gate 5)
+// With egress off, generated code should rarely try to reach the network. Any
+// attempt, especially to a metadata or identity address, is worth a review.
+let window = 1d;
+let tool_context = MCPToolAudit_CL
+    | where TimeGenerated > ago(window)
+    | summarize tools = strcat_array(make_set(tool, 10), ", "),
+                principals = strcat_array(make_set(principal_name, 5), ", ")
+        by correlation_id;
+SandboxExecAudit_CL
+| where TimeGenerated > ago(window)
+| extend f = tostring(findings)
+| where f has_any ("egress-disabled", "host-not-allowlisted", "metadata-or-local-address",
+                   "ip-literal-not-allowed", "socket", "dns")
+    or errorCode in ("SecretInCode", "PolicyRejected")
+    or tobool(quarantined)
+| extend indicator = case(f has "metadata-or-local-address", "metadata or identity address",
+                          f has_any ("egress-disabled", "host-not-allowlisted", "ip-literal-not-allowed",
+                                     "socket", "dns"), "outbound attempt",
+                          errorCode == "SecretInCode", "secret in code",
+                          tobool(quarantined), "output quarantined",
+                          "policy rejection")
+| extend correlation_id = tostring(correlationId)
+| join kind=leftouter tool_context on correlation_id
+| summarize executions = count(), sessions = dcount(sessionRef),
+            first_seen = min(TimeGenerated), last_seen = max(TimeGenerated),
+            indicators = make_set(indicator), code_hashes = make_set(codeSha256, 20),
+            tools = make_set(tools, 10), correlation_ids = make_set(correlation_id, 20)
+    by tenantRef, userRef, pool
+| order by array_length(indicators) desc, executions desc
+// A metadata-address attempt or repeated outbound attempts from one user are an
+// incident trigger: pull the code by hash, check the source documents the agent
+// read in the same correlation, and confirm that the pool's egress setting held.
+
+// 10. Executions on an unapproved runtime image or lock file (CX-05, CX-15; Gate 5)
+// Keep the approved list in a watchlist or an external table fed by the release
+// pipeline. The values below are placeholders.
+let window = 1d;
+let approved = datatable(pool: string, imageDigest: string, lockSha256: string) [
+    "analysis-pool", "sha256:<approved-image-digest>", "<approved-lock-sha256>"
+];
+SandboxExecAudit_CL
+| where TimeGenerated > ago(window) and event == "execute"
+| where poolType == "CustomContainer"
+| join kind=leftanti approved on pool, imageDigest, lockSha256
+| summarize executions = count(), tenants = dcount(tenantRef),
+            first_seen = min(TimeGenerated), last_seen = max(TimeGenerated)
+    by pool, imageDigest, lockSha256
+| extend finding = iff(isempty(imageDigest) or isempty(lockSha256),
+                       "runtime not recorded: fix the broker before the next release",
+                       "unapproved runtime: compare with the change record and roll back the pool")
+| order by executions desc
+// Built-in pools report a platform-managed runtime and are excluded here. Track
+// their runtime version from read-back instead.
+
+// 11. Capacity rejections, budget stops and state loss per pool (CX-12; Gate 5)
+let window = 1d;
+let bin_size = 15m;
+SandboxExecAudit_CL
+| where TimeGenerated > ago(window)
+| summarize attempts = countif(event in ("execute", "rejected")),
+            capacity_rejections = countif(errorCode == "CapacityExceeded"),
+            budget_stops = countif(outcome in ("BudgetExceeded", "ResourceLimitExceeded")),
+            state_lost = countif(tobool(stateLost)),
+            active_sessions = dcount(sessionRef)
+    by pool, bin(TimeGenerated, bin_size)
+| extend rejection_pct = round(100.0 * capacity_rejections / iff(attempts == 0, 1, attempts), 1)
+| where capacity_rejections > 0 or budget_stops > 0 or state_lost > 0
+| order by TimeGenerated desc, rejection_pct desc
+// Alert on any capacity rejection in a production pool, and when active sessions
+// per bin approach the pool maximum. Sessions hold a slot until cooldown ends, so
+// size from peak conversation arrivals multiplied by hold time. A rise in budget
+// stops suggests runaway generations or abuse; rising state loss suggests the
+// cooldown is shorter than real conversation gaps.

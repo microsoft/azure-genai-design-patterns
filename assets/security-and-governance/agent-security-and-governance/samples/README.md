@@ -17,12 +17,15 @@ dependencies are in preview; pin package versions and test before use.
 | [`governed_agent_example.py`](governed_agent_example.py) | 1, 2 | No (hosted agent) | Hosted agent with zero tool code and no credentials; tools come from a versioned Foundry Toolbox |
 | [`provision_toolbox_and_guardrails.py`](provision_toolbox_and_guardrails.py) | 1, 2, 4 | Yes (default) | Registers the server in the private tool catalog, publishes split toolsets, binds a guardrail and detects drift |
 | [`kill_switch_and_smoke_test.py`](kill_switch_and_smoke_test.py) | 1 to 4 | Yes (default) | Security smoke suite `S1` to `S8` and the three-tier kill-switch rehearsal |
-| [`audit-queries.kql`](audit-queries.kql) | 4 | Needs a workspace | Eight detection and review queries joined on `correlation_id` |
+| [`execution_isolation_probe.py`](execution_isolation_probe.py) | 5 | Yes, `--self-test` | Runs inside a code-execution session and reports what generated code can see and reach: secrets, identity, metadata address, internet, packages |
+| [`audit-queries.kql`](audit-queries.kql) | 4, 5 | Needs a workspace | Eleven detection and review queries joined on `correlation_id`; queries 9 to 11 cover code execution |
 
 Gate numbers follow the control matrix in
 [`../docs/threat-model-and-control-matrix.md`](../docs/threat-model-and-control-matrix.md):
 Gate 1 catalog and toolsets, Gate 2 Entra ID and RBAC, Gate 3 MCP server-side
-entitlement, Gate 4 guardrails and audit.
+entitlement, Gate 4 guardrails and audit. Gate 5, the execution boundary for
+generated code, is described in
+[`../docs/code-execution-governance.md`](../docs/code-execution-governance.md).
 
 ## Quick start
 
@@ -32,9 +35,10 @@ From this folder, with Python 3.10 or later:
 python governed_mcp_server.py --self-test        # needs the mcp and PyJWT packages
 python provision_toolbox_and_guardrails.py       # standard library only
 python kill_switch_and_smoke_test.py             # standard library only
+python execution_isolation_probe.py --self-test  # standard library only
 ```
 
-Each command exits `0` only when every check passes, so all three can run as CI
+Each command exits `0` only when every check passes, so all four can run as CI
 steps. See [`../docs/evaluation-and-release-gates.md`](../docs/evaluation-and-release-gates.md)
 for the full promotion pipeline.
 
@@ -158,6 +162,36 @@ The simulated clock makes the 60-second Tier 1 budget deterministic. In a real
 environment, rehearse each tier against the deployed resources and record the
 measured times.
 
+## execution_isolation_probe.py
+
+A zero-dependency probe for Gate 5. Submit it through the same path the agent
+uses to run code (the code tool, the broker and the session pool) so the result
+describes the real runtime, not a developer machine. It turns "this runs in a
+sandbox" into a measured fact.
+
+| Check | Passes when |
+|-------|-------------|
+| `secret_env` | No environment variable name looks like a key, token, password or connection string. Values are never read into the report. |
+| `identity_endpoint` | No managed identity endpoint is advertised to the code. |
+| `metadata_address` | A TCP connection to the instance metadata address fails. |
+| `public_internet` | A TCP connection to a public host fails (or reaches only what the allowlist permits). |
+| `packages` | Optional. Each listed package both imports and has matching installed metadata. |
+
+The hostname and Python version are reported for context only; a hostname that
+says "sandbox" is not evidence of isolation.
+
+```powershell
+python execution_isolation_probe.py --self-test                                  # offline
+python execution_isolation_probe.py --packages pandas,numpy,scikit-learn=sklearn # inside a session
+```
+
+The report is JSON on standard output. The exit code is `0` when every check
+passes and `1` when any check fails, so a release pipeline can run the probe in
+every pool and block on the result. It is red-team case `CX-T2` in the
+[code-execution governance guide](../docs/code-execution-governance.md#17-red-team-cases).
+If your pool deliberately allows outbound access to an allowlisted host, point
+`--public-host` at a host that is *not* on the list.
+
 ## audit-queries.kql
 
 Queries for Log Analytics. `MCPToolAudit_CL` holds the server's decision
@@ -174,6 +208,13 @@ do not ingest it through a data collection rule.
 | 6. Write velocity anomaly | Detect runaway loops or abuse per principal | Load test |
 | 7. Kill-switch timeline | Show activation, refusals and release across Toolbox, Entra ID and the MCP server | `S8`, Tier 1 to 3 |
 | 8. Entitlement review | Find unused or over-privileged `MCP.Tools.Operate` assignments | Access reviews |
+| 9. Code-execution egress and secrets | Find refused egress, metadata-address attempts, secrets in code and quarantined output, joined to the tool call | `CX-T2`, `CX-T3`, `CX-T12` |
+| 10. Unapproved runtime | Flag executions on an image digest or lock hash that is not on the approved list | `CX-T5` |
+| 11. Capacity and budget | Show capacity rejections, budget stops and state loss per pool | `CX-T11` |
+
+Queries 9 to 11 read `SandboxExecAudit_CL`, written by the execution broker.
+The [code-execution governance guide](../docs/code-execution-governance.md#15-audit-and-evidence)
+describes its fields.
 
 The schema is described in
 [the architecture document](../docs/architecture.md#unified-audit-schema).
