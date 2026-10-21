@@ -1,0 +1,156 @@
+<policies>
+    <inbound>
+        <base />
+        <set-variable name="tkForm" value="@{
+            var form = new JObject();
+            var raw = context.Request.Body.As<string>(preserveContent: true) ?? "";
+            foreach (var pair in raw.Split('\u0026'))
+            {
+                if (pair == "") { continue; }
+                var idx = pair.IndexOf('=');
+                var key = idx == -1 ? pair : pair.Substring(0, idx);
+                var val = idx == -1 ? "" : pair.Substring(idx + 1);
+                form[Uri.UnescapeDataString(key.Replace('+', ' '))] = Uri.UnescapeDataString(val.Replace('+', ' '));
+            }
+            return form;
+        }" />
+        <set-variable name="tkError" value="@{
+            var form = (JObject)context.Variables["tkForm"];
+            var grant = (string)form["grant_type"] ?? "";
+            if (grant != "authorization_code")
+            {
+                if (grant != "refresh_token") { return "unsupported_grant_type"; }
+            }
+            var allowedClients = "{{mcp-allowed-client-ids}}".Split(';');
+            if (Array.IndexOf(allowedClients, (string)form["client_id"] ?? "") == -1) { return "unauthorized_client"; }
+            if (grant == "authorization_code")
+            {
+                if (string.IsNullOrEmpty((string)form["code"])) { return "invalid_request"; }
+                if (!Regex.IsMatch((string)form["code_verifier"] ?? "", @"^[A-Za-z0-9._~-]{43,128}$")) { return "invalid_request"; }
+                if (!Regex.IsMatch((string)form["redirect_uri"] ?? "", @"{{mcp-loopback-redirect-regex}}")) { return "invalid_request"; }
+            }
+            if (grant == "refresh_token")
+            {
+                if (string.IsNullOrEmpty((string)form["refresh_token"])) { return "invalid_request"; }
+            }
+            return "";
+        }" />
+        <set-variable name="tkScope" value="@{
+            var form = (JObject)context.Variables["tkForm"];
+            var map = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var entry in "{{mcp-resource-scope-map}}".Split(';'))
+            {
+                var parts = entry.Split('|');
+                if (parts.Length == 2) { map[parts[0].Trim()] = parts[1].Trim(); }
+            }
+            var resource = (string)form["resource"] ?? "";
+            if (resource != "")
+            {
+                return map.ContainsKey(resource) ? map[resource] : "";
+            }
+            foreach (var s in ((string)form["scope"] ?? "").Split(' '))
+            {
+                if (map.ContainsValue(s)) { return s; }
+            }
+            return "{{mcp-default-scope}}";
+        }" />
+        <choose>
+            <when condition="@((string)context.Variables["tkError"] != "")">
+                <trace source="mcp-token" severity="warning">
+                    <message>token request rejected by facade</message>
+                    <metadata name="reason" value="@((string)context.Variables["tkError"])" />
+                </trace>
+                <return-response>
+                    <set-status code="400" reason="Bad Request" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-header name="Cache-Control" exists-action="override">
+                        <value>no-store</value>
+                    </set-header>
+                    <set-header name="Pragma" exists-action="override">
+                        <value>no-cache</value>
+                    </set-header>
+                    <set-body>@(new JObject(new JProperty("error", (string)context.Variables["tkError"]), new JProperty("error_description", "The token request was rejected by the gateway.")).ToString())</set-body>
+                </return-response>
+            </when>
+            <when condition="@((string)context.Variables["tkScope"] == "")">
+                <return-response>
+                    <set-status code="400" reason="Bad Request" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-header name="Cache-Control" exists-action="override">
+                        <value>no-store</value>
+                    </set-header>
+                    <set-body>{"error":"invalid_target","error_description":"The requested resource is not served by this gateway."}</set-body>
+                </return-response>
+            </when>
+        </choose>
+        <set-header name="Cookie" exists-action="delete" />
+        <set-header name="Content-Type" exists-action="override">
+            <value>application/x-www-form-urlencoded</value>
+        </set-header>
+        <set-body>@{
+            var form = (JObject)context.Variables["tkForm"];
+            var amp = "\u0026";
+            var parts = new List<string>();
+            foreach (var prop in form.Properties())
+            {
+                if (prop.Name == "resource") { continue; }
+                if (prop.Name == "scope") { continue; }
+                parts.Add(Uri.EscapeDataString(prop.Name) + "=" + Uri.EscapeDataString((string)prop.Value));
+            }
+            parts.Add("scope=" + Uri.EscapeDataString((string)context.Variables["tkScope"] + " offline_access"));
+            return string.Join(amp, parts);
+        }</set-body>
+        <set-backend-service base-url="{{mcp-idp-authority}}" />
+        <rewrite-uri template="/oauth2/v2.0/token" copy-unmatched-params="false" />
+    </inbound>
+    <backend>
+        <forward-request timeout="{{mcp-idp-timeout-seconds}}" />
+    </backend>
+    <outbound>
+        <base />
+        <set-header name="Cache-Control" exists-action="override">
+            <value>no-store</value>
+        </set-header>
+        <set-header name="Pragma" exists-action="override">
+            <value>no-cache</value>
+        </set-header>
+        <trace source="mcp-token" severity="information">
+            <message>token request forwarded to identity provider</message>
+            <metadata name="status" value="@(context.Response.StatusCode.ToString())" />
+            <metadata name="grant_type" value="@((string)((JObject)context.Variables["tkForm"])["grant_type"] ?? "")" />
+        </trace>
+    </outbound>
+    <on-error>
+        <base />
+        <choose>
+            <when condition="@(context.LastError.Source == "forward-request")">
+                <return-response>
+                    <set-status code="502" reason="Bad Gateway" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-header name="Cache-Control" exists-action="override">
+                        <value>no-store</value>
+                    </set-header>
+                    <set-body>{"error":"temporarily_unavailable","error_description":"The identity provider could not be reached."}</set-body>
+                </return-response>
+            </when>
+            <otherwise>
+                <return-response>
+                    <set-status code="400" reason="Bad Request" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-header name="Cache-Control" exists-action="override">
+                        <value>no-store</value>
+                    </set-header>
+                    <set-body>{"error":"invalid_request","error_description":"The token request could not be processed."}</set-body>
+                </return-response>
+            </otherwise>
+        </choose>
+    </on-error>
+</policies>

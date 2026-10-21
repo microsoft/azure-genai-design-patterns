@@ -1,0 +1,47 @@
+schema_version: 1
+id: code-execution-sandbox-session-pools
+category: agent-runtime
+title: Code Execution Sandboxes with Session Pools
+summary: >-
+  Design pattern for agents that write and run code. Never execute
+  model-generated code in the agent's process. Run it in Azure Container Apps
+  dynamic sessions (session pools): one isolated session per user and
+  conversation, egress off by default, explicit lifecycle, file I/O through the
+  session API and a least-privilege executor role. Includes a decision matrix,
+  threat model, ADRs and an offline simulator.
+kind: design-pattern
+maturity: preview
+version: 0.1.0
+tags:
+  - agentic-ai
+  - code-execution
+  - sandbox
+  - session-pools
+  - dynamic-sessions
+  - code-interpreter
+  - container-apps
+  - egress-control
+  - prompt-injection
+  - managed-identity
+  - mcp
+  - isolation
+azure_services:
+  - Azure Container Apps
+  - Microsoft Foundry
+  - Microsoft Entra ID
+  - Azure Container Registry
+  - Azure Virtual Network
+  - Azure Monitor
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-20"
+related:
+  - choosing-prompt-vs-hosted-agents
+  - production-hosted-agents-on-foundry
+  - governed-context-aware-agent-harness
+  - verify-before-approve
+  - multi-tenant-mcp-gateway
+pillars:
+  - agent-architecture-patterns
+  - security-and-observability
+  - agent-ops

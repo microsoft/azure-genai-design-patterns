@@ -1,0 +1,86 @@
+<fragment>
+    <set-variable name="linkCacheKey" value="@{
+        var jwt = (Jwt)context.Variables["jwt"];
+        var input = jwt.Claims.GetValueOrDefault("iss", "") + "|" + jwt.Claims.GetValueOrDefault("tid", "") + "|" + jwt.Claims.GetValueOrDefault("oid", "") + "|" + (string)context.Variables["tenantKey"];
+        using (var sha = System.Security.Cryptography.SHA256.Create())
+        {
+            return "link:" + Convert.ToBase64String(sha.ComputeHash(Encoding.UTF8.GetBytes(input)));
+        }
+    }" />
+    <cache-lookup-value key="@((string)context.Variables["linkCacheKey"])" variable-name="linkRecord" caching-type="internal" />
+    <set-variable name="linkCacheHit" value="@(context.Variables.ContainsKey("linkRecord"))" />
+    <choose>
+        <when condition="@(!context.Variables.ContainsKey("linkRecord"))">
+            <send-request mode="new" response-variable-name="linkResponse" timeout="{{link-timeout-seconds}}" ignore-error="true">
+                <set-url>{{identity-link-service-url}}/links/resolve</set-url>
+                <set-method>POST</set-method>
+                <set-header name="Content-Type" exists-action="override">
+                    <value>application/json</value>
+                </set-header>
+                <set-body>@{
+                    var jwt = (Jwt)context.Variables["jwt"];
+                    return new JObject(
+                        new JProperty("idpIssuer", jwt.Claims.GetValueOrDefault("iss", "")),
+                        new JProperty("idpTenantId", jwt.Claims.GetValueOrDefault("tid", "")),
+                        new JProperty("idpObjectId", jwt.Claims.GetValueOrDefault("oid", "")),
+                        new JProperty("backendTenant", (string)context.Variables["tenantKey"])).ToString();
+                }</set-body>
+                <authentication-managed-identity resource="{{identity-link-service-audience}}" client-id="{{gateway-identity-client-id}}" />
+            </send-request>
+            <set-variable name="linkRecord" value="@{
+                var resp = context.Variables.GetValueOrDefault<IResponse>("linkResponse");
+                if (resp == null || resp.StatusCode == 429 || resp.StatusCode >= 500) { return "unavailable"; }
+                if (resp.StatusCode == 404) { return "none"; }
+                if (resp.StatusCode != 200) { return "unavailable"; }
+                var body = resp.Body.As<JObject>(preserveContent: true);
+                if ((string)body["status"] != "active") { return "none"; }
+                return new JObject(
+                    new JProperty("backendTenant", (string)body["backendTenant"]),
+                    new JProperty("backendUserId", (string)body["backendUserId"])).ToString(Newtonsoft.Json.Formatting.None);
+            }" />
+            <choose>
+                <when condition="@((string)context.Variables["linkRecord"] == "none")">
+                    <cache-store-value key="@((string)context.Variables["linkCacheKey"])" value="none" duration="{{link-negative-cache-seconds}}" caching-type="internal" />
+                </when>
+                <when condition="@((string)context.Variables["linkRecord"] != "unavailable")">
+                    <cache-store-value key="@((string)context.Variables["linkCacheKey"])" value="@((string)context.Variables["linkRecord"])" duration="{{link-cache-seconds}}" caching-type="internal" />
+                </when>
+            </choose>
+        </when>
+    </choose>
+    <choose>
+        <when condition="@((string)context.Variables["linkRecord"] == "unavailable")">
+            <trace source="mcp-propagation" severity="error">
+                <message>identity link store unavailable; failing closed</message>
+                <metadata name="reason" value="link_store_unavailable" />
+                <metadata name="tenant" value="@((string)context.Variables["tenantKey"])" />
+            </trace>
+            <return-response>
+                <set-status code="503" reason="Service Unavailable" />
+                <set-header name="Content-Type" exists-action="override">
+                    <value>application/json</value>
+                </set-header>
+                <set-header name="Cache-Control" exists-action="override">
+                    <value>no-store</value>
+                </set-header>
+                <set-body>@(new JObject(
+                    new JProperty("jsonrpc", "2.0"),
+                    new JProperty("id", (JToken)context.Variables["rpcId"]),
+                    new JProperty("error", new JObject(
+                        new JProperty("code", -32001),
+                        new JProperty("message", "Service Unavailable"),
+                        new JProperty("data", new JObject(new JProperty("reason", "temporarily_unavailable")))))).ToString())</set-body>
+            </return-response>
+        </when>
+    </choose>
+    <set-variable name="linkState" value="@{
+        var record = (string)context.Variables["linkRecord"];
+        if (record == "none") { return "none"; }
+        var link = JObject.Parse(record);
+        return (string)link["backendTenant"] == (string)context.Variables["tenantKey"] ? "active" : "none";
+    }" />
+    <set-variable name="backendUserId" value="@{
+        if ((string)context.Variables["linkState"] != "active") { return ""; }
+        return (string)JObject.Parse((string)context.Variables["linkRecord"])["backendUserId"];
+    }" />
+</fragment>

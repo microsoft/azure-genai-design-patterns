@@ -1,0 +1,108 @@
+<policies>
+    <inbound>
+        <base />
+        <set-variable name="azError" value="@{
+            var q = context.Request.Url.Query;
+            var allowedClients = "{{mcp-allowed-client-ids}}".Split(';');
+            if (Array.IndexOf(allowedClients, q.GetValueOrDefault("client_id", "")) == -1) { return "unknown_client"; }
+            if (!Regex.IsMatch(q.GetValueOrDefault("redirect_uri", ""), @"{{mcp-loopback-redirect-regex}}")) { return "redirect_uri_not_allowed"; }
+            if (q.GetValueOrDefault("response_type", "") != "code") { return "unsupported_response_type"; }
+            if (q.GetValueOrDefault("code_challenge_method", "") != "S256") { return "pkce_s256_required"; }
+            if (!Regex.IsMatch(q.GetValueOrDefault("code_challenge", ""), @"^[A-Za-z0-9_-]{43}$")) { return "pkce_challenge_invalid"; }
+            return "";
+        }" />
+        <choose>
+            <when condition="@((string)context.Variables["azError"] != "")">
+                <trace source="mcp-authorize" severity="warning">
+                    <message>authorize rejected before redirect</message>
+                    <metadata name="reason" value="@((string)context.Variables["azError"])" />
+                </trace>
+                <return-response>
+                    <set-status code="400" reason="Bad Request" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>text/plain; charset=utf-8</value>
+                    </set-header>
+                    <set-header name="Cache-Control" exists-action="override">
+                        <value>no-store</value>
+                    </set-header>
+                    <set-body>@("The sign-in request was rejected (" + (string)context.Variables["azError"] + "). Contact your administrator.")</set-body>
+                </return-response>
+            </when>
+        </choose>
+        <set-variable name="azScope" value="@{
+            var q = context.Request.Url.Query;
+            var map = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var entry in "{{mcp-resource-scope-map}}".Split(';'))
+            {
+                var parts = entry.Split('|');
+                if (parts.Length == 2) { map[parts[0].Trim()] = parts[1].Trim(); }
+            }
+            var resource = q.GetValueOrDefault("resource", "");
+            if (resource != "")
+            {
+                return map.ContainsKey(resource) ? map[resource] : "";
+            }
+            var requested = q.GetValueOrDefault("scope", "");
+            foreach (var s in requested.Split(' '))
+            {
+                if (map.ContainsValue(s)) { return s; }
+            }
+            return "{{mcp-default-scope}}";
+        }" />
+        <choose>
+            <when condition="@((string)context.Variables["azScope"] == "")">
+                <trace source="mcp-authorize" severity="warning">
+                    <message>authorize rejected: unknown resource</message>
+                </trace>
+                <return-response>
+                    <set-status code="400" reason="Bad Request" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-header name="Cache-Control" exists-action="override">
+                        <value>no-store</value>
+                    </set-header>
+                    <set-body>{"error":"invalid_target","error_description":"The requested resource is not served by this gateway."}</set-body>
+                </return-response>
+            </when>
+        </choose>
+        <trace source="mcp-authorize" severity="information">
+            <message>authorize redirected to identity provider</message>
+            <metadata name="client_id" value="@(context.Request.Url.Query.GetValueOrDefault("client_id", ""))" />
+            <metadata name="mapped_scope" value="@((string)context.Variables["azScope"])" />
+        </trace>
+        <return-response>
+            <set-status code="302" reason="Found" />
+            <set-header name="Cache-Control" exists-action="override">
+                <value>no-store</value>
+            </set-header>
+            <set-header name="Location" exists-action="override">
+                <value>@{
+                    var q = context.Request.Url.Query;
+                    var amp = "\u0026";
+                    var parts = new List<string>();
+                    foreach (var name in new[] { "client_id", "response_type", "redirect_uri" })
+                    {
+                        parts.Add(name + "=" + Uri.EscapeDataString(q.GetValueOrDefault(name, "")));
+                    }
+                    parts.Add("scope=" + Uri.EscapeDataString((string)context.Variables["azScope"] + " offline_access"));
+                    foreach (var name in new[] { "state", "code_challenge", "code_challenge_method", "prompt", "login_hint" })
+                    {
+                        var value = q.GetValueOrDefault(name, "");
+                        if (value != "") { parts.Add(name + "=" + Uri.EscapeDataString(value)); }
+                    }
+                    return "{{mcp-idp-authority}}/oauth2/v2.0/authorize?" + string.Join(amp, parts);
+                }</value>
+            </set-header>
+        </return-response>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>

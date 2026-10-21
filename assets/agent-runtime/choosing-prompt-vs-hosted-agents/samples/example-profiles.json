@@ -1,0 +1,32 @@
+{
+  "profiles": [
+    {
+      "name": "contoso-store-policy-assistant",
+      "description": "Store associates ask about return and pricing policy in Teams; answers cite approved policy documents.",
+      "user_facing_front_door": true,
+      "latency_sensitive_first_turn": true,
+      "gateway_must_be_enforced": true
+    },
+    {
+      "name": "fabrikam-maintenance-planner",
+      "description": "Plans maintenance work orders with a proprietary scheduling optimizer, fixed approval steps, and custom audit spans.",
+      "loop_must_be_code": true,
+      "in_process_libraries": true,
+      "custom_durable_state": true,
+      "custom_telemetry": true,
+      "private_network_required": true
+    },
+    {
+      "name": "northwind-advisor-assistant",
+      "description": "Advisor assistant in Microsoft 365 that calls in-house portfolio analytics and reads client data per user.",
+      "in_process_libraries": true,
+      "user_facing_front_door": true,
+      "front_door_must_be_platform_governed": true,
+      "heavy_backend_processing": true,
+      "latency_sensitive_first_turn": true,
+      "gateway_must_be_enforced": true,
+      "per_user_delegation": true,
+      "private_network_required": true
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+schema_version: 1
+id: governed-context-aware-agent-harness
+category: orchestration-and-workflows
+title: Governed Context-Aware Agent Harness
+summary: >-
+  A reference architecture for the runtime harness around an LLM agent:
+  mandatory plan-before-act policy, progressive skill disclosure, scoped
+  memory, an independent deterministic verifier, an evidence ledger, separate
+  human approval of the exact verified artifact, and a completion certificate
+  - so a convincing answer is never mistaken for a correctly completed task.
+kind: reference-architecture
+maturity: preview
+version: 0.1.0
+tags:
+  - agentic-ai
+  - agent-harness
+  - agent-framework
+  - context-engineering
+  - progressive-disclosure
+  - skills
+  - verification
+  - human-in-the-loop
+  - evidence-ledger
+  - opentelemetry
+  - governance
+azure_services:
+  - Microsoft Foundry
+  - Azure OpenAI in Foundry Models
+  - Azure Monitor
+  - Application Insights
+  - Microsoft Entra ID
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-20"
+related:
+  - verify-before-approve
+  - choosing-prompt-vs-hosted-agents
+  - agent-path-to-production
+  - agent-security-and-governance
+pillars:
+  - agent-architecture-patterns
+  - agent-ops
+  - security-and-observability

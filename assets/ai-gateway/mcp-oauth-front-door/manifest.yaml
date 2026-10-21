@@ -1,0 +1,49 @@
+schema_version: 1
+id: mcp-oauth-front-door
+category: ai-gateway
+title: MCP OAuth Front Door (Protected Resource Metadata, Discovery and Client Registration Shims)
+summary: >-
+  An OAuth front door on Azure API Management that lets MCP clients discover
+  Microsoft Entra ID or Entra External ID and obtain correctly scoped tokens
+  for remote MCP servers. Covers the 401 challenge, Protected Resource Metadata
+  (RFC 9728), an RFC 8414 metadata shim, an optional governed registration
+  shim, authorize and token facades that map resource to scope, token
+  validation, security trade-offs, and an offline simulator.
+kind: design-pattern
+maturity: preview
+version: 0.1.0
+tags:
+  - mcp
+  - oauth
+  - protected-resource-metadata
+  - authorization-server-metadata
+  - dynamic-client-registration
+  - pkce
+  - resource-indicators
+  - token-validation
+  - api-management
+  - entra-id
+  - entra-external-id
+  - ai-gateway
+  - identity
+azure_services:
+  - Azure API Management
+  - Microsoft Entra ID
+  - Microsoft Entra External ID
+  - Azure Container Apps
+  - Azure Key Vault
+  - Application Insights
+  - Azure Monitor
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-20"
+related:
+  - multi-tenant-mcp-gateway
+  - backend-identity-propagation
+  - m365-mcp-plugin-integration
+  - agent-security-and-governance
+  - secured-foundry-landing-zone
+pillars:
+  - security-and-observability
+  - agent-architecture-patterns
+  - landing-zones

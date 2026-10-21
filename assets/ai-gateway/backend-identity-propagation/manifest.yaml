@@ -1,0 +1,46 @@
+schema_version: 1
+id: backend-identity-propagation
+category: ai-gateway
+title: Backend Identity Propagation for MCP and Agent Gateways (OBO, Signed Assertions, Tenant Credentials)
+summary: >-
+  How an MCP server or agent gateway carries the end user's identity to a
+  backend system of record without forwarding the client's token. Compares
+  on-behalf-of token exchange (RFC 8693, Entra OBO), a gateway-signed user
+  assertion with an identity link over mTLS, and a transitional per-tenant
+  credential bridge, plus app-only calls and agent identity. Includes a
+  decision matrix, wire contracts, caching and revocation rules, illustrative
+  API Management policies, and an offline simulator.
+kind: design-pattern
+maturity: preview
+version: 0.1.0
+tags:
+  - mcp
+  - ai-gateway
+  - api-management
+  - identity-propagation
+  - on-behalf-of
+  - token-exchange
+  - signed-assertion
+  - mtls
+  - isv-saas
+  - zero-trust
+azure_services:
+  - Azure API Management
+  - Microsoft Entra ID
+  - Azure Key Vault
+  - Azure Container Apps
+  - Azure Monitor
+  - Microsoft Sentinel
+  - Azure Private Link
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-20"
+related:
+  - multi-tenant-mcp-gateway
+  - mcp-oauth-front-door
+  - agent-security-and-governance
+  - secured-foundry-landing-zone
+pillars:
+  - security-and-observability
+  - agent-architecture-patterns
+  - landing-zones

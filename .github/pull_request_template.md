@@ -1,6 +1,6 @@
 ## Asset
 
-- Category: `assets/<category>` (`delivery-and-ops` | `m365-and-copilot` | `security-and-governance` | `landing-zones-and-infra` | `orchestration-and-workflows` | `data-and-tools`)
+- Category: `assets/<category>` (`delivery-and-ops` | `m365-and-copilot` | `security-and-governance` | `landing-zones-and-infra` | `agent-runtime` | `ai-gateway` | `orchestration-and-workflows` | `data-and-tools`)
 - Asset path: `assets/<category>/<asset-id>`
 - Kind: `design-pattern` | `reference-architecture` | `solution-accelerator` | `playbook` | `sample`
 - Pillars: (from `manifest.yaml`)

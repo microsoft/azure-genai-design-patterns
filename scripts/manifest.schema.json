@@ -22,6 +22,8 @@
         "m365-and-copilot",
         "security-and-governance",
         "landing-zones-and-infra",
+        "agent-runtime",
+        "ai-gateway",
         "orchestration-and-workflows",
         "data-and-tools"
       ]

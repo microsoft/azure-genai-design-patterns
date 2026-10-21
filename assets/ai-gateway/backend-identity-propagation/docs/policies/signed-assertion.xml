@@ -1,0 +1,198 @@
+<policies>
+    <inbound>
+        <base />
+        <set-header name="Authorization" exists-action="delete" />
+        <set-header name="X-User-Assertion" exists-action="delete" />
+        <set-header name="X-Acting-User" exists-action="delete" />
+        <set-header name="X-Api-Key" exists-action="delete" />
+        <set-header name="X-Contoso-User" exists-action="delete" />
+        <set-header name="X-Contoso-Tenant" exists-action="delete" />
+        <set-variable name="rpcId" value="@{
+            var raw = context.Request.Body?.As<string>(preserveContent: true) ?? "";
+            if (!raw.TrimStart().StartsWith("{")) { return JValue.CreateNull(); }
+            var id = JObject.Parse(raw)["id"];
+            return id ?? JValue.CreateNull();
+        }" />
+        <include-fragment fragment-id="identity-link-lookup" />
+        <choose>
+            <when condition="@((string)context.Variables["linkState"] != "active")">
+                <trace source="mcp-propagation" severity="warning">
+                    <message>caller has no active identity link for this backend tenant</message>
+                    <metadata name="option" value="signed-assertion" />
+                    <metadata name="reason" value="identity_not_linked" />
+                    <metadata name="tenant" value="@((string)context.Variables["tenantKey"])" />
+                    <metadata name="linkCacheHit" value="@(((bool)context.Variables["linkCacheHit"]).ToString())" />
+                </trace>
+                <return-response>
+                    <set-status code="403" reason="Forbidden" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-header name="Cache-Control" exists-action="override">
+                        <value>no-store</value>
+                    </set-header>
+                    <set-body>@(new JObject(
+                        new JProperty("jsonrpc", "2.0"),
+                        new JProperty("id", (JToken)context.Variables["rpcId"]),
+                        new JProperty("error", new JObject(
+                            new JProperty("code", -32001),
+                            new JProperty("message", "Forbidden"),
+                            new JProperty("data", new JObject(
+                                new JProperty("reason", "identity_not_linked"),
+                                new JProperty("linkUrl", "{{identity-link-url}}")))))).ToString())</set-body>
+                </return-response>
+            </when>
+        </choose>
+        <set-variable name="assertionJti" value="@(Guid.NewGuid().ToString())" />
+        <set-variable name="signingInput" value="@{
+            var jwt = (Jwt)context.Variables["jwt"];
+            var now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
+            var header = new JObject(
+                new JProperty("alg", "ES256"),
+                new JProperty("typ", "user-assertion+jwt"),
+                new JProperty("kid", "{{assertion-signing-kid}}"));
+            var payload = new JObject(
+                new JProperty("iss", "{{assertion-issuer}}"),
+                new JProperty("sub", (string)context.Variables["backendUserId"]),
+                new JProperty("aud", "{{field-service-assertion-audience}}"),
+                new JProperty("tenant_id", (string)context.Variables["tenantKey"]),
+                new JProperty("act", new JObject(new JProperty("sub", "client:" + jwt.Claims.GetValueOrDefault("azp", "")))),
+                new JProperty("scope", "{{field-service-assertion-scope}}"),
+                new JProperty("jti", (string)context.Variables["assertionJti"]),
+                new JProperty("iat", now),
+                new JProperty("nbf", now),
+                new JProperty("exp", now + {{assertion-lifetime-seconds}}),
+                new JProperty("req_id", context.RequestId.ToString()),
+                new JProperty("cnf", new JObject(new JProperty("x5t#S256", "{{gateway-mtls-cert-x5t-s256}}"))));
+            var headerPart = Convert.ToBase64String(Encoding.UTF8.GetBytes(header.ToString(Newtonsoft.Json.Formatting.None))).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+            var payloadPart = Convert.ToBase64String(Encoding.UTF8.GetBytes(payload.ToString(Newtonsoft.Json.Formatting.None))).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+            return headerPart + "." + payloadPart;
+        }" />
+        <set-variable name="signingDigest" value="@{
+            using (var sha = System.Security.Cryptography.SHA256.Create())
+            {
+                var digest = sha.ComputeHash(Encoding.ASCII.GetBytes((string)context.Variables["signingInput"]));
+                return Convert.ToBase64String(digest).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+            }
+        }" />
+        <send-request mode="new" response-variable-name="signResponse" timeout="{{signing-timeout-seconds}}" ignore-error="true">
+            <set-url>https://{{assertion-signing-vault-host}}/keys/{{assertion-signing-key-name}}/{{assertion-signing-key-version}}/sign?api-version={{kv-api-version}}</set-url>
+            <set-method>POST</set-method>
+            <set-header name="Content-Type" exists-action="override">
+                <value>application/json</value>
+            </set-header>
+            <set-body>@(new JObject(
+                new JProperty("alg", "ES256"),
+                new JProperty("value", (string)context.Variables["signingDigest"])).ToString())</set-body>
+            <authentication-managed-identity resource="https://vault.azure.net" client-id="{{gateway-identity-client-id}}" />
+        </send-request>
+        <choose>
+            <when condition="@{
+                var resp = context.Variables.GetValueOrDefault<IResponse>("signResponse");
+                return resp == null || resp.StatusCode != 200;
+            }">
+                <trace source="mcp-propagation" severity="error">
+                    <message>assertion signing failed; failing closed</message>
+                    <metadata name="option" value="signed-assertion" />
+                    <metadata name="reason" value="signing_unavailable" />
+                    <metadata name="kid" value="{{assertion-signing-kid}}" />
+                </trace>
+                <return-response>
+                    <set-status code="503" reason="Service Unavailable" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-header name="Cache-Control" exists-action="override">
+                        <value>no-store</value>
+                    </set-header>
+                    <set-body>@(new JObject(
+                        new JProperty("jsonrpc", "2.0"),
+                        new JProperty("id", (JToken)context.Variables["rpcId"]),
+                        new JProperty("error", new JObject(
+                            new JProperty("code", -32001),
+                            new JProperty("message", "Service Unavailable"),
+                            new JProperty("data", new JObject(new JProperty("reason", "temporarily_unavailable")))))).ToString())</set-body>
+                </return-response>
+            </when>
+        </choose>
+        <set-header name="X-User-Assertion" exists-action="override">
+            <value>@{
+                var signed = ((IResponse)context.Variables["signResponse"]).Body.As<JObject>(preserveContent: true);
+                return (string)context.Variables["signingInput"] + "." + (string)signed["value"];
+            }</value>
+        </set-header>
+        <set-header name="X-Request-Id" exists-action="override">
+            <value>@(context.RequestId.ToString())</value>
+        </set-header>
+        <authentication-certificate certificate-id="gateway-mtls-client" />
+        <trace source="mcp-propagation" severity="information">
+            <message>signed user assertion attached</message>
+            <metadata name="option" value="signed-assertion" />
+            <metadata name="audience" value="{{field-service-assertion-audience}}" />
+            <metadata name="tenant" value="@((string)context.Variables["tenantKey"])" />
+            <metadata name="backendUserId" value="@((string)context.Variables["backendUserId"])" />
+            <metadata name="assertionJti" value="@((string)context.Variables["assertionJti"])" />
+            <metadata name="kid" value="{{assertion-signing-kid}}" />
+            <metadata name="linkCacheHit" value="@(((bool)context.Variables["linkCacheHit"]).ToString())" />
+        </trace>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+        <set-header name="WWW-Authenticate" exists-action="delete" />
+        <choose>
+            <when condition="@(context.Response.StatusCode == 401)">
+                <trace source="mcp-propagation" severity="error">
+                    <message>backend rejected the signed assertion</message>
+                    <metadata name="option" value="signed-assertion" />
+                    <metadata name="reason" value="backend_auth_failed" />
+                    <metadata name="assertionJti" value="@((string)context.Variables["assertionJti"])" />
+                </trace>
+                <set-status code="502" reason="Bad Gateway" />
+                <set-header name="Content-Type" exists-action="override">
+                    <value>application/json</value>
+                </set-header>
+                <set-body>@(new JObject(
+                    new JProperty("jsonrpc", "2.0"),
+                    new JProperty("id", (JToken)context.Variables["rpcId"]),
+                    new JProperty("error", new JObject(
+                        new JProperty("code", -32001),
+                        new JProperty("message", "Bad Gateway"),
+                        new JProperty("data", new JObject(new JProperty("reason", "backend_auth_failed")))))).ToString())</set-body>
+            </when>
+            <when condition="@(context.Response.StatusCode == 403)">
+                <set-header name="Content-Type" exists-action="override">
+                    <value>application/json</value>
+                </set-header>
+                <set-body>@(new JObject(
+                    new JProperty("jsonrpc", "2.0"),
+                    new JProperty("id", (JToken)context.Variables["rpcId"]),
+                    new JProperty("error", new JObject(
+                        new JProperty("code", -32001),
+                        new JProperty("message", "Forbidden"),
+                        new JProperty("data", new JObject(new JProperty("reason", "backend_denied")))))).ToString())</set-body>
+            </when>
+        </choose>
+    </outbound>
+    <on-error>
+        <base />
+        <trace source="mcp-propagation" severity="error">
+            <message>identity propagation error</message>
+            <metadata name="option" value="signed-assertion" />
+            <metadata name="source" value="@(context.LastError.Source)" />
+            <metadata name="reason" value="@(context.LastError.Reason)" />
+        </trace>
+        <return-response>
+            <set-status code="503" reason="Service Unavailable" />
+            <set-header name="Content-Type" exists-action="override">
+                <value>application/json</value>
+            </set-header>
+            <set-header name="Cache-Control" exists-action="override">
+                <value>no-store</value>
+            </set-header>
+            <set-body>{"jsonrpc":"2.0","id":null,"error":{"code":-32001,"message":"Service Unavailable","data":{"reason":"temporarily_unavailable"}}}</set-body>
+        </return-response>
+    </on-error>
+</policies>

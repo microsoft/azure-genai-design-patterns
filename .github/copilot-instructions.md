@@ -4,12 +4,14 @@ When creating, updating, or reviewing assets in `microsoft/agenticai-design-patt
 
 ## 1. Two-Level Category Hierarchy (`assets/<category>/<asset-id>/`)
 
-Never place an asset directly at `assets/<asset-id>/`. Every asset must reside inside one of the six categories under `assets/`:
+Never place an asset directly at `assets/<asset-id>/`. Every asset must reside inside one of the eight categories under `assets/`:
 - `delivery-and-ops`
 - `m365-and-copilot`
 - `security-and-governance`
 - `landing-zones-and-infra`
-- `orchestration-and-workflows` (planned: the folder is created with the first asset)
+- `agent-runtime`
+- `ai-gateway`
+- `orchestration-and-workflows`
 - `data-and-tools` (planned: the folder is created with the first asset)
 
 Before creating a new asset, check whether an existing asset should be extended instead; [`docs/path-to-production.md`](../docs/path-to-production.md) lists where planned-category topics live today.

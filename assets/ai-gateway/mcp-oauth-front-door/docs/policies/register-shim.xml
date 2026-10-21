@@ -1,0 +1,100 @@
+<policies>
+    <inbound>
+        <base />
+        <choose>
+            <when condition="@("{{mcp-registration-enabled}}" != "true")">
+                <return-response>
+                    <set-status code="404" reason="Not Found" />
+                </return-response>
+            </when>
+        </choose>
+        <rate-limit-by-key calls="{{mcp-registration-rate-calls}}" renewal-period="{{mcp-registration-rate-period}}" counter-key="@("register-" + context.Request.IpAddress)" />
+        <set-variable name="regRequest" value="@(context.Request.Body.As<JObject>(preserveContent: true))" />
+        <set-variable name="regError" value="@{
+            var body = (JObject)context.Variables["regRequest"];
+            var redirectPattern = @"{{mcp-loopback-redirect-regex}}";
+            var uris = body["redirect_uris"] as JArray;
+            if (uris == null || uris.Count == 0) { return "invalid_redirect_uri"; }
+            foreach (var uri in uris)
+            {
+                if (!Regex.IsMatch(uri.ToString(), redirectPattern)) { return "invalid_redirect_uri"; }
+            }
+            var method = (string)body["token_endpoint_auth_method"] ?? "none";
+            if (method != "none") { return "invalid_client_metadata"; }
+            var allowedGrants = new[] { "authorization_code", "refresh_token" };
+            var grants = body["grant_types"] as JArray ?? new JArray("authorization_code");
+            foreach (var grant in grants)
+            {
+                if (Array.IndexOf(allowedGrants, grant.ToString()) == -1) { return "invalid_client_metadata"; }
+            }
+            var responses = body["response_types"] as JArray ?? new JArray("code");
+            foreach (var rt in responses)
+            {
+                if (rt.ToString() != "code") { return "invalid_client_metadata"; }
+            }
+            var name = (string)body["client_name"] ?? "";
+            if (name.Length > 100) { return "invalid_client_metadata"; }
+            return "";
+        }" />
+        <trace source="mcp-register" severity="information">
+            <message>@("registration " + ((string)context.Variables["regError"] == "" ? "accepted" : "rejected"))</message>
+            <metadata name="reason" value="@((string)context.Variables["regError"])" />
+        </trace>
+        <choose>
+            <when condition="@((string)context.Variables["regError"] != "")">
+                <return-response>
+                    <set-status code="400" reason="Bad Request" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-header name="Cache-Control" exists-action="override">
+                        <value>no-store</value>
+                    </set-header>
+                    <set-body>@{
+                        var error = (string)context.Variables["regError"];
+                        var description = error == "invalid_redirect_uri" ? "Redirect URI is not allowed." : "Client metadata is not allowed.";
+                        return new JObject(new JProperty("error", error), new JProperty("error_description", description)).ToString();
+                    }</set-body>
+                </return-response>
+            </when>
+        </choose>
+        <return-response>
+            <set-status code="201" reason="Created" />
+            <set-header name="Content-Type" exists-action="override">
+                <value>application/json</value>
+            </set-header>
+            <set-header name="Cache-Control" exists-action="override">
+                <value>no-store</value>
+            </set-header>
+            <set-body>@{
+                var body = (JObject)context.Variables["regRequest"];
+                var response = new JObject(
+                    new JProperty("client_id", "{{mcp-shared-public-client-id}}"),
+                    new JProperty("client_id_issued_at", DateTimeOffset.UtcNow.ToUnixTimeSeconds()),
+                    new JProperty("client_name", (string)body["client_name"] ?? "MCP client"),
+                    new JProperty("redirect_uris", body["redirect_uris"]),
+                    new JProperty("grant_types", body["grant_types"] ?? new JArray("authorization_code", "refresh_token")),
+                    new JProperty("response_types", new JArray("code")),
+                    new JProperty("token_endpoint_auth_method", "none")
+                );
+                return response.ToString();
+            }</set-body>
+        </return-response>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+        <return-response>
+            <set-status code="400" reason="Bad Request" />
+            <set-header name="Content-Type" exists-action="override">
+                <value>application/json</value>
+            </set-header>
+            <set-body>{"error":"invalid_client_metadata","error_description":"The registration request could not be processed."}</set-body>
+        </return-response>
+    </on-error>
+</policies>

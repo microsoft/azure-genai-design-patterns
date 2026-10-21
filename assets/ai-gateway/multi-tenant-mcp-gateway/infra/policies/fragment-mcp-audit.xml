@@ -1,0 +1,48 @@
+<!--
+  Policy fragment: mcp-audit
+  Illustrative only. Not production-hardened. Review against current API Management documentation before use.
+
+  Emits one metric and one audit event for every MCP request, including denied and failed requests.
+  Include it before every return-response in the MCP server policy, at the end of outbound, and at the
+  end of on-error. return-response ends the pipeline, so outbound does not run for denied requests.
+
+  Input variables (all optional; defaults are used when absent):
+    tenantKey, tenantCell, rpcMethod, toolName, outcome, auditStatus, edgeTraceId, clientTenantHeader, jwt
+
+  Rules:
+  - Never read context.Request.Body or context.Response.Body here. Bodies may contain customer data,
+    and reading the response body buffers MCP streaming responses.
+  - Keep metric dimensions low-cardinality. The tool name is bounded by the catalog; never use the
+    user, request ID, or arguments as a dimension.
+  - Custom metric dimensions must be enabled in the Application Insights diagnostic settings of
+    API Management, or the dimensions are dropped.
+  - The Event Hubs logger "audit-eventhub" authenticates with the gateway's managed identity.
+-->
+<fragment>
+    <emit-metric name="mcp-requests" namespace="mcp-gateway" value="1">
+        <dimension name="tenant" value="@(context.Variables.GetValueOrDefault<string>("tenantKey", "unknown"))" />
+        <dimension name="mcpServer" value="@(context.Api != null ? context.Api.Name : "unknown")" />
+        <dimension name="method" value="@(context.Variables.GetValueOrDefault<string>("rpcMethod", "none"))" />
+        <dimension name="tool" value="@(context.Variables.GetValueOrDefault<string>("toolName", "none"))" />
+        <dimension name="outcome" value="@(context.Variables.GetValueOrDefault<string>("outcome", "unknown"))" />
+    </emit-metric>
+    <log-to-eventhub logger-id="audit-eventhub" partition-key="@(context.Variables.GetValueOrDefault<string>("tenantKey", "unknown"))">@{
+        var jwt = context.Variables.GetValueOrDefault<Jwt>("jwt");
+        return new JObject(
+            new JProperty("ts", DateTime.UtcNow.ToString("o")),
+            new JProperty("requestId", context.RequestId.ToString()),
+            new JProperty("traceparent", context.Request.Headers.GetValueOrDefault("traceparent", "")),
+            new JProperty("edgeTraceId", context.Variables.GetValueOrDefault<string>("edgeTraceId", "")),
+            new JProperty("tenant", context.Variables.GetValueOrDefault<string>("tenantKey", "")),
+            new JProperty("sub", jwt != null ? (jwt.Subject ?? "") : ""),
+            new JProperty("azp", jwt != null ? jwt.Claims.GetValueOrDefault("azp", "") : ""),
+            new JProperty("mcpServer", context.Api != null ? context.Api.Name : ""),
+            new JProperty("method", context.Variables.GetValueOrDefault<string>("rpcMethod", "")),
+            new JProperty("tool", context.Variables.GetValueOrDefault<string>("toolName", "")),
+            new JProperty("outcome", context.Variables.GetValueOrDefault<string>("outcome", "unknown")),
+            new JProperty("status", context.Variables.GetValueOrDefault<int>("auditStatus", 0)),
+            new JProperty("cell", context.Variables.GetValueOrDefault<string>("tenantCell", "")),
+            new JProperty("spoofedTenantHeader", !string.IsNullOrEmpty(context.Variables.GetValueOrDefault<string>("clientTenantHeader", "")))
+        ).ToString(Newtonsoft.Json.Formatting.None);
+    }</log-to-eventhub>
+</fragment>

@@ -1,0 +1,60 @@
+<policies>
+    <inbound>
+        <base />
+        <cors allow-credentials="false">
+            <allowed-origins>
+                <origin>*</origin>
+            </allowed-origins>
+            <allowed-methods>
+                <method>GET</method>
+                <method>OPTIONS</method>
+            </allowed-methods>
+            <allowed-headers>
+                <header>*</header>
+            </allowed-headers>
+        </cors>
+        <return-response>
+            <set-status code="200" reason="OK" />
+            <set-header name="Content-Type" exists-action="override">
+                <value>application/json</value>
+            </set-header>
+            <set-header name="Cache-Control" exists-action="override">
+                <value>public, max-age={{mcp-metadata-max-age}}</value>
+            </set-header>
+            <set-header name="Access-Control-Allow-Origin" exists-action="override">
+                <value>*</value>
+            </set-header>
+            <set-body>@{
+                var issuer = "{{mcp-facade-issuer}}";
+                var useFacades = "{{mcp-facades-enabled}}" == "true";
+                var idp = "{{mcp-idp-authority}}/oauth2/v2.0";
+                var doc = new JObject(
+                    new JProperty("issuer", issuer),
+                    new JProperty("authorization_endpoint", useFacades ? issuer + "/authorize" : idp + "/authorize"),
+                    new JProperty("token_endpoint", useFacades ? issuer + "/token" : idp + "/token"),
+                    new JProperty("response_types_supported", new JArray("code")),
+                    new JProperty("response_modes_supported", new JArray("query")),
+                    new JProperty("grant_types_supported", new JArray("authorization_code", "refresh_token")),
+                    new JProperty("code_challenge_methods_supported", new JArray("S256")),
+                    new JProperty("token_endpoint_auth_methods_supported", new JArray("none")),
+                    new JProperty("scopes_supported", new JArray("mcp.tools", "offline_access")),
+                    new JProperty("service_documentation", "{{mcp-docs-base-url}}/auth")
+                );
+                if ("{{mcp-registration-enabled}}" == "true")
+                {
+                    doc["registration_endpoint"] = issuer + "/register";
+                }
+                return doc.ToString();
+            }</set-body>
+        </return-response>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>

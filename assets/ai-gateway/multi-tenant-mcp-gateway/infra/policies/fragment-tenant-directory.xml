@@ -1,0 +1,78 @@
+<!--
+  Policy fragment: tenant-directory
+  Illustrative only. Not production-hardened. Review against current API Management documentation before use.
+
+  Input variable:
+    tenantKey               Tenant key taken from the validated token (never from a client header).
+
+  Output variables:
+    tenantConfig            JObject with the tenant record, set only when the tenant exists.
+    tenantCell              Home cell of the tenant, used to pick a registered backend ("cell-" + tenantCell).
+    directoryUnavailable    true when the directory could not be reached or returned an unexpected status.
+                            The calling policy must fail closed (503) when this is true.
+
+  Expected tenant record (served by the tenant directory API, owned by the platform team):
+    {
+      "tenantKey": "fabrikam",
+      "status": "active",
+      "tier": "standard",
+      "products": [ "orders" ],
+      "allowedTools": [ "orders_get_order", "orders_search_orders" ],
+      "cell": "b",
+      "entitlementVersion": 7
+    }
+
+  Named values used:
+    {{tenant-directory-url}}          Base URL of the tenant directory API (private endpoint).
+    {{tenant-directory-app-id-uri}}   App ID URI the gateway's managed identity requests a token for.
+    {{tenant-directory-timeout}}      Timeout for the lookup call, in seconds.
+    {{tenant-cache-seconds}}          Cache duration for a found tenant record, in seconds.
+
+  Notes:
+  - Only found tenants are cached. Unknown tenants are looked up every time, so add a coarse
+    rate limit keyed on the token's tenant claim before this fragment, or a short negative cache,
+    if unknown-tenant traffic could overload the directory.
+  - Offboarding must evict the cache entry (or wait for it to expire). Keep the cache duration short
+    and document it in the offboarding runbook.
+  - The cache key includes only the tenant key. Include an entitlement version in the key if the
+    directory can signal version changes to the gateway.
+-->
+<fragment>
+    <set-variable name="directoryUnavailable" value="@(false)" />
+    <cache-lookup-value key="@("tenant-cfg:" + (string)context.Variables["tenantKey"])" variable-name="tenantConfigRaw" />
+    <choose>
+        <when condition="@(!context.Variables.ContainsKey("tenantConfigRaw"))">
+            <send-request mode="new" response-variable-name="directoryResponse" timeout="{{tenant-directory-timeout}}" ignore-error="true">
+                <set-url>@("{{tenant-directory-url}}/tenants/" + Uri.EscapeDataString((string)context.Variables["tenantKey"]))</set-url>
+                <set-method>GET</set-method>
+                <set-header name="Accept" exists-action="override">
+                    <value>application/json</value>
+                </set-header>
+                <authentication-managed-identity resource="{{tenant-directory-app-id-uri}}" />
+            </send-request>
+            <set-variable name="directoryStatus" value="@{
+                var response = context.Variables.GetValueOrDefault<IResponse>("directoryResponse");
+                return response == null ? 0 : response.StatusCode;
+            }" />
+            <choose>
+                <when condition="@((int)context.Variables["directoryStatus"] == 200)">
+                    <set-variable name="tenantConfigRaw" value="@(((IResponse)context.Variables["directoryResponse"]).Body.As<string>())" />
+                    <cache-store-value key="@("tenant-cfg:" + (string)context.Variables["tenantKey"])" value="@((string)context.Variables["tenantConfigRaw"])" duration="{{tenant-cache-seconds}}" />
+                </when>
+                <when condition="@((int)context.Variables["directoryStatus"] != 404)">
+                    <!-- Timeout, network failure, or unexpected status: fail closed in the caller. -->
+                    <set-variable name="directoryUnavailable" value="@(true)" />
+                </when>
+            </choose>
+        </when>
+    </choose>
+    <choose>
+        <when condition="@(context.Variables.ContainsKey("tenantConfigRaw"))">
+            <set-variable name="tenantConfig" value="@(JObject.Parse((string)context.Variables["tenantConfigRaw"]))" />
+            <set-variable name="tenantCell" value="@{
+                var cell = ((JObject)context.Variables["tenantConfig"])["cell"];
+                return cell == null ? "" : cell.ToString();
+            }" />
+        </when>
+    </choose>
+</fragment>

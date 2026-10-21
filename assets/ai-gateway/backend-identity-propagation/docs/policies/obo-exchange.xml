@@ -1,0 +1,220 @@
+<policies>
+    <inbound>
+        <base />
+        <set-header name="Authorization" exists-action="delete" />
+        <set-header name="X-User-Assertion" exists-action="delete" />
+        <set-header name="X-Acting-User" exists-action="delete" />
+        <set-header name="X-Api-Key" exists-action="delete" />
+        <set-header name="X-Contoso-User" exists-action="delete" />
+        <set-header name="X-Contoso-Tenant" exists-action="delete" />
+        <set-variable name="rpcId" value="@{
+            var raw = context.Request.Body?.As<string>(preserveContent: true) ?? "";
+            if (!raw.TrimStart().StartsWith("{")) { return JValue.CreateNull(); }
+            var id = JObject.Parse(raw)["id"];
+            return id ?? JValue.CreateNull();
+        }" />
+        <set-variable name="oboTenant" value="@(((Jwt)context.Variables["jwt"]).Claims.GetValueOrDefault("tid", ""))" />
+        <set-variable name="oboCacheKey" value="@{
+            var jwt = (Jwt)context.Variables["jwt"];
+            var scopes = string.Join(" ", "{{reporting-obo-scopes}}".Split(' ').Where(s => s != "").OrderBy(s => s, StringComparer.Ordinal));
+            var input = jwt.Claims.GetValueOrDefault("tid", "") + "|" + jwt.Claims.GetValueOrDefault("oid", "") + "|{{reporting-obo-audience}}|" + scopes;
+            using (var sha = System.Security.Cryptography.SHA256.Create())
+            {
+                return "obo:" + Convert.ToBase64String(sha.ComputeHash(Encoding.UTF8.GetBytes(input)));
+            }
+        }" />
+        <choose>
+            <when condition="@(!Regex.IsMatch((string)context.Variables["oboTenant"], @"^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"))">
+                <return-response>
+                    <set-status code="401" reason="Unauthorized" />
+                    <set-header name="Cache-Control" exists-action="override">
+                        <value>no-store</value>
+                    </set-header>
+                </return-response>
+            </when>
+        </choose>
+        <cache-lookup-value key="@((string)context.Variables["oboCacheKey"])" variable-name="oboToken" caching-type="internal" />
+        <set-variable name="oboCacheHit" value="@(context.Variables.ContainsKey("oboToken"))" />
+        <set-variable name="oboOutcome" value="ok" />
+        <choose>
+            <when condition="@(!context.Variables.ContainsKey("oboToken"))">
+                <authentication-managed-identity resource="api://AzureADTokenExchange" client-id="{{gateway-identity-client-id}}" output-token-variable-name="federatedAssertion" ignore-error="false" />
+                <send-request mode="new" response-variable-name="oboResponse" timeout="{{obo-timeout-seconds}}" ignore-error="true">
+                    <set-url>@("https://login.microsoftonline.com/" + (string)context.Variables["oboTenant"] + "/oauth2/v2.0/token")</set-url>
+                    <set-method>POST</set-method>
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/x-www-form-urlencoded</value>
+                    </set-header>
+                    <set-body>@{
+                        var fields = new[] {
+                            "grant_type=" + Uri.EscapeDataString("urn:ietf:params:oauth:grant-type:jwt-bearer"),
+                            "requested_token_use=on_behalf_of",
+                            "client_id=" + Uri.EscapeDataString("{{gateway-app-client-id}}"),
+                            "client_assertion_type=" + Uri.EscapeDataString("urn:ietf:params:oauth:client-assertion-type:jwt-bearer"),
+                            "client_assertion=" + Uri.EscapeDataString((string)context.Variables["federatedAssertion"]),
+                            "assertion=" + Uri.EscapeDataString((string)context.Variables["inboundToken"]),
+                            "scope=" + Uri.EscapeDataString("{{reporting-obo-scopes}}")
+                        };
+                        return string.Join("\u0026", fields);
+                    }</set-body>
+                </send-request>
+                <set-variable name="oboOutcome" value="@{
+                    var resp = context.Variables.GetValueOrDefault<IResponse>("oboResponse");
+                    if (resp == null) { return "temporarily_unavailable"; }
+                    if (resp.StatusCode == 200) { return "ok"; }
+                    if (resp.StatusCode == 429 || resp.StatusCode >= 500) { return "temporarily_unavailable"; }
+                    var err = resp.Body.As<JObject>(preserveContent: true);
+                    var codes = err["error_codes"] as JArray;
+                    var codeList = codes == null ? new List<int>() : codes.Select(c => (int)c).ToList();
+                    if (codeList.Contains(65001)) { return "consent_required"; }
+                    if (codeList.Contains(53003)) { return "access_blocked"; }
+                    if ((string)err["error"] == "interaction_required" || err["claims"] != null) { return "interaction_required"; }
+                    return "backend_auth_failed";
+                }" />
+                <choose>
+                    <when condition="@((string)context.Variables["oboOutcome"] == "ok")">
+                        <set-variable name="oboBody" value="@(((IResponse)context.Variables["oboResponse"]).Body.As<JObject>(preserveContent: true))" />
+                        <set-variable name="oboToken" value="@((string)((JObject)context.Variables["oboBody"])["access_token"])" />
+                        <set-variable name="oboTtl" value="@{
+                            var expiresIn = int.Parse(((JObject)context.Variables["oboBody"])["expires_in"].ToString());
+                            return Math.Max(0, expiresIn - {{obo-expiry-skew-seconds}});
+                        }" />
+                        <choose>
+                            <when condition="@((int)context.Variables["oboTtl"] > 0)">
+                                <cache-store-value key="@((string)context.Variables["oboCacheKey"])" value="@((string)context.Variables["oboToken"])" duration="@((int)context.Variables["oboTtl"])" caching-type="internal" />
+                            </when>
+                        </choose>
+                    </when>
+                    <when condition="@((string)context.Variables["oboOutcome"] == "interaction_required")">
+                        <trace source="mcp-propagation" severity="warning">
+                            <message>on-behalf-of exchange needs user interaction</message>
+                            <metadata name="option" value="obo" />
+                            <metadata name="reason" value="interaction_required" />
+                            <metadata name="tenant" value="@((string)context.Variables["oboTenant"])" />
+                        </trace>
+                        <return-response>
+                            <set-status code="401" reason="Unauthorized" />
+                            <set-header name="WWW-Authenticate" exists-action="override">
+                                <value>@{
+                                    var err = ((IResponse)context.Variables["oboResponse"]).Body.As<JObject>(preserveContent: true);
+                                    var claims = (string)err["claims"] ?? "";
+                                    var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(claims));
+                                    return "Bearer error=\"insufficient_claims\", claims=\"" + encoded + "\"";
+                                }</value>
+                            </set-header>
+                            <set-header name="Content-Type" exists-action="override">
+                                <value>application/json</value>
+                            </set-header>
+                            <set-header name="Cache-Control" exists-action="override">
+                                <value>no-store</value>
+                            </set-header>
+                            <set-body>@(new JObject(
+                                new JProperty("jsonrpc", "2.0"),
+                                new JProperty("id", (JToken)context.Variables["rpcId"]),
+                                new JProperty("error", new JObject(
+                                    new JProperty("code", -32001),
+                                    new JProperty("message", "Unauthorized"),
+                                    new JProperty("data", new JObject(new JProperty("reason", "interaction_required")))))).ToString())</set-body>
+                        </return-response>
+                    </when>
+                    <otherwise>
+                        <trace source="mcp-propagation" severity="warning">
+                            <message>on-behalf-of exchange failed</message>
+                            <metadata name="option" value="obo" />
+                            <metadata name="reason" value="@((string)context.Variables["oboOutcome"])" />
+                            <metadata name="tenant" value="@((string)context.Variables["oboTenant"])" />
+                        </trace>
+                        <return-response>
+                            <set-status code="@{
+                                var outcome = (string)context.Variables["oboOutcome"];
+                                if (outcome == "temporarily_unavailable") { return 503; }
+                                if (outcome == "backend_auth_failed") { return 502; }
+                                return 403;
+                            }" reason="@((string)context.Variables["oboOutcome"] == "temporarily_unavailable" ? "Service Unavailable" : "Forbidden")" />
+                            <set-header name="Content-Type" exists-action="override">
+                                <value>application/json</value>
+                            </set-header>
+                            <set-header name="Cache-Control" exists-action="override">
+                                <value>no-store</value>
+                            </set-header>
+                            <set-body>@(new JObject(
+                                new JProperty("jsonrpc", "2.0"),
+                                new JProperty("id", (JToken)context.Variables["rpcId"]),
+                                new JProperty("error", new JObject(
+                                    new JProperty("code", -32001),
+                                    new JProperty("message", "Forbidden"),
+                                    new JProperty("data", new JObject(new JProperty("reason", (string)context.Variables["oboOutcome"])))))).ToString())</set-body>
+                        </return-response>
+                    </otherwise>
+                </choose>
+            </when>
+        </choose>
+        <set-header name="Authorization" exists-action="override">
+            <value>@("Bearer " + (string)context.Variables["oboToken"])</value>
+        </set-header>
+        <set-header name="X-Request-Id" exists-action="override">
+            <value>@(context.RequestId.ToString())</value>
+        </set-header>
+        <trace source="mcp-propagation" severity="information">
+            <message>on-behalf-of token attached</message>
+            <metadata name="option" value="obo" />
+            <metadata name="audience" value="{{reporting-obo-audience}}" />
+            <metadata name="tenant" value="@((string)context.Variables["oboTenant"])" />
+            <metadata name="cacheHit" value="@(((bool)context.Variables["oboCacheHit"]).ToString())" />
+        </trace>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+        <choose>
+            <when condition="@(context.Response.StatusCode == 401)">
+                <cache-remove-value key="@((string)context.Variables["oboCacheKey"])" caching-type="internal" />
+                <set-header name="WWW-Authenticate" exists-action="delete" />
+                <set-status code="502" reason="Bad Gateway" />
+                <set-header name="Content-Type" exists-action="override">
+                    <value>application/json</value>
+                </set-header>
+                <set-body>@(new JObject(
+                    new JProperty("jsonrpc", "2.0"),
+                    new JProperty("id", (JToken)context.Variables["rpcId"]),
+                    new JProperty("error", new JObject(
+                        new JProperty("code", -32001),
+                        new JProperty("message", "Bad Gateway"),
+                        new JProperty("data", new JObject(new JProperty("reason", "backend_auth_failed")))))).ToString())</set-body>
+            </when>
+            <when condition="@(context.Response.StatusCode == 403)">
+                <set-header name="Content-Type" exists-action="override">
+                    <value>application/json</value>
+                </set-header>
+                <set-body>@(new JObject(
+                    new JProperty("jsonrpc", "2.0"),
+                    new JProperty("id", (JToken)context.Variables["rpcId"]),
+                    new JProperty("error", new JObject(
+                        new JProperty("code", -32001),
+                        new JProperty("message", "Forbidden"),
+                        new JProperty("data", new JObject(new JProperty("reason", "backend_denied")))))).ToString())</set-body>
+            </when>
+        </choose>
+    </outbound>
+    <on-error>
+        <base />
+        <trace source="mcp-propagation" severity="error">
+            <message>identity propagation error</message>
+            <metadata name="option" value="obo" />
+            <metadata name="source" value="@(context.LastError.Source)" />
+            <metadata name="reason" value="@(context.LastError.Reason)" />
+        </trace>
+        <return-response>
+            <set-status code="503" reason="Service Unavailable" />
+            <set-header name="Content-Type" exists-action="override">
+                <value>application/json</value>
+            </set-header>
+            <set-header name="Cache-Control" exists-action="override">
+                <value>no-store</value>
+            </set-header>
+            <set-body>{"jsonrpc":"2.0","id":null,"error":{"code":-32001,"message":"Service Unavailable","data":{"reason":"temporarily_unavailable"}}}</set-body>
+        </return-response>
+    </on-error>
+</policies>

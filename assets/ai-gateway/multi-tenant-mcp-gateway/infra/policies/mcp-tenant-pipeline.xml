@@ -1,0 +1,267 @@
+<!--
+  MCP server scope policy: multi-tenant pipeline for the "orders" MCP server of Contoso ERP.
+  Illustrative only. Not production-hardened. Review against current API Management documentation
+  (MCP server support, policy reference, tier availability) before use.
+
+  Order of stages (see docs/architecture.md, section 6):
+    1  Challenge unauthenticated calls (401 + resource_metadata)
+    2  Validate the token (signature, issuer, audience, lifetime, scope, tenant claim)
+    3  Resolve the tenant from the token claim; client tenant headers were already deleted globally
+    4  Parse the JSON-RPC envelope (method, params.name, id)
+    5  Look up the tenant directory (fragment: tenant-directory)
+    6  Check tenant status and product entitlement (403, JSON-RPC -32001)
+    7  Re-check tool entitlement on tools/call (200, JSON-RPC -32602, same as an unknown tool)
+    8  Apply per-tenant rate limit and quota (429, JSON-RPC -32029, Retry-After)
+    9  Select the backend credential (drop the client token, use the gateway's managed identity)
+    10 Route to the tenant's cell (registered backend "cell-<cell>")
+    11 Emit metric and audit event (fragment: mcp-audit), including for denied and failed requests
+
+  Named values used:
+    {{idp-openid-config-url}}  OpenID Connect discovery URL of the authorization server
+    {{idp-issuer}}             Expected token issuer
+    {{mcp-resource-uri}}       This MCP server's resource identifier (token audience)
+    {{mcp-prm-url}}            Protected resource metadata URL for this MCP server
+    {{mcp-product-key}}        Product that grants access to this MCP server (one per MCP server)
+    {{tenant-rate-calls}}      Calls allowed per tenant per rate period
+    {{tenant-rate-period}}     Rate period, in seconds
+    {{tenant-quota-calls}}     Calls allowed per tenant per quota period
+    {{tenant-quota-period}}    Quota period, in seconds
+    {{backend-app-id-uri}}     App ID URI the backend (or MCP adapter) accepts tokens for
+
+  Do not read context.Response.Body anywhere in this policy. It buffers MCP streaming responses.
+-->
+<policies>
+    <inbound>
+        <base />
+        <set-variable name="outcome" value="received" />
+        <!-- 1. Challenge unauthenticated calls so MCP clients can discover the authorization server. -->
+        <choose>
+            <when condition="@(!context.Request.Headers.ContainsKey("Authorization"))">
+                <set-variable name="outcome" value="unauthenticated" />
+                <set-variable name="auditStatus" value="@(401)" />
+                <include-fragment fragment-id="mcp-audit" />
+                <return-response>
+                    <set-status code="401" reason="Unauthorized" />
+                    <set-header name="WWW-Authenticate" exists-action="override">
+                        <value>Bearer resource_metadata="{{mcp-prm-url}}"</value>
+                    </set-header>
+                </return-response>
+            </when>
+        </choose>
+        <!-- 2. Validate the token. Failures are shaped in on-error. -->
+        <validate-jwt header-name="Authorization" failed-validation-httpcode="401" require-scheme="Bearer" output-token-variable-name="jwt">
+            <openid-config url="{{idp-openid-config-url}}" />
+            <audiences>
+                <audience>{{mcp-resource-uri}}</audience>
+            </audiences>
+            <issuers>
+                <issuer>{{idp-issuer}}</issuer>
+            </issuers>
+            <required-claims>
+                <claim name="scp" match="any" separator=" ">
+                    <value>mcp.tools</value>
+                </claim>
+                <claim name="tenant_id" />
+            </required-claims>
+        </validate-jwt>
+        <!-- 3. The tenant comes from the validated token. Nothing the client sends can change it. -->
+        <set-variable name="tenantKey" value="@(((Jwt)context.Variables["jwt"]).Claims.GetValueOrDefault("tenant_id", "").ToLowerInvariant())" />
+        <!-- 4. Parse the JSON-RPC envelope. GET (stream) and DELETE (session end) carry no body. -->
+        <set-variable name="rpcMethod" value="@(string.Empty)" />
+        <set-variable name="toolName" value="@(string.Empty)" />
+        <set-variable name="rpcIdJson" value="null" />
+        <choose>
+            <when condition="@(context.Request.Method == "POST")">
+                <set-variable name="pipelineStage" value="parse" />
+                <set-variable name="rpcBody" value="@(context.Request.Body.As<JObject>(preserveContent: true))" />
+                <set-variable name="rpcMethod" value="@{
+                    var method = ((JObject)context.Variables["rpcBody"])["method"];
+                    return method == null ? "" : method.ToString();
+                }" />
+                <set-variable name="rpcIdJson" value="@{
+                    var id = ((JObject)context.Variables["rpcBody"])["id"];
+                    return id == null ? "null" : id.ToString(Newtonsoft.Json.Formatting.None);
+                }" />
+                <set-variable name="toolName" value="@{
+                    if ((string)context.Variables["rpcMethod"] != "tools/call") { return ""; }
+                    var p = ((JObject)context.Variables["rpcBody"])["params"] as JObject;
+                    var name = p == null ? null : p["name"];
+                    return name == null ? "" : name.ToString();
+                }" />
+                <set-variable name="pipelineStage" value="directory" />
+            </when>
+        </choose>
+        <!-- 5. Tenant directory lookup (cached). -->
+        <include-fragment fragment-id="tenant-directory" />
+        <!-- 6. Tenant status and product entitlement. -->
+        <set-variable name="denyReason" value="@{
+            if ((bool)context.Variables["directoryUnavailable"]) { return "directory_unavailable"; }
+            if (!context.Variables.ContainsKey("tenantConfig")) { return "unknown_tenant"; }
+            var cfg = (JObject)context.Variables["tenantConfig"];
+            var status = cfg["status"] == null ? "" : cfg["status"].ToString();
+            if (status != "active") { return "tenant_not_active"; }
+            var products = cfg["products"] as JArray;
+            if (products == null || !products.Any(p => p.ToString() == "{{mcp-product-key}}")) { return "not_entitled"; }
+            return "";
+        }" />
+        <choose>
+            <when condition="@((string)context.Variables["denyReason"] == "directory_unavailable")">
+                <set-variable name="outcome" value="directory_unavailable" />
+                <set-variable name="auditStatus" value="@(503)" />
+                <include-fragment fragment-id="mcp-audit" />
+                <return-response>
+                    <set-status code="503" reason="Service Unavailable" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-body>@(new JObject(
+                        new JProperty("jsonrpc", "2.0"),
+                        new JProperty("id", JToken.Parse(context.Variables.GetValueOrDefault<string>("rpcIdJson", "null"))),
+                        new JProperty("error", new JObject(
+                            new JProperty("code", -32603),
+                            new JProperty("message", "Service temporarily unavailable"),
+                            new JProperty("data", new JObject(new JProperty("requestId", context.RequestId.ToString()))))))
+                        .ToString())</set-body>
+                </return-response>
+            </when>
+            <when condition="@(((string)context.Variables["denyReason"]).Length > 0)">
+                <set-variable name="outcome" value="@("denied_" + (string)context.Variables["denyReason"])" />
+                <set-variable name="auditStatus" value="@(403)" />
+                <include-fragment fragment-id="mcp-audit" />
+                <return-response>
+                    <set-status code="403" reason="Forbidden" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-body>@(new JObject(
+                        new JProperty("jsonrpc", "2.0"),
+                        new JProperty("id", JToken.Parse(context.Variables.GetValueOrDefault<string>("rpcIdJson", "null"))),
+                        new JProperty("error", new JObject(
+                            new JProperty("code", -32001),
+                            new JProperty("message", "Forbidden"),
+                            new JProperty("data", new JObject(
+                                new JProperty("reason", (string)context.Variables["denyReason"]),
+                                new JProperty("requestId", context.RequestId.ToString()))))))
+                        .ToString())</set-body>
+                </return-response>
+            </when>
+        </choose>
+        <!-- 7. Re-check tool entitlement on every tools/call, even if the client never called tools/list. -->
+        <choose>
+            <when condition="@{
+                if ((string)context.Variables["rpcMethod"] != "tools/call") { return false; }
+                var tool = (string)context.Variables["toolName"];
+                var allowed = ((JObject)context.Variables["tenantConfig"])["allowedTools"] as JArray;
+                return allowed == null || !allowed.Any(t => t.ToString() == tool);
+            }">
+                <set-variable name="outcome" value="denied_tool_not_entitled" />
+                <set-variable name="auditStatus" value="@(200)" />
+                <include-fragment fragment-id="mcp-audit" />
+                <!-- Same shape as an unknown tool: do not confirm that a hidden tool exists. -->
+                <return-response>
+                    <set-status code="200" reason="OK" />
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-body>@(new JObject(
+                        new JProperty("jsonrpc", "2.0"),
+                        new JProperty("id", JToken.Parse(context.Variables.GetValueOrDefault<string>("rpcIdJson", "null"))),
+                        new JProperty("error", new JObject(
+                            new JProperty("code", -32602),
+                            new JProperty("message", "Unknown tool"))))
+                        .ToString())</set-body>
+                </return-response>
+            </when>
+        </choose>
+        <!-- 8. Per-tenant limits. One counter per key value across all scopes: the key includes the MCP server. -->
+        <set-variable name="pipelineStage" value="limits" />
+        <rate-limit-by-key calls="{{tenant-rate-calls}}" renewal-period="{{tenant-rate-period}}" counter-key="@("mcp-erp:" + (string)context.Variables["tenantKey"])" retry-after-variable-name="retryAfter" />
+        <quota-by-key calls="{{tenant-quota-calls}}" renewal-period="{{tenant-quota-period}}" counter-key="@("mcp-erp:" + (string)context.Variables["tenantKey"])" />
+        <!-- 9. Backend credential: never forward the client's token. -->
+        <set-variable name="pipelineStage" value="backend" />
+        <set-header name="Authorization" exists-action="delete" />
+        <authentication-managed-identity resource="{{backend-app-id-uri}}" />
+        <set-header name="X-Contoso-Gateway-Tenant" exists-action="override">
+            <value>@((string)context.Variables["tenantKey"])</value>
+        </set-header>
+        <!-- 10. Route to a registered backend for the tenant's cell. Never build a URL from tenant data. -->
+        <set-backend-service backend-id="@("cell-" + (string)context.Variables["tenantCell"])" />
+        <set-variable name="outcome" value="forwarded" />
+    </inbound>
+    <backend>
+        <!-- Do not buffer, so Streamable HTTP and SSE responses flow through. -->
+        <forward-request buffer-response="false" />
+    </backend>
+    <outbound>
+        <base />
+        <set-variable name="auditStatus" value="@(context.Response.StatusCode)" />
+        <set-variable name="outcome" value="@(context.Response.StatusCode >= 500 ? "backend_error" : "allowed")" />
+        <!-- 11. Metric and audit. Headers and status only; never the body. -->
+        <include-fragment fragment-id="mcp-audit" />
+    </outbound>
+    <on-error>
+        <base />
+        <choose>
+            <when condition="@(context.LastError.Source == "validate-jwt")">
+                <set-variable name="outcome" value="invalid_token" />
+                <set-status code="401" reason="Unauthorized" />
+                <set-header name="WWW-Authenticate" exists-action="override">
+                    <value>Bearer error="invalid_token", resource_metadata="{{mcp-prm-url}}"</value>
+                </set-header>
+            </when>
+            <when condition="@(context.LastError.Reason == "RateLimitExceeded" || context.LastError.Reason == "QuotaExceeded")">
+                <set-variable name="outcome" value="@(context.LastError.Reason == "QuotaExceeded" ? "quota_exceeded" : "rate_limited")" />
+                <set-status code="429" reason="Too Many Requests" />
+                <choose>
+                    <when condition="@(context.Variables.ContainsKey("retryAfter"))">
+                        <set-header name="Retry-After" exists-action="override">
+                            <value>@(context.Variables["retryAfter"].ToString())</value>
+                        </set-header>
+                    </when>
+                </choose>
+                <set-header name="Content-Type" exists-action="override">
+                    <value>application/json</value>
+                </set-header>
+                <set-body>@(new JObject(
+                    new JProperty("jsonrpc", "2.0"),
+                    new JProperty("id", JToken.Parse(context.Variables.GetValueOrDefault<string>("rpcIdJson", "null"))),
+                    new JProperty("error", new JObject(
+                        new JProperty("code", -32029),
+                        new JProperty("message", "Rate limit exceeded"),
+                        new JProperty("data", new JObject(new JProperty("requestId", context.RequestId.ToString()))))))
+                    .ToString())</set-body>
+            </when>
+            <when condition="@(context.Variables.GetValueOrDefault<string>("pipelineStage", "") == "parse")">
+                <set-variable name="outcome" value="parse_error" />
+                <set-status code="400" reason="Bad Request" />
+                <set-header name="Content-Type" exists-action="override">
+                    <value>application/json</value>
+                </set-header>
+                <set-body>@(new JObject(
+                    new JProperty("jsonrpc", "2.0"),
+                    new JProperty("id", JValue.CreateNull()),
+                    new JProperty("error", new JObject(
+                        new JProperty("code", -32700),
+                        new JProperty("message", "Parse error"))))
+                    .ToString())</set-body>
+            </when>
+            <otherwise>
+                <!-- Generic failure. Never return backend hostnames, stack traces, or policy details. -->
+                <set-variable name="outcome" value="gateway_error" />
+                <set-header name="Content-Type" exists-action="override">
+                    <value>application/json</value>
+                </set-header>
+                <set-body>@(new JObject(
+                    new JProperty("jsonrpc", "2.0"),
+                    new JProperty("id", JToken.Parse(context.Variables.GetValueOrDefault<string>("rpcIdJson", "null"))),
+                    new JProperty("error", new JObject(
+                        new JProperty("code", -32603),
+                        new JProperty("message", "Internal error"),
+                        new JProperty("data", new JObject(new JProperty("requestId", context.RequestId.ToString()))))))
+                    .ToString())</set-body>
+            </otherwise>
+        </choose>
+        <set-variable name="auditStatus" value="@(context.Response.StatusCode)" />
+        <include-fragment fragment-id="mcp-audit" />
+    </on-error>
+</policies>

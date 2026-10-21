@@ -1,0 +1,48 @@
+schema_version: 1
+id: choosing-prompt-vs-hosted-agents
+category: agent-runtime
+title: Choosing Prompt Agents vs Hosted Agents in Microsoft Foundry
+summary: >-
+  A decision pattern for choosing between Foundry prompt agents (declarative
+  model, instructions, and platform-managed tools), hosted agents (your own
+  containerized Agent Framework, LangGraph, or custom code run by Foundry), or
+  a mixed design, per scenario. Covers control, tools and protocols, state,
+  identity, network isolation, observability, operations, and migration, with
+  a runnable rubric-based runtime selector.
+kind: design-pattern
+maturity: preview
+version: 0.1.0
+tags:
+  - foundry-agent-service
+  - prompt-agents
+  - hosted-agents
+  - agent-runtime
+  - decision-framework
+  - agent-framework
+  - langgraph
+  - responses-api
+  - session-pools
+  - entra-agent-id
+  - observability
+azure_services:
+  - Microsoft Foundry
+  - Azure Container Registry
+  - Azure Container Apps
+  - Microsoft Entra ID
+  - Azure Monitor
+  - Azure Cosmos DB
+  - Azure Key Vault
+  - Azure API Management
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-20"
+related:
+  - production-hosted-agents-on-foundry
+  - code-execution-sandbox-session-pools
+  - secured-foundry-landing-zone
+  - agent-security-and-governance
+  - m365-azure-custom-agent
+pillars:
+  - agent-architecture-patterns
+  - agent-ops
+  - security-and-observability

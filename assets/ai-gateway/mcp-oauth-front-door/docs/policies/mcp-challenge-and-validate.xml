@@ -1,0 +1,110 @@
+<policies>
+    <inbound>
+        <base />
+        <cors allow-credentials="false">
+            <allowed-origins>
+                <origin>{{mcp-browser-client-origin}}</origin>
+            </allowed-origins>
+            <allowed-methods>
+                <method>GET</method>
+                <method>POST</method>
+                <method>DELETE</method>
+                <method>OPTIONS</method>
+            </allowed-methods>
+            <allowed-headers>
+                <header>Authorization</header>
+                <header>Content-Type</header>
+                <header>Accept</header>
+                <header>Mcp-Session-Id</header>
+                <header>Mcp-Protocol-Version</header>
+            </allowed-headers>
+            <expose-headers>
+                <header>WWW-Authenticate</header>
+                <header>Mcp-Session-Id</header>
+            </expose-headers>
+        </cors>
+        <set-variable name="prmUrl" value="{{mcp-gateway-base-url}}/.well-known/oauth-protected-resource/{{mcp-orders-resource-path}}" />
+        <choose>
+            <when condition="@(!context.Request.Headers.GetValueOrDefault("Authorization", "").StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))">
+                <return-response>
+                    <set-status code="401" reason="Unauthorized" />
+                    <set-header name="WWW-Authenticate" exists-action="override">
+                        <value>@("Bearer resource_metadata=\"" + (string)context.Variables["prmUrl"] + "\", scope=\"mcp.tools\"")</value>
+                    </set-header>
+                    <set-header name="Access-Control-Expose-Headers" exists-action="override">
+                        <value>WWW-Authenticate</value>
+                    </set-header>
+                    <set-header name="Cache-Control" exists-action="override">
+                        <value>no-store</value>
+                    </set-header>
+                    <set-header name="Content-Type" exists-action="override">
+                        <value>application/json</value>
+                    </set-header>
+                    <set-body>{"message":"Authentication required."}</set-body>
+                </return-response>
+            </when>
+        </choose>
+        <validate-jwt header-name="Authorization" require-scheme="Bearer" failed-validation-httpcode="401" failed-validation-error-message="The access token is not valid for this resource." require-expiration-time="true" require-signed-tokens="true" clock-skew="{{mcp-token-clock-skew-seconds}}" output-token-variable-name="mcpJwt">
+            <openid-config url="{{mcp-idp-authority}}/v2.0/.well-known/openid-configuration" />
+            <audiences>
+                <audience>{{mcp-orders-audience}}</audience>
+                <audience>api://{{mcp-orders-audience}}</audience>
+            </audiences>
+            <issuers>
+                <issuer>{{mcp-idp-issuer}}</issuer>
+            </issuers>
+            <required-claims>
+                <claim name="tid" match="any">
+                    <value>{{mcp-idp-tenant-id}}</value>
+                </claim>
+            </required-claims>
+        </validate-jwt>
+        <set-variable name="mcpScopes" value="@(((Jwt)context.Variables["mcpJwt"]).Claims.GetValueOrDefault("scp", ""))" />
+        <choose>
+            <when condition="@(Array.IndexOf(((string)context.Variables["mcpScopes"]).Split(' '), "mcp.tools") == -1)">
+                <return-response>
+                    <set-status code="403" reason="Forbidden" />
+                    <set-header name="WWW-Authenticate" exists-action="override">
+                        <value>@("Bearer error=\"insufficient_scope\", scope=\"mcp.tools\", resource_metadata=\"" + (string)context.Variables["prmUrl"] + "\"")</value>
+                    </set-header>
+                    <set-header name="Access-Control-Expose-Headers" exists-action="override">
+                        <value>WWW-Authenticate</value>
+                    </set-header>
+                    <set-header name="Cache-Control" exists-action="override">
+                        <value>no-store</value>
+                    </set-header>
+                </return-response>
+            </when>
+        </choose>
+        <set-variable name="mcpTenantId" value="@(((Jwt)context.Variables["mcpJwt"]).Claims.GetValueOrDefault("tid", ""))" />
+        <set-variable name="mcpUserObjectId" value="@(((Jwt)context.Variables["mcpJwt"]).Claims.GetValueOrDefault("oid", ""))" />
+        <set-variable name="mcpClientId" value="@(((Jwt)context.Variables["mcpJwt"]).Claims.GetValueOrDefault("azp", ""))" />
+        <set-header name="Authorization" exists-action="delete" />
+        <include-fragment fragment-id="mcp-tenant-pipeline" />
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+        <choose>
+            <when condition="@(context.LastError.Source == "validate-jwt")">
+                <return-response>
+                    <set-status code="401" reason="Unauthorized" />
+                    <set-header name="WWW-Authenticate" exists-action="override">
+                        <value>@("Bearer error=\"invalid_token\", error_description=\"The access token is not valid for this resource.\", resource_metadata=\"" + (string)context.Variables["prmUrl"] + "\"")</value>
+                    </set-header>
+                    <set-header name="Access-Control-Expose-Headers" exists-action="override">
+                        <value>WWW-Authenticate</value>
+                    </set-header>
+                    <set-header name="Cache-Control" exists-action="override">
+                        <value>no-store</value>
+                    </set-header>
+                </return-response>
+            </when>
+        </choose>
+    </on-error>
+</policies>

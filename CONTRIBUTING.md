@@ -29,7 +29,9 @@ Read the **[Contribution & Pattern Standardization Guide](docs/contribution-guid
    - `m365-and-copilot` — Microsoft 365 Copilot, Teams, Declarative Agents, Custom Engine Agents, MCP plug-ins, and Cowork
    - `security-and-governance` — Entra Agent ID, tool governance, guardrails, Purview, and Sentinel observability
    - `landing-zones-and-infra` — Private Microsoft Foundry landing zones, Bicep/Terraform IaC, and CI/CD pipelines
-   - `orchestration-and-workflows` *(planned)* — Multi-agent routers, planner-specialist handoffs, durable state/caching
+   - `agent-runtime` — Prompt vs hosted agents, production hosted agents on Foundry, sessions, and sandboxed code execution
+   - `ai-gateway` — API Management as the control plane for model, MCP tool, and agent traffic
+   - `orchestration-and-workflows` — Governed agent harnesses, verification gates, multi-agent routers, and durable workflows
    - `data-and-tools` *(planned)* — Governed MCP servers, OBO data connectors, RAG grounding, and action safety gates
 
    Planned categories have no folder yet; the scaffolding command creates it with the first asset.

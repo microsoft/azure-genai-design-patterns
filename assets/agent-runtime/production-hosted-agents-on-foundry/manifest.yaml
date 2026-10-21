@@ -1,0 +1,48 @@
+schema_version: 1
+id: production-hosted-agents-on-foundry
+category: agent-runtime
+title: Production Hosted Agents on Microsoft Foundry
+summary: >-
+  Reference architecture for running containerized hosted agents on Microsoft
+  Foundry Agent Service in production, on top of the secured Foundry landing
+  zone. Covers private networking, a managed identity with least-privilege
+  data-plane roles, CI/CD from a runner inside the VNet, an explicit session
+  lifecycle (pin, heartbeat, cleanup), per-audience token caching,
+  OpenTelemetry observability and a governed rollout with version pinning and
+  rollback, plus ADRs and an offline simulator.
+kind: reference-architecture
+maturity: preview
+version: 0.1.0
+tags:
+  - agentic-ai
+  - hosted-agents
+  - foundry
+  - containers
+  - managed-identity
+  - private-networking
+  - cicd
+  - opentelemetry
+  - sessions
+azure_services:
+  - Microsoft Foundry
+  - Azure Container Registry
+  - Azure Virtual Network
+  - Azure Private Link
+  - Azure Cosmos DB
+  - Azure Monitor
+  - Microsoft Entra ID
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-20"
+related:
+  - choosing-prompt-vs-hosted-agents
+  - secured-foundry-landing-zone
+  - code-execution-sandbox-session-pools
+  - multi-tenant-mcp-gateway
+  - backend-identity-propagation
+  - agent-path-to-production
+pillars:
+  - agent-ops
+  - landing-zones
+  - security-and-observability
+  - agent-architecture-patterns

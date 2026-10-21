@@ -1,0 +1,42 @@
+schema_version: 1
+id: verify-before-approve
+category: orchestration-and-workflows
+title: "Verify Before Approve: Deterministic Verification Ahead of Human Approval"
+summary: >-
+  Separates machine-checkable verification from human approval. A verifier
+  independent of the generating model runs deterministic checks; only verified
+  artifacts reach approvers, and each approval binds to the exact artifact
+  sha256 and verification receipt. Failures drive bounded self-correction, then
+  a labelled unverified preview, never silent approval. Approvers spend their
+  attention on judgement, not arithmetic, and rubber-stamp approvals drop.
+kind: design-pattern
+maturity: preview
+version: 0.1.0
+tags:
+  - agentic-ai
+  - human-in-the-loop
+  - verification
+  - approval
+  - guardrails
+  - evaluation
+  - governance
+  - idempotency
+azure_services:
+  - Microsoft Foundry
+  - Microsoft Entra ID
+  - Azure Logic Apps
+  - Microsoft Teams
+  - Azure Blob Storage
+  - Azure Monitor
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-20"
+related:
+  - governed-context-aware-agent-harness
+  - agent-security-and-governance
+  - agent-path-to-production
+  - backend-identity-propagation
+pillars:
+  - agent-architecture-patterns
+  - coe-and-governance
+  - security-and-observability

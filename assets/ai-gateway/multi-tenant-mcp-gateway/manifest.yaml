@@ -1,0 +1,52 @@
+schema_version: 1
+id: multi-tenant-mcp-gateway
+category: ai-gateway
+title: Multi-Tenant MCP Gateway on Azure API Management
+summary: >-
+  A reference architecture for a SaaS provider (ISV) or platform team that
+  exposes many backend APIs as MCP tools to many tenants' agents through one
+  governed Azure API Management front door. Covers the WAF network path,
+  token-derived tenant identity, a per-call policy pipeline (entitlement,
+  per-tenant limits, backend credentials, cell routing, audit), tool checks on
+  every tools/call, API Center as the catalog, and a runnable simulator.
+kind: reference-architecture
+maturity: preview
+version: 0.1.0
+tags:
+  - mcp
+  - ai-gateway
+  - api-management
+  - multi-tenancy
+  - tenant-isolation
+  - entitlements
+  - rate-limiting
+  - application-gateway
+  - waf
+  - api-center
+  - observability
+  - isv-saas
+azure_services:
+  - Azure API Management
+  - Azure Application Gateway
+  - Azure Firewall
+  - Azure API Center
+  - Azure Key Vault
+  - Azure Event Hubs
+  - Azure Monitor
+  - Microsoft Sentinel
+  - Microsoft Entra ID
+  - Azure Container Apps
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-20"
+related:
+  - mcp-oauth-front-door
+  - backend-identity-propagation
+  - secured-foundry-landing-zone
+  - agent-security-and-governance
+  - m365-mcp-plugin-integration
+pillars:
+  - landing-zones
+  - security-and-observability
+  - agent-architecture-patterns
+  - coe-and-governance

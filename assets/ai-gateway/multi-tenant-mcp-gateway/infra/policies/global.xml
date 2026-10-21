@@ -1,0 +1,46 @@
+<!--
+  Illustrative global (all APIs) policy for a multi-tenant MCP gateway.
+  Not production-hardened. Review against current API Management documentation before use.
+
+  Purpose:
+  - Strip every client-supplied header that a backend could mistake for tenant context.
+  - Keep or start a W3C trace context so edge, gateway, adapter, and backend logs can be joined.
+  - Return the API Management request ID so tenants can quote it in support tickets.
+
+  Global policies run before MCP server (API) policies. Keep tenant-specific logic out of this scope.
+-->
+<policies>
+    <inbound>
+        <!-- Never trust tenant hints from the client. The gateway sets the trusted header later, from the token. -->
+        <set-variable name="clientTenantHeader" value="@(context.Request.Headers.GetValueOrDefault("X-Tenant-Id", ""))" />
+        <set-header name="X-Tenant-Id" exists-action="delete" />
+        <set-header name="X-Contoso-Gateway-Tenant" exists-action="delete" />
+        <set-header name="X-Contoso-User-Assertion" exists-action="delete" />
+        <!-- Keep the Application Gateway trace ID for the audit record; it is set by the edge, not the client. -->
+        <set-variable name="edgeTraceId" value="@(context.Request.Headers.GetValueOrDefault("x-appgw-trace-id", ""))" />
+        <!-- Start a trace context if the client did not send one. -->
+        <choose>
+            <when condition="@(!context.Request.Headers.ContainsKey("traceparent"))">
+                <set-header name="traceparent" exists-action="override">
+                    <value>@("00-" + Guid.NewGuid().ToString("N") + "-" + Guid.NewGuid().ToString("N").Substring(0, 16) + "-01")</value>
+                </set-header>
+            </when>
+        </choose>
+    </inbound>
+    <backend>
+        <forward-request />
+    </backend>
+    <outbound>
+        <set-header name="X-Request-Id" exists-action="override">
+            <value>@(context.RequestId.ToString())</value>
+        </set-header>
+        <!-- Do not leak backend implementation details. -->
+        <set-header name="X-Powered-By" exists-action="delete" />
+        <set-header name="X-AspNet-Version" exists-action="delete" />
+    </outbound>
+    <on-error>
+        <set-header name="X-Request-Id" exists-action="override">
+            <value>@(context.RequestId.ToString())</value>
+        </set-header>
+    </on-error>
+</policies>

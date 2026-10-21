@@ -49,9 +49,17 @@ CATEGORIES: dict[str, dict[str, str]] = {
         "title": "Landing Zones and Infrastructure",
         "description": "Private Microsoft Foundry landing zones, network isolation, Bicep/Terraform IaC, and multi-stage CI/CD.",
     },
+    "agent-runtime": {
+        "title": "Agent Runtime and Hosting",
+        "description": "Prompt vs hosted agents, production hosted agents on Foundry, private runtime networking, sessions, and sandboxed code execution.",
+    },
+    "ai-gateway": {
+        "title": "AI Gateway",
+        "description": "API Management as the control plane for model, MCP tool, and agent traffic: multi-tenant MCP gateways, OAuth front doors, identity propagation, metering, and quotas.",
+    },
     "orchestration-and-workflows": {
         "title": "Orchestration and Workflows",
-        "description": "Multi-agent routers, planner-and-specialist handoffs, durable state/caching, and workflow engines.",
+        "description": "Governed agent harnesses, verification gates, multi-agent routers, planner-and-specialist handoffs, durable state/caching, and workflow engines.",
     },
     "data-and-tools": {
         "title": "Data and Tools",

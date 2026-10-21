@@ -46,7 +46,7 @@ The schema is authoritative; this is a summary.
 |-------|----------|-------|
 | `schema_version` | Yes | Always `1`. |
 | `id` | Yes | Kebab-case; must equal the asset folder name. |
-| `category` | Yes | Must equal the parent folder: `delivery-and-ops`, `m365-and-copilot`, `security-and-governance`, `landing-zones-and-infra`, `orchestration-and-workflows` or `data-and-tools`. |
+| `category` | Yes | Must equal the parent folder: `delivery-and-ops`, `m365-and-copilot`, `security-and-governance`, `landing-zones-and-infra`, `agent-runtime`, `ai-gateway`, `orchestration-and-workflows` or `data-and-tools`. |
 | `title`, `summary` | Yes | Shown in the generated catalogs. |
 | `kind` | Yes | `design-pattern`, `reference-architecture`, `solution-accelerator`, `playbook` or `sample`. |
 | `maturity` | Yes | `experimental`, `preview`, `stable` or `deprecated`. |
