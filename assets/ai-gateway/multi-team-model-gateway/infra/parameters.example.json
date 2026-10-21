@@ -1,0 +1,47 @@
+{
+  "_comment": "Example only. Extract the section with: jq '.deployment' parameters.example.json > .local/deployment.parameters.json and keep populated copies out of git. Values that must come from your tenant fail closed: apimModelInferenceRoleDefinitionId is blank (minLength 36) and every tokensPerMinute is 0 (minValue 1), so validation fails until an operator states them. Look the role ID up in your tenant (see infra/README.md). Size each team budget from your own measurements and keep the sum inside the shared deployment capacity. memberPrincipalIds take Microsoft Entra object IDs, preferably one group per team. Foundry User has a template default and is not listed. No secret value belongs in this file: the gateway keys are read from APIM at deploy time and written straight into each team's project connection.",
+  "deployment": {
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "namePrefix": { "value": "contoso" },
+      "createFoundryAccount": { "value": true },
+      "foundryPublicNetworkAccess": { "value": "Enabled" },
+      "modelDeploymentName": { "value": "chat" },
+      "modelName": { "value": "gpt-4.1-mini" },
+      "modelVersion": { "value": "2025-04-14" },
+      "modelSkuName": { "value": "GlobalStandard" },
+      "modelCapacity": { "value": 10 },
+      "apimSku": { "value": "BasicV2" },
+      "publisherEmail": { "value": "platform-team@example.com" },
+      "publisherName": { "value": "Contoso Platform Team" },
+      "apiPathPrefix": { "value": "aigw" },
+      "allowedModelDeployments": { "value": [ "chat" ] },
+      "apimModelInferenceRoleDefinitionId": { "value": "" },
+      "enableObservability": { "value": true },
+      "teams": {
+        "value": [
+          {
+            "name": "alpha",
+            "tokensPerMinute": 0,
+            "memberPrincipalIds": [],
+            "memberPrincipalType": "Group"
+          },
+          {
+            "name": "beta",
+            "tokensPerMinute": 0,
+            "memberPrincipalIds": [],
+            "memberPrincipalType": "Group"
+          }
+        ]
+      },
+      "tags": {
+        "value": {
+          "workload": "multi-team-model-gateway",
+          "owner": "platform-team@example.com",
+          "environment": "sandbox"
+        }
+      }
+    }
+  }
+}

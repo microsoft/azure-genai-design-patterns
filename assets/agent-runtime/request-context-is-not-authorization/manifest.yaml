@@ -1,0 +1,48 @@
+schema_version: 1
+id: request-context-is-not-authorization
+category: agent-runtime
+title: Request Context Is Not Authorization
+summary: >-
+  Treat everything in an agent's request context (forwarded headers, payload tenant or user ids, metadata, tool
+  arguments, retrieved content, memory, model output) as tainted input. Derive authorization only from a verified
+  identity, decide it in a deny-by-default policy decision point, and re-check it at every tool and resource
+  boundary at call time. The model is never the policy decision point.
+kind: design-pattern
+maturity: preview
+version: 0.1.0
+tags:
+  - authorization
+  - identity
+  - zero-trust
+  - policy-decision-point
+  - policy-enforcement-point
+  - prompt-injection
+  - confused-deputy
+  - multi-tenant
+  - hosted-agents
+  - tool-security
+  - audit
+azure_services:
+  - Microsoft Foundry
+  - Microsoft Foundry Agent Service
+  - Microsoft Entra ID
+  - Microsoft Entra Agent ID
+  - Azure API Management
+  - Azure Cosmos DB
+  - Azure Monitor
+pillars:
+  - security-and-observability
+  - agent-architecture-patterns
+  - coe-and-governance
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-21"
+related:
+  - production-hosted-agents-on-foundry
+  - backend-identity-propagation
+  - mcp-oauth-front-door
+  - agent-security-and-governance
+  - progressive-tool-loading
+  - choosing-prompt-vs-hosted-agents
+  - multi-tenant-mcp-gateway
+  - entitlement-aware-tool-catalog

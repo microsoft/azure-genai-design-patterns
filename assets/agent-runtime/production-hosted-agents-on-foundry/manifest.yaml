@@ -40,6 +40,8 @@ related:
   - code-execution-sandbox-session-pools
   - multi-tenant-mcp-gateway
   - backend-identity-propagation
+  - hosted-agent-streaming-model-gateway
+  - hosted-agent-otel-trace-receiver
   - agent-production-readiness
 pillars:
   - agent-ops

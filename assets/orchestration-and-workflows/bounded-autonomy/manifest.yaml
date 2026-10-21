@@ -1,0 +1,46 @@
+schema_version: 1
+id: bounded-autonomy
+category: orchestration-and-workflows
+title: "Bounded Autonomy: Budgets, Action Envelopes and Escalation"
+summary: >-
+  Server-enforced limits that let an agent act on its own inside a known
+  envelope and stop or escalate outside it. Server-side policy picks an
+  autonomy profile from verified identity, never the prompt. The harness
+  enforces attempt, tool-call, token, time and cost budgets, checks each planned
+  step against tool, side-effect, argument and data-boundary rules, fails
+  closed without policy or audit, and records every decision.
+kind: design-pattern
+maturity: preview
+version: 0.1.0
+tags:
+  - agentic-ai
+  - bounded-autonomy
+  - autonomy-profiles
+  - budgets
+  - guardrails
+  - escalation
+  - human-in-the-loop
+  - fail-closed
+  - policy-engine
+azure_services:
+  - Microsoft Foundry
+  - Azure API Management
+  - Azure App Configuration
+  - Microsoft Entra ID
+  - Azure Monitor
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-21"
+related:
+  - governed-context-aware-agent-harness
+  - verify-before-approve
+  - evidence-ledger-and-run-certificate
+  - progressive-tool-loading
+  - request-context-is-not-authorization
+  - entitlement-aware-tool-catalog
+  - agent-security-and-governance
+  - agent-production-readiness
+pillars:
+  - agent-architecture-patterns
+  - security-and-observability
+  - agent-ops

@@ -1,0 +1,56 @@
+{
+  "_comment": "Example only. Every environment-specific value is blank, zero or an empty list, so validation fails closed (minLength, minValue) until an approved operator populates it. Extract the section with: jq '.gateway' parameters.example.json > .local/gateway.parameters.json. Never commit populated copies. Timeouts, replica bounds, concurrency, CPU, memory and retention have no defaults on purpose: state them per environment from your own measurements. modelInferenceRoleDefinitionId is looked up in your tenant (see infra/README.md). Resource group names are blank so you state them; foundrySecondaryResourceGroupName and location are omitted and default to the deployment resource group, so add them only when a second Foundry account is used and lives elsewhere. The well-known role IDs (Key Vault Secrets User, Key Vault Secrets Officer, AcrPull) have template defaults and are not listed. Phase 2 deploys with deployGatewayApp=false; phase 5 sets deployGatewayApp=true and supplies gatewayImage (by digest) and gatewayPolicyJson at deploy time from the pipeline. No secret value belongs in this file.",
+  "gateway": {
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "namePrefix": { "value": "" },
+      "foundryAccountName": { "value": "" },
+      "foundryResourceGroupName": { "value": "" },
+      "foundrySecondaryAccountName": { "value": "" },
+      "containerRegistryName": { "value": "" },
+      "containerRegistryResourceGroupName": { "value": "" },
+      "ingressExternal": { "value": false },
+      "infrastructureSubnetId": { "value": "" },
+      "ipSecurityRestrictions": { "value": [] },
+      "keyVaultPublicNetworkAccess": { "value": "Disabled" },
+      "privateEndpointSubnetId": { "value": "" },
+      "keyVaultPrivateDnsZoneId": { "value": "" },
+      "deployGatewayApp": { "value": false },
+      "gatewayImage": { "value": "" },
+      "gatewayPolicyJson": { "value": "" },
+      "gatewayTenantId": { "value": "" },
+      "gatewayAudiences": { "value": [] },
+      "gatewayRequiredRole": { "value": "Gateway.Invoke" },
+      "keepaliveSeconds": { "value": 0 },
+      "firstByteTimeoutSeconds": { "value": 0 },
+      "maxAttempts": { "value": 0 },
+      "ingressIdleTimeoutSeconds": { "value": 0 },
+      "earlyCommit": { "value": false },
+      "containerCpu": { "value": "" },
+      "containerMemory": { "value": "" },
+      "minReplicas": { "value": 0 },
+      "maxReplicas": { "value": 0 },
+      "concurrentRequests": { "value": 0 },
+      "terminationGracePeriodSeconds": { "value": 0 },
+      "revisionSuffix": { "value": "" },
+      "stableRevisionName": { "value": "" },
+      "candidateLabel": { "value": "candidate" },
+      "candidateWeight": { "value": 0 },
+      "byoBackendSecretName": { "value": "" },
+      "byoBackendUrl": { "value": "" },
+      "secretSeederPrincipalId": { "value": "" },
+      "secretSeederPrincipalType": { "value": "ServicePrincipal" },
+      "logRetentionDays": { "value": 0 },
+      "modelInferenceRoleDefinitionId": { "value": "" },
+      "tags": {
+        "value": {
+          "workload": "<workload-name>",
+          "owner": "<owning-team>",
+          "environment": "<dev|test|prod>",
+          "cost_center": "<cost-center>"
+        }
+      }
+    }
+  }
+}

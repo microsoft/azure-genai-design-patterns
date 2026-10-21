@@ -36,6 +36,8 @@ related:
   - agent-security-and-governance
   - agent-production-readiness
   - backend-identity-propagation
+  - bounded-autonomy
+  - evidence-ledger-and-run-certificate
 pillars:
   - agent-architecture-patterns
   - coe-and-governance

@@ -45,6 +45,8 @@ related:
   - secured-foundry-landing-zone
   - agent-security-and-governance
   - m365-mcp-plugin-integration
+  - entitlement-aware-tool-catalog
+  - multi-team-model-gateway
 pillars:
   - landing-zones
   - security-and-observability

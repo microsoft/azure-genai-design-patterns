@@ -1,0 +1,42 @@
+schema_version: 1
+id: progressive-tool-loading
+category: orchestration-and-workflows
+title: Progressive Tool and Skill Loading
+summary: >-
+  Start each run with a small skill index, then disclose tool schemas and skill instructions in tiers
+  by phase or on model request. A context budget, deterministic ordering and eviction keep context
+  focused. Calls to unloaded tools are rejected and every load is recorded. Loading decides when a tool
+  is shown; entitlement and the autonomy profile decide which tools are eligible, and the server still
+  checks entitlement on every call.
+kind: design-pattern
+maturity: preview
+version: 0.1.0
+tags:
+  - progressive-disclosure
+  - tool-loading
+  - skills
+  - context-engineering
+  - mcp
+  - tool-selection
+  - context-budget
+  - agentic-ai
+azure_services:
+  - Microsoft Foundry
+  - Azure API Management
+  - Azure AI Search
+  - Azure Monitor
+pillars:
+  - agent-architecture-patterns
+  - solution-optimization
+  - security-and-observability
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-21"
+related:
+  - governed-context-aware-agent-harness
+  - entitlement-aware-tool-catalog
+  - request-context-is-not-authorization
+  - bounded-autonomy
+  - evidence-ledger-and-run-certificate
+  - multi-tenant-mcp-gateway
+  - agent-production-readiness

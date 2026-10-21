@@ -1,0 +1,49 @@
+schema_version: 1
+id: evidence-ledger-and-run-certificate
+category: orchestration-and-workflows
+title: "Evidence Ledger and Run Certificate"
+summary: >-
+  An append-only, hash-chained evidence ledger that records each agent step
+  (policy decisions, tool calls, source digests, checks, approvals) as digests
+  and references rather than raw content, sealed by a signed run certificate
+  that binds the ledger head, artifact digest, required checks and approval. A
+  run is done only with a valid, non-withheld certificate that anyone with a
+  trusted key can verify offline.
+kind: design-pattern
+maturity: preview
+version: 0.1.0
+tags:
+  - agentic-ai
+  - evidence-ledger
+  - run-certificate
+  - hash-chain
+  - tamper-evidence
+  - audit
+  - provenance
+  - attestation
+  - signing
+  - redaction
+  - offline-verification
+  - fail-closed
+azure_services:
+  - Microsoft Foundry
+  - Azure Key Vault
+  - Azure Blob Storage
+  - Azure Cosmos DB
+  - Microsoft Entra ID
+  - Azure Monitor
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-21"
+related:
+  - governed-context-aware-agent-harness
+  - verify-before-approve
+  - bounded-autonomy
+  - progressive-tool-loading
+  - hosted-agent-otel-trace-receiver
+  - agent-security-and-governance
+  - agent-production-readiness
+pillars:
+  - agent-architecture-patterns
+  - security-and-observability
+  - agent-ops

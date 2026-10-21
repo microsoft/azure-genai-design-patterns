@@ -1,0 +1,315 @@
+# Reference workflow: streaming model gateway build, deploy and rollout.
+#
+# Copy to .github/workflows/ in the consuming repository. Paths assume the
+# asset lives at assets/agent-runtime/hosted-agent-streaming-model-gateway.
+# This file is a reference, not a turnkey pipeline: review identities,
+# environments, runners and gates first. It has not been run as-is.
+#
+# Stages (match docs/deployment-and-operations.md)
+#   0  lint        Bicep build of every template, guardrails on committed
+#                  files, simulator self-test, gateway source compile check.
+#   1  what-if     ARM what-if of the foundation pass (deployGatewayApp=false).
+#   2  foundation  Phase 2: identity, telemetry, Key Vault, environment and
+#                  role assignments. Stops if any Foundry account still
+#                  allows key authentication.
+#   3  image       Phase 4: build on an in-network runner from an approved
+#                  base image pinned by digest, SBOM and scan, push, record
+#                  the digest. Deploys use the digest, never a tag.
+#   4  app         Phase 5: deploy the gateway revision with the image digest
+#                  and the reviewed policy document. When a revision already
+#                  serves traffic, the new one is created as a labelled
+#                  candidate with no traffic.
+#   5  smoke       From inside the network: /healthz returns 200 and an
+#                  unauthenticated chat request returns 401.
+#   6  promote     Approval-gated: move traffic to the candidate label. The
+#                  previous revision stays active to drain; deactivate it
+#                  after the longest expected stream has finished.
+#
+# Phases 0 (Entra app registration), 3 (seed the bring-your-own secret),
+# 6 (authorise callers) and 8 (close the bypass) are deliberately not in this
+# workflow: they are identity and secret operations with separate owners.
+#
+# Identity: one user-assigned managed identity per environment, federated to
+# GitHub environment gateway-<env> (OIDC, azure/login@v2). Rights: Contributor
+# on the gateway resource group, Role Based Access Control Administrator
+# constrained to the three roles the template assigns, and AcrPush on the
+# registry. No client secret exists anywhere in this workflow.
+#
+# Variables per GitHub environment gateway-<env> (identifiers, not secrets):
+#   AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID, AZURE_GATEWAY_DEPLOY_CLIENT_ID,
+#   GATEWAY_RESOURCE_GROUP, ACR_NAME, GATEWAY_IMAGE_REPO,
+#   GATEWAY_BASE_IMAGE     approved base image pinned by digest
+#   GATEWAY_POLICY_FILE    repository path of the reviewed policy for <env>
+#   GATEWAY_PARAMETERS     populated copy of the "gateway" section of
+#                          ../parameters.example.json (one JSON document,
+#                          kept out of git; it holds no secret values)
+# The promote job uses environment gateway-<env>-promote, which carries the
+# same variables plus a required-reviewers protection rule.
+
+name: gateway-deploy
+
+on:
+  pull_request:
+    paths:
+      - "assets/agent-runtime/hosted-agent-streaming-model-gateway/**"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, test, prod]
+        default: dev
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: gateway-${{ inputs.environment || 'pr' }}
+  cancel-in-progress: false
+
+env:
+  ASSET: assets/agent-runtime/hosted-agent-streaming-model-gateway
+  INFRA: assets/agent-runtime/hosted-agent-streaming-model-gateway/infra
+  ENV_NAME: ${{ inputs.environment || 'dev' }}
+
+jobs:
+  # ------------------------------------------------------------------ Stage 0
+  lint:
+    name: "Stage 0 - lint, guardrails and offline tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Bicep CLI
+        run: az bicep install && az bicep version
+      - name: Lint and build every template
+        run: |
+          set -euo pipefail
+          for t in main modules/foundry-model-role modules/registry-pull-role; do
+            echo "::group::$t.bicep"
+            az bicep lint  --file "$INFRA/$t.bicep"
+            az bicep build --file "$INFRA/$t.bicep" --stdout > /dev/null
+            echo "::endgroup::"
+          done
+      - name: Guardrails on committed files
+        run: |
+          set -euo pipefail
+          # The parameter example must stay blank (fail-closed minLength and minValue).
+          if grep -nE '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-' "$INFRA/parameters.example.json"; then
+            echo "::error::parameters.example.json contains a populated identifier"; exit 1
+          fi
+          # The policy example names environment variables, never URLs or keys.
+          if grep -nE 'https?://|api[_-]?key"\s*:' "$INFRA/gateway-policy.example.json"; then
+            echo "::error::gateway-policy.example.json contains a URL or a key"; exit 1
+          fi
+          # No template may hard-code public network access on Key Vault.
+          if grep -nE "publicNetworkAccess: '(E|e)nabled'" "$INFRA/main.bicep"; then exit 1; fi
+      - name: Offline simulator self-test
+        run: python "$ASSET/samples/streaming_gateway_sim.py" --self-test
+      - name: Gateway source compiles
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet -r "$ASSET/src/gateway/requirements.txt"
+          python -m py_compile "$ASSET/src/gateway/app.py"
+
+  # ------------------------------------------------------------------ Stage 1
+  what-if:
+    name: "Stage 1 - what-if (foundation pass)"
+    needs: lint
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: gateway-${{ inputs.environment }}
+    env:
+      RG: ${{ vars.GATEWAY_RESOURCE_GROUP }}
+      GATEWAY_PARAMETERS: ${{ vars.GATEWAY_PARAMETERS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_GATEWAY_DEPLOY_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Validate and what-if
+        run: |
+          set -euo pipefail
+          mkdir -p .local
+          jq '.parameters.deployGatewayApp.value=false' <<<"$GATEWAY_PARAMETERS" > .local/foundation.json
+          az deployment group validate -g "$RG" -f "$INFRA/main.bicep" -p @.local/foundation.json -o none
+          az deployment group what-if  -g "$RG" -f "$INFRA/main.bicep" -p @.local/foundation.json \
+            --exclude-change-types Ignore NoChange
+
+  # ------------------------------------------------------------------ Stage 2
+  foundation:
+    name: "Stage 2 - foundation (phase 2)"
+    needs: what-if
+    runs-on: ubuntu-latest
+    environment: gateway-${{ inputs.environment }}
+    env:
+      RG: ${{ vars.GATEWAY_RESOURCE_GROUP }}
+      GATEWAY_PARAMETERS: ${{ vars.GATEWAY_PARAMETERS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_GATEWAY_DEPLOY_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy foundation and check key authentication is off
+        run: |
+          set -euo pipefail
+          mkdir -p .local
+          jq '.parameters.deployGatewayApp.value=false' <<<"$GATEWAY_PARAMETERS" > .local/foundation.json
+          az deployment group create -g "$RG" -n "gateway-foundation-$ENV_NAME" \
+            -f "$INFRA/main.bicep" -p @.local/foundation.json -o none
+          disabled=$(az deployment group show -g "$RG" -n "gateway-foundation-$ENV_NAME" \
+            --query properties.outputs.foundryLocalAuthDisabled.value -o tsv)
+          if [ "$disabled" != "true" ]; then
+            echo "::error::A Foundry account the gateway calls still allows key authentication"; exit 1
+          fi
+
+  # ------------------------------------------------------------------ Stage 3
+  image:
+    name: "Stage 3 - build, scan and push the gateway image (phase 4)"
+    needs: foundation
+    # The registry has public network access disabled, so the push runs inside the network.
+    runs-on: [self-hosted, gateway-private-runner, "${{ inputs.environment }}"]
+    environment: gateway-${{ inputs.environment }}
+    outputs:
+      image: ${{ steps.push.outputs.image }}
+    env:
+      ACR: ${{ vars.ACR_NAME }}
+      REPO: ${{ vars.GATEWAY_IMAGE_REPO }}
+      BASE_IMAGE: ${{ vars.GATEWAY_BASE_IMAGE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_GATEWAY_DEPLOY_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Build from a base image pinned by digest
+        run: |
+          set -euo pipefail
+          case "$BASE_IMAGE" in *@sha256:*) ;; *) echo "::error::GATEWAY_BASE_IMAGE must be pinned by digest"; exit 1;; esac
+          test -f "$ASSET/src/gateway/requirements.lock" || { echo "::error::generate src/gateway/requirements.lock with hashes (see src/README.md)"; exit 1; }
+          docker build "$ASSET/src/gateway" \
+            --build-arg BASE_IMAGE="$BASE_IMAGE" \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            -t "$ACR.azurecr.io/$REPO:$GITHUB_SHA"
+      - name: SBOM and scan (replace with your approved tools)
+        run: |
+          set -euo pipefail
+          trivy image --format cyclonedx --output sbom.cdx.json "$ACR.azurecr.io/$REPO:$GITHUB_SHA"
+          trivy image --exit-code 1 --severity HIGH,CRITICAL --scanners vuln,secret "$ACR.azurecr.io/$REPO:$GITHUB_SHA"
+      - uses: actions/upload-artifact@v4
+        with: { name: gateway-sbom, path: sbom.cdx.json }
+      - id: push
+        name: Push through the private endpoint and record the digest
+        run: |
+          set -euo pipefail
+          az acr login -n "$ACR"
+          docker push "$ACR.azurecr.io/$REPO:$GITHUB_SHA"
+          digest=$(docker inspect --format '{{index .RepoDigests 0}}' "$ACR.azurecr.io/$REPO:$GITHUB_SHA")
+          echo "image=$digest" >> "$GITHUB_OUTPUT"
+
+  # ------------------------------------------------------------------ Stage 4
+  app:
+    name: "Stage 4 - gateway revision (phase 5)"
+    needs: image
+    runs-on: ubuntu-latest
+    environment: gateway-${{ inputs.environment }}
+    outputs:
+      fqdn: ${{ steps.deploy.outputs.fqdn }}
+      test_host: ${{ steps.deploy.outputs.test_host }}
+      app_name: ${{ steps.deploy.outputs.app_name }}
+      candidate: ${{ steps.deploy.outputs.candidate }}
+      label: ${{ steps.deploy.outputs.label }}
+    env:
+      RG: ${{ vars.GATEWAY_RESOURCE_GROUP }}
+      GATEWAY_PARAMETERS: ${{ vars.GATEWAY_PARAMETERS }}
+      POLICY_FILE: ${{ vars.GATEWAY_POLICY_FILE }}
+      IMAGE: ${{ needs.image.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_GATEWAY_DEPLOY_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - id: deploy
+        name: Deploy the revision (candidate with no traffic when one already serves)
+        run: |
+          set -euo pipefail
+          mkdir -p .local
+          # The policy is reviewed in source control and must not contain placeholders.
+          if grep -nE '"<[^"]*>"' "$POLICY_FILE"; then echo "::error::policy still contains placeholders"; exit 1; fi
+          app="$(jq -r '.parameters.namePrefix.value' <<<"$GATEWAY_PARAMETERS")-gw"
+          stable=$(az containerapp revision list -g "$RG" -n "$app" \
+            --query "sort_by([?properties.trafficWeight > \`0\`], &properties.trafficWeight)[-1].name" -o tsv 2>/dev/null || true)
+          suffix="r${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          jq --arg policy "$(jq -c 'with_entries(select(.key | startswith("_") | not))' "$POLICY_FILE")" \
+             --arg img "$IMAGE" --arg stable "$stable" --arg suffix "$suffix" '
+            .parameters.gatewayPolicyJson.value=$policy
+            | .parameters.gatewayImage.value=$img
+            | .parameters.deployGatewayApp.value=true
+            | .parameters.revisionSuffix.value=$suffix
+            | .parameters.stableRevisionName.value=$stable
+            | .parameters.candidateWeight.value=0' <<<"$GATEWAY_PARAMETERS" > .local/app.json
+          az deployment group create -g "$RG" -n "gateway-app-$ENV_NAME" \
+            -f "$INFRA/main.bicep" -p @.local/app.json -o none
+          out=$(az deployment group show -g "$RG" -n "gateway-app-$ENV_NAME" --query properties.outputs -o json)
+          fqdn=$(jq -r .gatewayFqdn.value <<<"$out")
+          domain=$(jq -r .environmentDefaultDomain.value <<<"$out")
+          label=$(jq -r '.parameters.candidateLabel.value // "candidate"' .local/app.json)
+          # Label address form observed in Container Apps; verify against current docs.
+          if [ -n "$stable" ]; then test_host="$app---$label.$domain"; candidate=true; else test_host="$fqdn"; candidate=false; fi
+          { echo "fqdn=$fqdn"; echo "test_host=$test_host"; echo "app_name=$app"; echo "candidate=$candidate"; echo "label=$label"; } >> "$GITHUB_OUTPUT"
+
+  # ------------------------------------------------------------------ Stage 5
+  smoke:
+    name: "Stage 5 - smoke test from inside the network"
+    needs: app
+    runs-on: [self-hosted, gateway-private-runner, "${{ inputs.environment }}"]
+    env:
+      TEST_HOST: ${{ needs.app.outputs.test_host }}
+    steps:
+      - name: Health and fail-closed authentication
+        run: |
+          set -euo pipefail
+          code=$(curl -s -o /dev/null -w '%{http_code}' "https://$TEST_HOST/healthz")
+          [ "$code" = "200" ] || { echo "::error::/healthz returned $code"; exit 1; }
+          code=$(curl -s -o body.json -w '%{http_code}' -X POST "https://$TEST_HOST/v1/chat/completions" \
+            -H 'Content-Type: application/json' \
+            -d '{"model":"gpt-4o-mini","stream":true,"messages":[{"role":"user","content":"ping"}]}')
+          [ "$code" = "401" ] || { echo "::error::unauthenticated request returned $code, expected 401"; exit 1; }
+          jq -e '.error.code == "missing_token"' body.json > /dev/null
+          # The authenticated streaming proof needs a caller identity; run it
+          # from docs/evaluation-and-troubleshooting.md before promoting.
+
+  # ------------------------------------------------------------------ Stage 6
+  promote:
+    name: "Stage 6 - promote the candidate (approval-gated)"
+    needs: [app, smoke]
+    if: needs.app.outputs.candidate == 'true'
+    runs-on: ubuntu-latest
+    environment: gateway-${{ inputs.environment }}-promote
+    env:
+      RG: ${{ vars.GATEWAY_RESOURCE_GROUP }}
+      APP: ${{ needs.app.outputs.app_name }}
+      LABEL: ${{ needs.app.outputs.label }}
+    steps:
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_GATEWAY_DEPLOY_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Move traffic to the candidate label
+        run: |
+          set -euo pipefail
+          # The previous revision keeps its label and stays active, so streams
+          # already in progress can finish. Deactivate it after draining.
+          az containerapp ingress traffic set -g "$RG" -n "$APP" --label-weight stable=0 "$LABEL=100" -o none
+          az containerapp ingress traffic show -g "$RG" -n "$APP" -o table

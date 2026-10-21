@@ -1,0 +1,46 @@
+{
+  "_comment": "Example gateway policy. Replace every <placeholder>. Callers are keyed by the hosted agent identity's client ID (the azp or appid claim). Routes name environment variables, never URLs or keys. Integers are placeholders on purpose: choose budgets, caps and the window from your own usage data. The gateway ignores keys that start with an underscore and refuses to start if an allowed model has no route, a route variable is unset, or a placeholder is still present. Keep the populated copy in source control next to the gateway code, reviewed like code; it contains identifiers, not secrets.",
+  "budget_window_seconds": "<integer>",
+  "callers": {
+    "<agent-identity-client-id>": {
+      "display_name": "Contoso shopping assistant",
+      "allowed_models": ["gpt-4o-mini", "gpt-4o"],
+      "token_budget_per_window": "<integer>",
+      "max_tokens_cap": "<integer>",
+      "blocked_terms": ["card number"]
+    }
+  },
+  "routes": {
+    "gpt-4o-mini": [
+      {
+        "name": "foundry-primary",
+        "kind": "azure-openai",
+        "base_url_env": "BACKEND_FOUNDRY_URL",
+        "upstream_model": "<model-deployment>"
+      },
+      {
+        "name": "foundry-secondary",
+        "kind": "azure-openai",
+        "base_url_env": "BACKEND_FOUNDRY_SECONDARY_URL",
+        "upstream_model": "<model-deployment>"
+      }
+    ],
+    "gpt-4o": [
+      {
+        "name": "foundry-primary",
+        "kind": "azure-openai",
+        "base_url_env": "BACKEND_FOUNDRY_URL",
+        "upstream_model": "<model-deployment>"
+      }
+    ],
+    "byo-chat": [
+      {
+        "name": "byo-partner",
+        "kind": "openai-compatible",
+        "base_url_env": "BACKEND_BYO_URL",
+        "upstream_model": "<byo-model-name>",
+        "api_key_env": "BYO_BACKEND_API_KEY"
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+# Direct dependencies of main.py. Pin versions you have tested and build the agent image
+# from a hashed lock generated from this file (see src/README.md); do not install this
+# file directly in production.
+#
+# The hosting extra provides the adapter that serves the agent to the hosted-agent
+# runtime. It is observed in preview; verify the package, extra and module path
+# against current docs.
+langchain-azure-ai[hosting]
+langchain>=1.0
+langchain-openai>=0.3
+azure-identity>=1.17
+httpx>=0.27
+# Optional: adds traceparent to model calls. Add an exporter (for example
+# azure-monitor-opentelemetry) if the agent should also export its own spans.
+opentelemetry-api>=1.25

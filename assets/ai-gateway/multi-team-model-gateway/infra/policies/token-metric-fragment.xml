@@ -1,0 +1,9 @@
+<!-- Per-team token usage for chargeback (multi-team-model-gateway). Requires the APIM Application Insights
+     logger and API diagnostics with custom metrics enabled. Newer documentation names this policy
+     llm-emit-token-metric. Keep dimensions low-cardinality: values beyond the per-dimension limit are dropped. -->
+    <azure-openai-emit-token-metric namespace="multi-team-model-gateway">
+      <dimension name="Team" value="@(context.Product.Name)" />
+      <dimension name="Subscription ID" />
+      <dimension name="API ID" />
+      <dimension name="Deployment" value="@((string)context.Variables.GetValueOrDefault("deploymentId", string.Empty))" />
+    </azure-openai-emit-token-metric>

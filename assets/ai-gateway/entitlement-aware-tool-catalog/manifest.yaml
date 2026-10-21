@@ -1,0 +1,45 @@
+schema_version: 1
+id: entitlement-aware-tool-catalog
+category: ai-gateway
+title: Entitlement-Aware Tool Catalog
+summary: >-
+  An MCP gateway that returns from tools/list only the tools each caller's tenant licenses and roles allow,
+  with schemas minimized per entitlement, and re-checks the same decision on every tools/call so hidden or
+  guessed tool names never run. Entitlements come from the validated token and a registry, views are cached by
+  entitlement set rather than by user, and catalog changes reach affected sessions as tools/list_changed.
+kind: design-pattern
+maturity: preview
+version: 0.1.0
+tags:
+  - mcp
+  - tool-catalog
+  - entitlements
+  - authorization
+  - multi-tenant
+  - app-roles
+  - catalog-filtering
+  - least-privilege
+  - prompt-injection
+  - audit
+azure_services:
+  - Azure API Management
+  - Microsoft Entra ID
+  - Azure Container Apps
+  - Microsoft Foundry
+pillars:
+  - security-and-observability
+  - agent-architecture-patterns
+  - solution-optimization
+  - coe-and-governance
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-21"
+related:
+  - multi-tenant-mcp-gateway
+  - mcp-oauth-front-door
+  - backend-identity-propagation
+  - request-context-is-not-authorization
+  - progressive-tool-loading
+  - agent-security-and-governance
+  - multi-team-model-gateway
+  - agent-production-readiness

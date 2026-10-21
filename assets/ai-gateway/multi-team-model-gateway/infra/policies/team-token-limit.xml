@@ -1,0 +1,26 @@
+<!--
+  Product-scope policy for one team (multi-team-model-gateway). Loaded by modules/team.bicep, which
+  replaces __TOKENS_PER_MINUTE__ with the team's budget.
+
+  counter-key is the product name, so every call made with this team's subscription draws on one budget
+  and no other team can draw on it. Prompt tokens are estimated before the call so an over-budget request
+  is rejected with 429 and a retry-after header without reaching the model. x-tokens-consumed is added to
+  the response after the backend returns; x-remaining-tokens reports the budget left in the window.
+
+  Newer documentation names this policy llm-token-limit. Verify which name your gateway accepts.
+-->
+<policies>
+  <inbound>
+    <base />
+    <azure-openai-token-limit counter-key="@(context.Product.Name)" tokens-per-minute="__TOKENS_PER_MINUTE__" estimate-prompt-tokens="true" retry-after-header-name="retry-after" remaining-tokens-header-name="x-remaining-tokens" tokens-consumed-header-name="x-tokens-consumed" />
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>

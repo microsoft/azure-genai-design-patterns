@@ -1,0 +1,53 @@
+schema_version: 1
+id: hosted-agent-streaming-model-gateway
+category: agent-runtime
+title: Hosted agent behind a streaming model gateway (bring your own model)
+summary: >-
+  Solution accelerator for a Foundry hosted agent that calls its model through
+  a team-owned, OpenAI-compatible streaming gateway on Azure Container Apps.
+  The gateway validates Entra tokens, routes to Foundry deployments or a
+  bring-your-own model, keeps server-sent events unbuffered, retries only
+  before the first byte, enforces per-caller policy, attributes usage and
+  fails closed. Includes Bicep, a pipeline, gateway code, ADRs and an offline
+  simulator.
+kind: solution-accelerator
+maturity: preview
+version: 0.1.0
+tags:
+  - agentic-ai
+  - hosted-agents
+  - foundry
+  - model-gateway
+  - bring-your-own-model
+  - streaming
+  - server-sent-events
+  - managed-identity
+  - container-apps
+  - failover
+  - opentelemetry
+azure_services:
+  - Microsoft Foundry
+  - Azure Container Apps
+  - Azure Container Registry
+  - Azure Key Vault
+  - Azure Monitor
+  - Application Insights
+  - Microsoft Entra ID
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-21"
+related:
+  - production-hosted-agents-on-foundry
+  - choosing-prompt-vs-hosted-agents
+  - multi-tenant-mcp-gateway
+  - backend-identity-propagation
+  - secured-foundry-landing-zone
+  - request-context-is-not-authorization
+  - agent-state-cosmos-vs-foundry-memory
+  - hosted-agent-otel-trace-receiver
+  - multi-team-model-gateway
+  - agent-production-readiness
+pillars:
+  - agent-architecture-patterns
+  - security-and-observability
+  - agent-ops

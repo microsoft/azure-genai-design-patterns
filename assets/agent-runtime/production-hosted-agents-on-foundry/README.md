@@ -152,6 +152,8 @@ stateDiagram-v2
 | [Code Execution Sandboxes with Session Pools](../code-execution-sandbox-session-pools/README.md) | Where untrusted or model-generated code runs instead of inside the hosted agent |
 | [Multi-Tenant MCP Gateway](../../ai-gateway/multi-tenant-mcp-gateway/README.md) | Governed tool access for the hosted agent's MCP calls |
 | [Backend Identity Propagation](../../ai-gateway/backend-identity-propagation/README.md) | How the caller's identity reaches tools and backends without passing tokens through |
+| [Hosted Agent behind a Streaming Model Gateway](../hosted-agent-streaming-model-gateway/README.md) | Bring your own model endpoint through a streaming gateway with budgets and identity |
+| [Hosted Agent OTel Trace Receiver](../hosted-agent-otel-trace-receiver/README.md) | A governed second copy of the agent's traces alongside the platform's own tracing |
 | [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md) | Release gates, evaluation and operating model around this runtime |
 
 ## Production-readiness pillar mapping

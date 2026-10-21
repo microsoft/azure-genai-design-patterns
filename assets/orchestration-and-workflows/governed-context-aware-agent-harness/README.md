@@ -155,6 +155,9 @@ Then read [`docs/architecture.md`](docs/architecture.md) for the full design and
 ## Related assets
 
 - [Verify-Before-Approve Gate for Agent Outputs](../verify-before-approve/README.md): the verification-then-approval gate this harness embeds as two of its boundaries.
+- [Bounded Autonomy](../bounded-autonomy/README.md): budgets, risk tiers and stop conditions that limit how far the harness may act before it must ask.
+- [Evidence Ledger and Run Certificate](../evidence-ledger-and-run-certificate/README.md): deep dive on the hash-chained evidence and the certificate this harness emits.
+- [Progressive Tool Loading](../progressive-tool-loading/README.md): deep dive on exposing tools and skills to the model only when the current step needs them.
 - [Choosing Prompt Agents vs Hosted Agents in Microsoft Foundry](../../agent-runtime/choosing-prompt-vs-hosted-agents/README.md): why a harness like this implies a hosted (code-owned) agent.
 - [Production Hosted Agents on Microsoft Foundry](../../agent-runtime/production-hosted-agents-on-foundry/README.md): where the harness runs in production.
 - [Sandboxed Code Execution with Session Pools](../../agent-runtime/code-execution-sandbox-session-pools/README.md): the isolation boundary to use when computation outgrows an allowlisted evaluator.

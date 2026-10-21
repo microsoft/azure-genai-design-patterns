@@ -158,6 +158,8 @@ Significant decisions are recorded in [ADR 0001: Token-derived tenant identity](
 | [Secured Foundry Landing Zone](../../landing-zones-and-infra/secured-foundry-landing-zone/README.md) | Hub network, DNS, private endpoints, and egress control the gateway depends on |
 | [Agent Security and Governance](../../security-and-governance/agent-security-and-governance/README.md) | Agent identity, guardrails, and governance controls that complement gateway enforcement |
 | [M365 MCP Plug-in Integration](../../m365-and-copilot/m365-mcp-plugin-integration/README.md) | Connecting Microsoft 365 Copilot and Copilot Studio agents to MCP servers such as this gateway |
+| [Entitlement-Aware Tool Catalog](../entitlement-aware-tool-catalog/README.md) | Deep dive on tool-level authorization: how the gateway filters `tools/list` and re-checks `tools/call` per caller |
+| [Multi-Team Model Gateway](../multi-team-model-gateway/README.md) | The companion front door for model traffic: per-team keys, token quotas and usage attribution |
 | [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md) | Release gates and operating model for the gateway and the agents that use it |
 
 ## Production-readiness pillar mapping

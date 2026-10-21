@@ -1,0 +1,46 @@
+schema_version: 1
+id: multi-team-model-gateway
+category: ai-gateway
+title: Multi-Team Model Gateway with Per-Team Token Quotas
+summary: >-
+  A solution accelerator that lets several product teams share one Microsoft
+  Foundry model deployment pool behind Azure API Management as an AI gateway.
+  Each team gets its own token-per-minute budget, usage attribution for
+  chargeback, and a gateway key delivered only through its own Foundry project
+  connection, so no team ever holds a model key or can spend another team's
+  quota. Includes Bicep, gateway policies, Python client code, and an offline
+  simulator.
+kind: solution-accelerator
+maturity: preview
+version: 0.1.0
+tags:
+  - ai-gateway
+  - api-management
+  - token-quota
+  - multi-tenant
+  - chargeback
+  - foundry-projects
+  - managed-identity
+  - rate-limiting
+  - observability
+azure_services:
+  - Azure API Management
+  - Microsoft Foundry
+  - Azure OpenAI in Foundry Models
+  - Microsoft Entra ID
+  - Azure Monitor
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-21"
+related:
+  - multi-tenant-mcp-gateway
+  - mcp-oauth-front-door
+  - backend-identity-propagation
+  - entitlement-aware-tool-catalog
+  - hosted-agent-streaming-model-gateway
+  - secured-foundry-landing-zone
+  - agent-production-readiness
+pillars:
+  - solution-optimization
+  - security-and-observability
+  - landing-zones

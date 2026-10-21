@@ -37,6 +37,9 @@ related:
   - choosing-prompt-vs-hosted-agents
   - agent-production-readiness
   - agent-security-and-governance
+  - bounded-autonomy
+  - evidence-ledger-and-run-certificate
+  - progressive-tool-loading
 pillars:
   - agent-architecture-patterns
   - agent-ops

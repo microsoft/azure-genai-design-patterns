@@ -146,6 +146,8 @@ Recorded as ADRs:
 | Asset | Relationship |
 |---|---|
 | [Governed Context-Aware Agent Harness](../governed-context-aware-agent-harness/README.md) | The full reference architecture this pattern is extracted from. The harness also covers context assembly, tool governance and memory; this asset goes deeper on verification, approval binding and the preview state ([architecture section 14](docs/architecture.md#14-relationship-to-the-governed-agent-harness)) |
+| [Bounded Autonomy](../bounded-autonomy/README.md) | Decides which actions need this gate at all: low-risk actions run within budget, higher tiers escalate to verify and approve |
+| [Evidence Ledger and Run Certificate](../evidence-ledger-and-run-certificate/README.md) | Records verifier results and the digest-bound approval as tamper-evident evidence for audit and release gates |
 | [Agent Security and Governance](../../security-and-governance/agent-security-and-governance/README.md) | Agent identity, guardrails and governance controls that surround the verify and approve stages |
 | [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md) | Release gates and the operating model for shipping the agent and its verifier |
 | [Backend Identity Propagation](../../ai-gateway/backend-identity-propagation/README.md) | How the user's identity reaches back-end systems; complements the separation of agent, verifier and approver identities here |

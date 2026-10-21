@@ -1,0 +1,10 @@
+# Direct dependencies of app.py. The image installs from requirements.lock, which you
+# generate from this file with hashes (see src/README.md); do not install this file
+# directly in production.
+anyio>=4
+httpx>=0.27
+starlette>=0.37
+uvicorn[standard]>=0.30
+PyJWT[crypto]>=2.8
+azure-identity>=1.17
+azure-monitor-opentelemetry>=1.6

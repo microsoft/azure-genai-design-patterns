@@ -1,0 +1,48 @@
+schema_version: 1
+id: agent-state-cosmos-vs-foundry-memory
+category: agent-runtime
+title: "Agent State and Memory: Private Cosmos DB vs Foundry Memory"
+summary: >-
+  Separate the three kinds of agent state that teams conflate: resumable thread and checkpoint state, long-term
+  user memory, and system-of-record data. Put them behind a pluggable StateStore, MemoryStore and ContextProvider
+  interface, derive every key from the verified user and tenant, gate memory writes with a consent and content
+  policy, and pick private Cosmos DB, Foundry Memory, a vector store or SQLite per kind of state, with an
+  auditable erasure path.
+kind: design-pattern
+maturity: preview
+version: 0.1.0
+tags:
+  - agent-memory
+  - conversation-state
+  - checkpointing
+  - cosmos-db
+  - foundry-memory
+  - multi-tenant
+  - data-residency
+  - right-to-be-forgotten
+  - idempotency
+  - context-provider
+  - hosted-agents
+azure_services:
+  - Microsoft Foundry
+  - Microsoft Foundry Agent Service
+  - Azure Cosmos DB
+  - Azure AI Search
+  - Microsoft Entra ID
+  - Azure Private Link
+  - Azure Monitor
+  - Azure Key Vault
+pillars:
+  - agent-architecture-patterns
+  - security-and-observability
+  - coe-and-governance
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-21"
+related:
+  - production-hosted-agents-on-foundry
+  - request-context-is-not-authorization
+  - secured-foundry-landing-zone
+  - governed-context-aware-agent-harness
+  - choosing-prompt-vs-hosted-agents
+  - agent-security-and-governance

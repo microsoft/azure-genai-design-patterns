@@ -1,0 +1,51 @@
+schema_version: 1
+id: hosted-agent-otel-trace-receiver
+category: agent-runtime
+title: Custom OpenTelemetry export from hosted agents with a lightweight trace receiver
+summary: >-
+  Sample for exporting a second, team-owned copy of Foundry hosted agent
+  OpenTelemetry GenAI traces over OTLP/HTTP, alongside built-in Application
+  Insights tracing rather than instead of it. A lightweight receiver
+  authenticates exporters with Entra tokens, bounds payloads, redacts by
+  allowlist with content off by default, hashes identifiers and returns OTLP
+  partial success. Collector-first guidance, ADRs and an offline self-test.
+kind: sample
+maturity: preview
+version: 0.1.0
+tags:
+  - agentic-ai
+  - hosted-agents
+  - foundry
+  - opentelemetry
+  - otlp
+  - tracing
+  - genai-semantic-conventions
+  - observability
+  - redaction
+  - managed-identity
+  - telemetry-governance
+  - data-residency
+azure_services:
+  - Microsoft Foundry
+  - Application Insights
+  - Azure Monitor
+  - Microsoft Entra ID
+  - Azure Container Apps
+  - Azure Key Vault
+  - Azure Blob Storage
+owners:
+  - "@james-tn"
+last_reviewed: "2026-10-21"
+related:
+  - production-hosted-agents-on-foundry
+  - hosted-agent-streaming-model-gateway
+  - request-context-is-not-authorization
+  - choosing-prompt-vs-hosted-agents
+  - agent-state-cosmos-vs-foundry-memory
+  - secured-foundry-landing-zone
+  - agent-security-and-governance
+  - evidence-ledger-and-run-certificate
+  - agent-production-readiness
+pillars:
+  - security-and-observability
+  - agent-ops

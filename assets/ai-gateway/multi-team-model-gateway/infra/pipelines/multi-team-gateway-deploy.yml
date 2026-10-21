@@ -1,0 +1,221 @@
+# Reference workflow: multi-team model gateway lint, what-if, deploy and verify.
+#
+# Copy to .github/workflows/ in the consuming repository. Paths assume the
+# asset lives at assets/ai-gateway/multi-team-model-gateway. This file is a
+# reference, not a turnkey pipeline: review identities, environments, runners
+# and gates first. It has not been run as-is.
+#
+# Stages (match infra/README.md)
+#   0  lint     Bicep lint and build of every template, policy XML is well
+#               formed, guardrails on committed files, simulator self-test,
+#               client source compile check.
+#   1  what-if  ARM validate and what-if of the populated parameters.
+#   2  deploy   Approval-gated deployment. Gateway keys move from APIM into
+#               the team project connections inside the deployment; they are
+#               never written to logs, outputs or files.
+#   3  verify   Post-deploy checks that need no team identity: every team
+#               connection exists and is not shared to all, the API rejects
+#               a call without a gateway key, and the deployment outputs
+#               contain no key material.
+#
+# Onboarding a new team is a parameter change (append to teams) followed by
+# this workflow. Team members then read their own key through their project.
+#
+# Identity: one user-assigned managed identity per environment, federated to
+# GitHub environment mtmg-<env> (OIDC, azure/login@v2). Rights: Contributor on
+# the gateway resource group and Role Based Access Control Administrator
+# constrained to the two roles the template assigns (the model-inference role
+# for the gateway identity and Foundry User for team members). No client
+# secret exists anywhere in this workflow.
+#
+# Variables per GitHub environment mtmg-<env> (identifiers, not secrets):
+#   AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID, AZURE_MTMG_DEPLOY_CLIENT_ID,
+#   MTMG_RESOURCE_GROUP
+#   MTMG_PARAMETERS   populated copy of the "deployment" section of
+#                     ../parameters.example.json (one JSON document, kept out
+#                     of git; it holds identifiers and budgets, no secrets)
+# The deploy job uses environment mtmg-<env>-deploy, which carries the same
+# variables plus a required-reviewers protection rule.
+
+name: multi-team-gateway-deploy
+
+on:
+  pull_request:
+    paths:
+      - "assets/ai-gateway/multi-team-model-gateway/**"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, test, prod]
+        default: dev
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: mtmg-${{ inputs.environment || 'pr' }}
+  cancel-in-progress: false
+
+env:
+  ASSET: assets/ai-gateway/multi-team-model-gateway
+  INFRA: assets/ai-gateway/multi-team-model-gateway/infra
+  ENV_NAME: ${{ inputs.environment || 'dev' }}
+
+jobs:
+  # ------------------------------------------------------------------ Stage 0
+  lint:
+    name: "Stage 0 - lint, guardrails and offline tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Bicep CLI
+        run: az bicep install && az bicep version
+      - name: Lint and build every template
+        run: |
+          set -euo pipefail
+          for t in main modules/foundry-account modules/apim-gateway modules/team modules/role-assignment; do
+            echo "::group::$t.bicep"
+            az bicep lint  --file "$INFRA/$t.bicep"
+            az bicep build --file "$INFRA/$t.bicep" --stdout > /dev/null
+            echo "::endgroup::"
+          done
+      - name: Policy placeholders are intact
+        run: |
+          set -euo pipefail
+          # APIM policy expressions are not strict XML, so check the markers the templates replace.
+          [ "$(grep -c '<!-- TOKEN_METRIC_POLICY -->' "$INFRA/policies/api-gateway-policy.xml")" = "1" ] \
+            || { echo "::error::api-gateway-policy.xml must contain the token metric marker exactly once"; exit 1; }
+          grep -q 'tokens-per-minute="__TOKENS_PER_MINUTE__"' "$INFRA/policies/team-token-limit.xml" \
+            || { echo "::error::team-token-limit.xml lost its budget placeholder"; exit 1; }
+          grep -q 'counter-key="@(context.Product.Name)"' "$INFRA/policies/team-token-limit.xml" \
+            || { echo "::error::the token limit must be keyed by the team product"; exit 1; }
+      - name: Guardrails on committed files
+        run: |
+          set -euo pipefail
+          # Role IDs and principal IDs are supplied per environment, never committed.
+          if grep -nE '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-' "$INFRA/parameters.example.json"; then
+            echo "::error::parameters.example.json contains a populated identifier"; exit 1
+          fi
+          # No template may output a subscription key or a connection credential.
+          if grep -nE 'output .*(listSecrets|primaryKey|secondaryKey|credentials)' "$INFRA"/main.bicep "$INFRA"/modules/*.bicep; then
+            echo "::error::a template outputs key material"; exit 1
+          fi
+          # Connections stay private to their project.
+          if grep -nE 'isSharedToAll: *true' "$INFRA"/modules/*.bicep; then
+            echo "::error::a team connection is shared to all projects"; exit 1
+          fi
+          # The client sample configuration names endpoints and connections, never keys.
+          if grep -niE '(api[_-]?key|subscription[_-]?key|secret)\s*=' "$ASSET/src/.env.sample"; then
+            echo "::error::src/.env.sample contains a key"; exit 1
+          fi
+      - name: Offline simulator self-test
+        run: python "$ASSET/samples/team_quota_gateway.py" --self-test
+      - name: Client source compiles
+        run: |
+          set -euo pipefail
+          for f in "$ASSET"/src/*.py; do python -m py_compile "$f"; done
+
+  # ------------------------------------------------------------------ Stage 1
+  what-if:
+    name: "Stage 1 - validate and what-if"
+    needs: lint
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: mtmg-${{ inputs.environment }}
+    env:
+      RG: ${{ vars.MTMG_RESOURCE_GROUP }}
+      MTMG_PARAMETERS: ${{ vars.MTMG_PARAMETERS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_MTMG_DEPLOY_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Validate and what-if
+        run: |
+          set -euo pipefail
+          mkdir -p .local
+          printf '%s' "$MTMG_PARAMETERS" > .local/deployment.json
+          # Team names must be unique: they derive product, project and connection names.
+          dupes=$(jq -r '.parameters.teams.value[].name' .local/deployment.json | sort | uniq -d)
+          if [ -n "$dupes" ]; then echo "::error::duplicate team names: $dupes"; exit 1; fi
+          az deployment group validate -g "$RG" -f "$INFRA/main.bicep" -p @.local/deployment.json -o none
+          az deployment group what-if  -g "$RG" -f "$INFRA/main.bicep" -p @.local/deployment.json \
+            --exclude-change-types Ignore NoChange
+
+  # ------------------------------------------------------------------ Stage 2
+  deploy:
+    name: "Stage 2 - deploy (approval-gated)"
+    needs: what-if
+    runs-on: ubuntu-latest
+    environment: mtmg-${{ inputs.environment }}-deploy
+    env:
+      RG: ${{ vars.MTMG_RESOURCE_GROUP }}
+      MTMG_PARAMETERS: ${{ vars.MTMG_PARAMETERS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_MTMG_DEPLOY_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy
+        run: |
+          set -euo pipefail
+          mkdir -p .local
+          printf '%s' "$MTMG_PARAMETERS" > .local/deployment.json
+          az deployment group create -g "$RG" -n "mtmg-$ENV_NAME" \
+            -f "$INFRA/main.bicep" -p @.local/deployment.json -o none
+
+  # ------------------------------------------------------------------ Stage 3
+  verify:
+    name: "Stage 3 - post-deploy verification"
+    needs: deploy
+    runs-on: ubuntu-latest
+    environment: mtmg-${{ inputs.environment }}
+    env:
+      RG: ${{ vars.MTMG_RESOURCE_GROUP }}
+    steps:
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_MTMG_DEPLOY_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Outputs carry no key material
+        run: |
+          set -euo pipefail
+          az deployment group show -g "$RG" -n "mtmg-$ENV_NAME" --query properties.outputs -o json > outputs.json
+          if grep -niE 'key"|secret|password' outputs.json; then
+            echo "::error::deployment outputs contain key material"; exit 1
+          fi
+      - name: Every team connection exists and is private to its project
+        run: |
+          set -euo pipefail
+          account=$(jq -r .foundryAccountName.value outputs.json)
+          sub=$(az account show --query id -o tsv)
+          # The api-version below is the one the templates use; check for a newer one.
+          for row in $(jq -c '.teams.value[]' outputs.json); do
+            project=$(jq -r .projectName <<<"$row"); conn=$(jq -r .connectionName <<<"$row")
+            url="https://management.azure.com/subscriptions/$sub/resourceGroups/$RG/providers/Microsoft.CognitiveServices/accounts/$account/projects/$project/connections/$conn?api-version=2025-04-01-preview"
+            shared=$(az rest --method get --url "$url" --query properties.isSharedToAll -o tsv)
+            [ "$shared" = "false" ] || { echo "::error::$conn is shared to all projects"; exit 1; }
+            echo "$project/$conn present and private"
+          done
+      - name: The gateway rejects a call without a team key
+        run: |
+          set -euo pipefail
+          target=$(jq -r .gatewayTarget.value outputs.json)
+          deployment=$(jq -r .modelDeploymentName.value outputs.json)
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+            "$target/openai/deployments/$deployment/chat/completions?api-version=2024-10-21" \
+            -H 'Content-Type: application/json' -d '{"messages":[{"role":"user","content":"ping"}]}')
+          [ "$code" = "401" ] || { echo "::error::call without a gateway key returned $code, expected 401"; exit 1; }
+          # The per-team isolation proof needs team identities; run src/tpm_burst_test.py
+          # as described in docs/evaluation-and-troubleshooting.md before onboarding real traffic.

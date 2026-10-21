@@ -1,0 +1,60 @@
+<!--
+  API-scope policy for the shared model API (multi-team-model-gateway).
+  Loaded by modules/apim-gateway.bicep. The marker comment near the end of the inbound section is
+  replaced with policies/token-metric-fragment.xml when enableObservability is true.
+
+  Inbound order matters:
+    1. Reject calls that did not arrive through a team product. The built-in all-access subscription and
+       API-scoped subscriptions have no product, so they would bypass every team budget.
+    2. Reject model deployments that are not on the allow-list. This runs before base so a rejected call
+       never spends team budget.
+    3. base runs the product policy: the per-team azure-openai-token-limit keyed by the product name
+       (policies/team-token-limit.xml). Over-budget calls get 429 with retry-after and never reach the model.
+    4. Strip every caller credential and the diagnostic x-team header so they are never forwarded.
+    5. Authenticate to the model endpoint with the gateway's system-assigned managed identity.
+    6. Route to the shared backend.
+-->
+<policies>
+  <inbound>
+    <choose>
+      <when condition="@(context.Product == null)">
+        <return-response>
+          <set-status code="403" reason="Forbidden" />
+          <set-header name="Content-Type" exists-action="override">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{"error":{"code":"team_product_required","message":"Use the gateway key distributed through your team's Foundry project connection."}}</set-body>
+        </return-response>
+      </when>
+    </choose>
+    <set-variable name="deploymentId" value="@(context.Request.MatchedParameters.ContainsKey("deployment-id") ? context.Request.MatchedParameters["deployment-id"] : string.Empty)" />
+    <choose>
+      <when condition="@(!"{{allowed-model-deployments}}".Split(',').Select(d => d.Trim()).Contains((string)context.Variables["deploymentId"]))">
+        <return-response>
+          <set-status code="404" reason="Not Found" />
+          <set-header name="Content-Type" exists-action="override">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{"error":{"code":"deployment_not_allowed","message":"This model deployment is not exposed through the gateway."}}</set-body>
+        </return-response>
+      </when>
+    </choose>
+    <base />
+    <set-header name="api-key" exists-action="delete" />
+    <set-header name="Authorization" exists-action="delete" />
+    <set-header name="x-team" exists-action="delete" />
+    <set-query-parameter name="api-key" exists-action="delete" />
+    <authentication-managed-identity resource="https://cognitiveservices.azure.com" />
+    <set-backend-service backend-id="foundry-openai" />
+    <!-- TOKEN_METRIC_POLICY -->
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>
