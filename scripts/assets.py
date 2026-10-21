@@ -139,7 +139,7 @@ RESERVED_TLDS = ("example", "test", "invalid", "localhost")
 # they are not tenant-specific, so `scan` does not flag them. Add an entry only for an id
 # that Microsoft documents publicly, and say what it is.
 WELL_KNOWN_GUIDS = {
-    "53ca6127-db72-4b80-b1b0-d745d6d5456d": "Azure AI User (built-in role)",
+    "53ca6127-db72-4b80-b1b0-d745d6d5456d": "Foundry User (built-in role, formerly Azure AI User)",
     "230815da-be43-4aae-9cb4-875f7bd000aa": "Cosmos DB Operator (built-in role)",
     "b86a8fe4-44ce-4948-aee5-eccb2c155cd7": "Key Vault Secrets Officer (built-in role)",
     "4633458b-17de-408a-b874-0445c86b69e6": "Key Vault Secrets User (built-in role)",

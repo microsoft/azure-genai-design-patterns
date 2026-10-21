@@ -71,7 +71,7 @@ SCOPE_COSMOS = "cosmos-account"
 SCOPE_GATEWAY = "tool-gateway"
 
 # Public built-in role names; verify the current names on Microsoft Learn.
-ROLE_AI_USER = "Foundry User"
+ROLE_FOUNDRY_USER = "Foundry User"
 ROLE_OPENAI_USER = "Cognitive Services OpenAI User"
 ROLE_COSMOS_DATA = "Cosmos DB Built-in Data Contributor"
 ROLE_ACR_PUSH = "AcrPush"
@@ -113,7 +113,7 @@ class Operation:
     destination: str
 
 
-_FOUNDRY_OP = Operation(ROLE_AI_USER, SCOPE_PROJECT, AUD_FOUNDRY, "foundry")
+_FOUNDRY_OP = Operation(ROLE_FOUNDRY_USER, SCOPE_PROJECT, AUD_FOUNDRY, "foundry")
 
 OPERATIONS: dict[str, Operation] = {
     "agents.create_version": _FOUNDRY_OP,
@@ -1572,12 +1572,12 @@ def expect_error(fn: Callable[[], Any], status: int, code: str | None = None) ->
 
 DEFAULT_GRANTS = (
     (PIPELINE, ROLE_ACR_PUSH, SCOPE_REGISTRY),
-    (PIPELINE, ROLE_AI_USER, SCOPE_PROJECT),
+    (PIPELINE, ROLE_FOUNDRY_USER, SCOPE_PROJECT),
     (RUNTIME, ROLE_OPENAI_USER, SCOPE_ACCOUNT),
     (RUNTIME, ROLE_COSMOS_DATA, SCOPE_COSMOS),
     (PROJECT_IDENTITY, ROLE_ACR_PULL, SCOPE_REGISTRY),
-    (CALLER, ROLE_AI_USER, SCOPE_PROJECT),
-    (OPERATOR, ROLE_AI_USER, SCOPE_PROJECT),
+    (CALLER, ROLE_FOUNDRY_USER, SCOPE_PROJECT),
+    (OPERATOR, ROLE_FOUNDRY_USER, SCOPE_PROJECT),
     # Control plane only: can manage the resource, cannot call its data plane.
     (DEVELOPER, ROLE_CONTRIBUTOR, SCOPE_PROJECT),
 )
@@ -1672,7 +1672,7 @@ def scenario_missing_role_403_clear_message() -> None:
     w.deploy()
     developer = w.client(principal=DEVELOPER)
     exc = expect_error(lambda: developer.open_session(version="1"), 403, "authorization_failed")
-    check(ROLE_AI_USER in exc.message and ROLE_CONTRIBUTOR in exc.message, exc.message)
+    check(ROLE_FOUNDRY_USER in exc.message and ROLE_CONTRIBUTOR in exc.message, exc.message)
     check("grant no data-plane actions" in exc.message, exc.message)
     w.rbac.revoke(RUNTIME, ROLE_OPENAI_USER, SCOPE_ACCOUNT)
     client = w.client()
