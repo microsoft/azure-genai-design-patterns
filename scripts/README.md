@@ -30,7 +30,7 @@ CI runs `validate`, `catalog --check`, `scan` and the template sample self-test 
 
 ### What `scan` allows
 
-`scan` is a heuristic, not a replacement for curator review or GitHub secret scanning. It allows:
+`scan` is a heuristic, not a replacement for maintainer review or GitHub secret scanning. It allows:
 
 - **Placeholder GUIDs** such as `00000000-0000-0000-0000-000000000000`.
 - **Public, well-known GUIDs** listed in `WELL_KNOWN_GUIDS` in `assets.py`: Azure built-in role definition ids and Microsoft first-party application ids, which are identical in every tenant. Add an id only if Microsoft documents it publicly, and record what it is.
@@ -46,7 +46,7 @@ The schema is authoritative; this is a summary.
 |-------|----------|-------|
 | `schema_version` | Yes | Always `1`. |
 | `id` | Yes | Kebab-case; must equal the asset folder name. |
-| `category` | Yes | Must equal the parent folder: `delivery-and-ops`, `m365-and-copilot`, `security-and-governance`, `landing-zones-and-infra`, `agent-runtime`, `ai-gateway`, `orchestration-and-workflows` or `data-and-tools`. |
+| `category` | Yes | Must equal the parent folder: `m365-and-copilot`, `security-and-governance`, `landing-zones-and-infra`, `agent-runtime`, `ai-gateway`, `orchestration-and-workflows`, `agentops-and-readiness` or `data-and-tools`. |
 | `title`, `summary` | Yes | Shown in the generated catalogs. |
 | `kind` | Yes | `design-pattern`, `reference-architecture`, `solution-accelerator`, `playbook` or `sample`. |
 | `maturity` | Yes | `experimental`, `preview`, `stable` or `deprecated`. |
@@ -54,11 +54,11 @@ The schema is authoritative; this is a summary.
 | `tags` | Yes | 1 to 15 kebab-case tags. |
 | `owners` | Yes | GitHub handles, for example `@octocat`. |
 | `last_reviewed` | Yes | `YYYY-MM-DD`. |
-| `pillars` | No | Path-to-production pillars the asset helps with: `coe-and-governance`, `landing-zones`, `agent-ops`, `security-and-observability`, `solution-optimization`, `agent-architecture-patterns`. Drives the pillar map in the root README. |
+| `pillars` | No | Production-readiness pillars the asset helps with: `coe-and-governance`, `landing-zones`, `agent-ops`, `security-and-observability`, `solution-optimization`, `agent-architecture-patterns`. Drives the pillar map in the root README. |
 | `azure_services` | No | Product names the asset uses. |
 | `related` | No | Ids of related assets; each must exist. |
 | `deprecated_by` | No | Id of the replacement asset when `maturity` is `deprecated`. |
 
 ## Adding a category
 
-Categories are defined in `CATEGORIES` in `assets.py` and in the `category` enum of `manifest.schema.json`. A new category needs a curator decision, a change to both lists, and an update to [`docs/contribution-guide.md`](../docs/contribution-guide.md).
+Categories are defined in `CATEGORIES` in `assets.py` and in the `category` enum of `manifest.schema.json`. A new category needs a maintainer decision, a change to both lists, and an update to [`docs/contribution-guide.md`](../docs/contribution-guide.md).

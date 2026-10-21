@@ -579,7 +579,7 @@ Record each migration as an ADR, following [ADR 0001](decisions/0001-default-to-
 - [ ] Owners are named: business owner, technical owner, and agent identity sponsor.
 - [ ] Preview features in use are listed, with a plan if they change.
 
-Hand off to [Production Hosted Agents on Foundry](../../production-hosted-agents-on-foundry/README.md) for hosted build and operations, [Agent Security and Governance](../../../security-and-governance/agent-security-and-governance/README.md) for controls, and [Agent Path to Production](../../../delivery-and-ops/agent-path-to-production/README.md) for release.
+Hand off to [Production Hosted Agents on Foundry](../../production-hosted-agents-on-foundry/README.md) for hosted build and operations, [Agent Security and Governance](../../../security-and-governance/agent-security-and-governance/README.md) for controls, and the [Agent Production Readiness Guide](../../../agentops-and-readiness/agent-production-readiness/README.md) for release.
 
 ## 20. References
 

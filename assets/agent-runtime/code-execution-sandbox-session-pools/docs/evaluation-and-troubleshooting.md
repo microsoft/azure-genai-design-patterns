@@ -138,4 +138,4 @@ The simulator models the broker's policy decisions and an in-memory pool. It nev
 - [Verify Before Approve](../../../orchestration-and-workflows/verify-before-approve/README.md)
 - [Governed Context-Aware Agent Harness](../../../orchestration-and-workflows/governed-context-aware-agent-harness/README.md)
 - [Production Hosted Agents on Foundry](../../production-hosted-agents-on-foundry/README.md)
-- [Agent Path to Production](../../../delivery-and-ops/agent-path-to-production/README.md)
+- [Agent Production Readiness Guide](../../../agentops-and-readiness/agent-production-readiness/README.md)

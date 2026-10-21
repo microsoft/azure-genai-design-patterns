@@ -32,10 +32,10 @@ Sub-topics:
 - **Incident runbooks.** Procedures for triage, mitigation, rollback, safe
   disablement, and post-incident learning.
 
-## Field signals
+## Common signals
 
-These signals are generalized from delivery reviews; they describe recurring
-situations, not statistics.
+These signals are generalized from real-world implementations; they describe
+recurring situations, not statistics.
 
 - Teams commonly have traces but no route from them into a test set. The
   sequence that works is to define what "task complete" means first, sample and
@@ -77,7 +77,7 @@ situations, not statistics.
 ## Approach and play
 
 Agent Ops is the primary owner of [Play B: Make quality and changes
-observable](../runbook.md#play-b-make-quality-and-changes-observable). The steps
+observable](../readiness-review.md#play-b-make-quality-and-changes-observable). The steps
 below expand Play B and add the feedback loop that keeps the evaluation set
 current.
 

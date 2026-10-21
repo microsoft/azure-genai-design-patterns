@@ -160,7 +160,7 @@ Table and column names differ between classic and workspace-based Application In
 - [Infrastructure guide](../infra/README.md)
 - [ADR 0001: Token-derived tenant identity](decisions/0001-token-derived-tenant-identity.md)
 - [ADR 0002: Re-check entitlement on tools/call](decisions/0002-recheck-entitlement-on-tools-call.md)
-- [Agent Path to Production](../../../delivery-and-ops/agent-path-to-production/README.md)
+- [Agent Production Readiness Guide](../../../agentops-and-readiness/agent-production-readiness/README.md)
 - [Debug API Management policies](https://learn.microsoft.com/azure/api-management/api-management-howto-api-inspector)
 - [Emit custom metrics from API Management](https://learn.microsoft.com/azure/api-management/emit-metric-policy)
 - [Log events to Azure Event Hubs from API Management](https://learn.microsoft.com/azure/api-management/api-management-howto-log-event-hubs)

@@ -34,8 +34,8 @@ tools without holding network, IAM or responsible AI policy authority.
 - You need a production-ready, turnkey deployment with an egress firewall,
   hub integration and teardown. These templates are reviewed starting points,
   not a managed product.
-- You need delivery governance instead of infrastructure. See
-  [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md).
+- You need production-readiness and release governance instead of infrastructure. See the
+  [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md).
 
 ## Architecture
 
@@ -269,4 +269,4 @@ enabled, keeps the vault name reserved for the retention period.
 - [Publish agents to Microsoft 365 Copilot and Teams](https://learn.microsoft.com/azure/foundry/agents/how-to/publish-copilot)
 - [Publish from a network-isolated project](https://learn.microsoft.com/azure/foundry/agents/how-to/publish-copilot-virtual-network)
 - [Foundry sample: network-isolated agent setup with tools behind a VNet](https://github.com/microsoft-foundry/foundry-samples/tree/main/infrastructure/infrastructure-setup-bicep/19-private-network-agent-tools)
-- Related assets: [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md), [Enterprise Agent Security and Tool Governance](../../security-and-governance/agent-security-and-governance/README.md), [Microsoft 365 Integration with Azure Custom Engine Agent](../../m365-and-copilot/m365-azure-custom-agent/README.md)
+- Related assets: [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md), [Enterprise Agent Security and Tool Governance](../../security-and-governance/agent-security-and-governance/README.md), [Microsoft 365 Integration with Azure Custom Engine Agent](../../m365-and-copilot/m365-azure-custom-agent/README.md)

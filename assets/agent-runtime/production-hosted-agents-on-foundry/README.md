@@ -128,7 +128,7 @@ stateDiagram-v2
 4. **Add the runtime layer.** Read [`infra/README.md`](infra/README.md) and adapt [`infra/main.bicep`](infra/main.bicep): the agent identity, its role assignments, registry access and telemetry wiring.
 5. **Build the image.** Follow [`src/README.md`](src/README.md) for the container layout: non-root, minimal base, token cache, OpenTelemetry and graceful shutdown.
 6. **Wire the pipeline.** Follow [`docs/deployment-and-operations.md`](docs/deployment-and-operations.md) to build, scan, push, deploy a version and run a smoke turn from inside the VNet, then promote.
-7. **Gate and operate.** Use the gates and runbooks in [`docs/evaluation-and-troubleshooting.md`](docs/evaluation-and-troubleshooting.md), then follow [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md).
+7. **Gate and operate.** Use the gates and runbooks in [`docs/evaluation-and-troubleshooting.md`](docs/evaluation-and-troubleshooting.md), then follow the [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md).
 
 ## File map
 
@@ -152,9 +152,9 @@ stateDiagram-v2
 | [Code Execution Sandboxes with Session Pools](../code-execution-sandbox-session-pools/README.md) | Where untrusted or model-generated code runs instead of inside the hosted agent |
 | [Multi-Tenant MCP Gateway](../../ai-gateway/multi-tenant-mcp-gateway/README.md) | Governed tool access for the hosted agent's MCP calls |
 | [Backend Identity Propagation](../../ai-gateway/backend-identity-propagation/README.md) | How the caller's identity reaches tools and backends without passing tokens through |
-| [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md) | Release gates, evaluation and operating model around this runtime |
+| [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md) | Release gates, evaluation and operating model around this runtime |
 
-## P2P pillar mapping
+## Production-readiness pillar mapping
 
 | Pillar | How this asset contributes |
 |---|---|

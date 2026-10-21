@@ -158,10 +158,10 @@ Then read [`docs/architecture.md`](docs/architecture.md) for the full design and
 - [Choosing Prompt Agents vs Hosted Agents in Microsoft Foundry](../../agent-runtime/choosing-prompt-vs-hosted-agents/README.md): why a harness like this implies a hosted (code-owned) agent.
 - [Production Hosted Agents on Microsoft Foundry](../../agent-runtime/production-hosted-agents-on-foundry/README.md): where the harness runs in production.
 - [Sandboxed Code Execution with Session Pools](../../agent-runtime/code-execution-sandbox-session-pools/README.md): the isolation boundary to use when computation outgrows an allowlisted evaluator.
-- [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md): release gates and evaluation that consume this harness's certificates.
+- [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md): release gates and evaluation that consume this harness's certificates.
 - [Enterprise Agent Security and Tool Governance](../../security-and-governance/agent-security-and-governance/README.md): the broader control framework (identity, data, content safety) around the agent.
 
-## P2P pillar mapping
+## Production-readiness pillar mapping
 
 | Pillar | How this asset contributes |
 |---|---|

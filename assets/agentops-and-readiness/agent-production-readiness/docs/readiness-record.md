@@ -1,19 +1,19 @@
-# Private workload readiness record
+# Workload readiness record
 
 Copy this structure into the workload's approved private system. Do not commit a
-completed customer record to this repository. Use synthetic examples only for a
+completed workload record to this repository. Use synthetic examples only for a
 public contribution.
 
-## Outcome and routing
+## Outcome and ownership
 
 | Field | Record |
 |-------|--------|
 | Desired user outcome and success measure | |
 | Current stage and principal blocker | |
-| Engagement coordinator and workload owner | |
-| Primary lens and selected delivery play | |
-| Specialist contributors and accepted scope | |
-| Existing service/asset and verified prerequisites | |
+| Readiness lead and workload owner | |
+| Primary pillar and selected play | |
+| Contributing roles and accepted scope | |
+| Reused assets and verified prerequisites | |
 | Non-goals and external dependencies | |
 | Next decision and accountable decision owner | |
 
@@ -42,5 +42,6 @@ the operating owner, monitoring/support route, and recovery or disablement plan.
 ## Reusable learning
 
 Record the generic lesson, the source asset owner to notify, and whether a
-separate sanitized contribution is suitable for curator review. Readiness
-approval is not approval to publish.
+separate sanitized contribution is suitable for maintainer review under
+[CONTRIBUTING.md](../../../../CONTRIBUTING.md). Readiness approval is not
+approval to publish.

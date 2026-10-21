@@ -27,7 +27,7 @@ owners:
   - "@james-tn"
 last_reviewed: "2026-10-20"
 related:
-  - agent-path-to-production
+  - agent-production-readiness
   - m365-azure-custom-agent
   - agent-security-and-governance
 pillars:

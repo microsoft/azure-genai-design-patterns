@@ -2,7 +2,7 @@
 # Schema: scripts/manifest.schema.json
 schema_version: 1
 id: asset-id
-category: m365-and-copilot # delivery-and-ops | m365-and-copilot | security-and-governance | landing-zones-and-infra | agent-runtime | ai-gateway | orchestration-and-workflows | data-and-tools
+category: m365-and-copilot # m365-and-copilot | security-and-governance | landing-zones-and-infra | agent-runtime | ai-gateway | orchestration-and-workflows | agentops-and-readiness | data-and-tools
 title: Short descriptive title
 summary: >-
   One or two sentences describing what this asset is, the recurring architectural problem it solves, and the measurable outcome it enables.
@@ -19,6 +19,6 @@ owners:
   - "@your-github-handle"
 last_reviewed: 2026-01-01
 related:
-  - agent-path-to-production
+  - agent-production-readiness
 pillars: # coe-and-governance | landing-zones | agent-ops | security-and-observability | solution-optimization | agent-architecture-patterns
   - agent-architecture-patterns

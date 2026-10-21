@@ -2,7 +2,7 @@
 
 This guide defines the engineering, architectural, and public-safety standards for every asset in `microsoft/agenticai-design-patterns`. Whether you are authoring a contribution by hand or using an AI coding agent, follow this guide so every asset in the catalog is **domain-agnostic, production-deep, runnable offline, and 100% public-safe**.
 
-For how the catalog maps to the six path-to-production pillars, see [Path to production](path-to-production.md). For the short version of the rules, see [CONTRIBUTING.md](../CONTRIBUTING.md).
+For how the catalog maps to the six production-readiness pillars, see the [production-readiness map](production-readiness-map.md). For the short version of the rules, see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ---
 
@@ -32,22 +32,22 @@ Every asset belongs to exactly one primary category folder under `assets/`. If a
 
 | Category ID | Category Title | What belongs here | Examples |
 |---|---|---|---|
-| `delivery-and-ops` | **Delivery and Operations** | End-to-end delivery playbooks, readiness gates, six-pillar review checklists, and AgentOps operating models | `agent-path-to-production` |
 | `m365-and-copilot` | **Microsoft 365 and Copilot Integration** | Declarative agents, custom engine agents, MCP plug-ins, MCP Apps (`ui://` widgets), Teams bots, and Cowork surface integrations | `m365-azure-custom-agent`, `m365-mcp-plugin-integration` |
 | `security-and-governance` | **Security and Governance** | Tool-call governance, Entra Agent ID, Foundry Toolbox allow-lists, runtime guardrails, Purview DSPM for AI, and Sentinel KQL audit | `agent-security-and-governance` |
 | `landing-zones-and-infra` | **Landing Zones and Infrastructure** | Private Microsoft Foundry landing zones, Private Link / DNS topologies, Bicep/Terraform IaC, and multi-stage CI/CD promotion pipelines | `secured-foundry-landing-zone` |
 | `agent-runtime` | **Agent Runtime and Hosting** | Choosing prompt vs hosted agents, production hosted agents on Foundry (private networking, in-VNet CI/CD, RBAC, sessions), and sandboxed code execution | `choosing-prompt-vs-hosted-agents`, `production-hosted-agents-on-foundry`, `code-execution-sandbox-session-pools` |
 | `ai-gateway` | **AI Gateway** | API Management as the control plane for model, MCP tool, and agent traffic: multi-tenant MCP gateways, OAuth front doors, backend identity propagation, metering, and quotas | `multi-tenant-mcp-gateway`, `mcp-oauth-front-door`, `backend-identity-propagation` |
 | `orchestration-and-workflows` | **Orchestration and Workflows** | Governed agent harnesses, verification gates, multi-agent routers, planner/specialist handoff protocols, durable state/caching engines, and workflow patterns | `governed-context-aware-agent-harness`, `verify-before-approve` |
+| `agentops-and-readiness` | **AgentOps and Production Readiness** | Production-readiness guides, evidence-based readiness gates, six-pillar review checklists, evaluation frameworks, and AgentOps operating models | `agent-production-readiness` |
 | `data-and-tools` | **Data and Tools** | Standalone MCP server reference architectures, On-Behalf-Of (OBO) data-platform connectors, Foundry IQ / RAG grounding, and action gates | *Planned* — the folder is created with the first asset |
 
 Each `assets/<category>/README.md` acts as a **Category Decision Guide** with a comparison matrix showing when to choose each sibling asset in that category, plus an auto-generated `<!-- category-catalog:start --> ... <!-- category-catalog:end -->` table maintained by `python scripts/assets.py catalog`.
 
-Planned categories have no folder yet. Until their first asset lands, [Path to production](path-to-production.md#planned-categories-where-to-look-today) points to the published assets that cover those topics today. `python scripts/assets.py new` creates the category folder and its README from `templates/category/README.md` the first time an asset is added to it.
+Planned categories have no folder yet. Until their first asset lands, the [production-readiness map](production-readiness-map.md#planned-categories-where-to-look-today) points to the published assets that cover those topics today. `python scripts/assets.py new` creates the category folder and its README from `templates/category/README.md` the first time an asset is added to it.
 
-### Mapping to the path-to-production pillars
+### Mapping to the production-readiness pillars
 
-Every manifest declares `pillars:` — one or more of the six pillars the asset helps a team move through on the way to production:
+Every manifest declares `pillars:` — one or more of the six pillars the asset helps a team satisfy before running an agent in production:
 
 | Pillar id | Pillar |
 |---|---|
@@ -85,7 +85,7 @@ Most high-value assets originate from real field engagements, customer architect
 
 ## 3. Depth & Completeness Bar by Asset `kind`
 
-Every asset must pass both automated schema validation and curator review against the depth bar for its `kind`:
+Every asset must pass both automated schema validation and maintainer review against the depth bar for its `kind`:
 
 | Requirement | `design-pattern` | `reference-architecture` | `solution-accelerator` | `playbook` | `sample` |
 |---|---|---|---|---|---|
@@ -93,7 +93,7 @@ Every asset must pass both automated schema validation and curator review agains
 | **Domain Pack / Multi-Industry Framing Table** | Required | Required | Recommended | Recommended | Optional |
 | **Architecture & Implementation Map in `README.md`** | Required | Required | Required | Required | Required |
 | **Decision Matrix ("When to use X vs. Y")** | Required | Required | Required | Required | Recommended |
-| **`docs/architecture.md` with Mermaid Topology & Sequence Diagrams** | Required (`350+` lines) | Required (`400+` lines) | Required (`400+` lines) | Via `docs/runbook.md` & pillar chapters | Concise (`150+` lines) |
+| **`docs/architecture.md` with Mermaid Topology & Sequence Diagrams** | Required (`350+` lines) | Required (`400+` lines) | Required (`400+` lines) | Via `docs/readiness-review.md` & pillar chapters | Concise (`150+` lines) |
 | **Wire Contracts / JSON Schemas / Protocol Payloads** | Required | Required | Required | Readiness record templates | Required |
 | **Identity, Auth & Entitlement Deep Dive (`docs/authentication-*.md`)** | Required when auth is in scope | Required | Required | Pillar 1 & 4 chapters | Inline in `README.md` |
 | **Evaluation, Release Gates & Troubleshooting (`docs/evaluation-*.md` or `docs/troubleshooting-*.md`)** | Required | Required | Required | Pillar 3 chapter + gates | Inline in `samples/README.md` |
@@ -137,7 +137,7 @@ This repository is public under the MIT License. Contributions must contain **ze
 
 ### Step 0: Propose the pattern
 
-Open a **Pattern proposal** issue (from the issue templates) before writing content. A curator confirms that the pattern is not already covered, agrees the category, `kind`, and pillars, and flags any public-safety concerns early.
+Open a **Pattern proposal** issue (from the issue templates) before writing content. A maintainer confirms that the pattern is not already covered, agrees the category, `kind`, and pillars, and flags any public-safety concerns early.
 
 ### Step 1: Scaffold the asset
 
@@ -189,10 +189,10 @@ python scripts/assets.py scan            # public-safety scan across the reposit
 - Every relative Markdown link in the root `README.md` and `CONTRIBUTING.md`, `assets/`, `docs/`, `scripts/README.md`, `.github/`, and `templates/` resolves to an existing file.
 - No blocked file extensions (`.pfx`, `.pem`, `.key`, `.env`, `.pyc`) or oversized files (`> 10 MB`) exist inside an asset.
 
-`python scripts/assets.py scan` checks every text file in the repository for internal URLs, secrets, confidentiality markings, GUIDs that are not documentation placeholders, and email addresses outside the placeholder domains. It is a safety net, not a substitute for curator review. See [scripts/README.md](../scripts/README.md) for details.
+`python scripts/assets.py scan` checks every text file in the repository for internal URLs, secrets, confidentiality markings, GUIDs that are not documentation placeholders, and email addresses outside the placeholder domains. It is a safety net, not a substitute for maintainer review. See [scripts/README.md](../scripts/README.md) for details.
 
 ### Step 4: Open the pull request
 
 - Keep one asset (or one asset update) per pull request.
 - Complete the pull request template checklist, including the public-safety confirmation.
-- A curator listed in `.github/CODEOWNERS` reviews the content against this guide, and the `validate` workflow must pass before merge.
+- A maintainer listed in `.github/CODEOWNERS` reviews the content against this guide, and the `validate` workflow must pass before merge.

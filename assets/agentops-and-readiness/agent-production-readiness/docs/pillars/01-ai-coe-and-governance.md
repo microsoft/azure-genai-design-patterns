@@ -34,10 +34,10 @@ Sub-topics:
   operators, plus reusable guidance that lowers the cost of doing the right
   thing.
 
-## Field signals
+## Common signals
 
-These signals are generalized from delivery reviews; they describe recurring
-situations, not statistics.
+These signals are generalized from real-world implementations; they describe
+recurring situations, not statistics.
 
 - Teams commonly move from many one-off agents toward a shared platform on which
   product teams own their agents. The hardest part is usually not the platform
@@ -46,10 +46,11 @@ situations, not statistics.
 - Teams commonly ask for an agent inventory or control plane early, often before
   a second production agent exists. Without one, nobody can say which agents can
   reach which data, who owns them, or which ones should be retired.
-- Teams commonly discover late that delivery needs several disciplines at once:
-  application engineering, platform, identity, data, and security. Engagements
-  run more smoothly when that cross-discipline team and its decision owners are
-  named at intake rather than recruited after a blocker appears.
+- Teams commonly discover late that production readiness needs several
+  disciplines at once: application engineering, platform, identity, data, and
+  security. Work runs more smoothly when that cross-discipline team and its
+  decision owners are named at the start rather than recruited after a blocker
+  appears.
 - Teams that expose agents to external customers or tenants commonly conflate
   entitlement (whether a tenant has been granted a capability) with
   authorization (whether a specific caller may perform a specific action). They
@@ -78,15 +79,16 @@ situations, not statistics.
 
 ## Approach and play
 
-Governance work rarely needs its own technical play. It frames the engagement in
-[section 1 of the runbook](../runbook.md#1-identify-and-frame) and produces the
-decision in [section 4](../runbook.md#4-release-and-operate). Keep it
+Governance work rarely needs its own technical play. It frames the workload in
+[section 1 of the readiness review](../readiness-review.md#1-frame-the-workload)
+and produces the decision in [section
+4](../readiness-review.md#4-release-and-operate). Keep it
 proportionate: the aim is the minimum decision path that lets the workload
 proceed safely, not a new governance program.
 
-1. **Name the owners.** Record the engagement coordinator, workload owner,
-   operating owner, and decision owner as part of [Identify and
-   frame](../runbook.md#1-identify-and-frame). Confirm that each person has
+1. **Name the owners.** Record the readiness lead, workload owner, operating
+   owner, and decision owner as part of [Frame the
+   workload](../readiness-review.md#1-frame-the-workload). Confirm that each person has
    accepted the role.
 2. **Map the minimum decision path.** List the decisions this workload needs
    (use case, data access, tool actions, exceptions, and release) and the person
@@ -94,12 +96,12 @@ proceed safely, not a new governance program.
 3. **Classify and bound use.** Apply the organization's risk classification and
    acceptable-use policy. Record permitted users, data, actions, and non-goals.
    The action boundary feeds the human-approval step in [Play
-   C](../runbook.md#play-c-secure-agent-to-tool-and-downstream-integration).
+   C](../readiness-review.md#play-c-secure-agent-to-tool-and-downstream-integration).
 4. **Register the agent.** Create or update the inventory entry with owner,
    purpose, data and tool access, environment, and status. Link it from the
    readiness record.
 5. **Agree graduation criteria.** Translate the release gates in [section
-   4](../runbook.md#4-release-and-operate) into workload-specific criteria
+   4](../readiness-review.md#4-release-and-operate) into workload-specific criteria
    before testing, so evidence is judged against an agreed standard rather than
    a demonstration.
 6. **Attribute cost.** Tag or meter consumption to the owning team and set a
@@ -109,8 +111,8 @@ proceed safely, not a new governance program.
    residual risks and follow-up, in the [decision section of the readiness
    record](../readiness-record.md#decision).
 8. **Feed the CoE.** Share generic lessons, reusable guardrails, and gaps in the
-   operating model through [Harvest reusable
-   learning](../runbook.md#5-harvest-reusable-learning).
+   operating model through [Feed learning
+   back](../readiness-review.md#5-feed-learning-back).
 
 ## Readiness evidence and gate
 
@@ -164,7 +166,7 @@ proceed safely, not a new governance program.
   governance decision available.
 - **Roles:** workload owner, responsible AI or risk reviewer, security, privacy
   or legal where required, finance or FinOps, and the operating team. The
-  coordinator keeps the decision log; the accountable owner accepts residual
+  readiness lead keeps the decision log; the accountable owner accepts residual
   risk.
 
 ## References

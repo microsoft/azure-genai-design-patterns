@@ -20,4 +20,4 @@ Solution accelerators, Bicep/Terraform infrastructure-as-code templates, private
 
 - **Runtime tool governance & Entra Agent ID controls on top of the landing zone:** [`security-and-governance/agent-security-and-governance`](../security-and-governance/agent-security-and-governance/README.md)
 - **Publishing Hosted Agents to Microsoft Teams & M365 Copilot:** [`m365-and-copilot/m365-azure-custom-agent`](../m365-and-copilot/m365-azure-custom-agent/README.md)
-- **AI Landing Zone delivery checklist (Pillar 2):** [`delivery-and-ops/agent-path-to-production/docs/pillars/02-ai-landing-zones.md`](../delivery-and-ops/agent-path-to-production/docs/pillars/02-ai-landing-zones.md)
+- **AI Landing Zone readiness checklist (Pillar 2):** [`agentops-and-readiness/agent-production-readiness/docs/pillars/02-ai-landing-zones.md`](../agentops-and-readiness/agent-production-readiness/docs/pillars/02-ai-landing-zones.md)

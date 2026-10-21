@@ -30,7 +30,7 @@ Use this pattern when the agent needs any of these:
 
 - **Custom orchestration.** For example, a planner with specialist agents, deterministic tool chains, or multi-step reasoning that you version and evaluate yourself.
 - **Model control.** Model pinning, provisioned throughput (PTU), model routing, or a model that is not available inside Microsoft 365 Copilot.
-- **Engineering-grade quality controls.** Offline and online evaluations, tracing, regression suites, and CI/CD gates. See [agent-path-to-production](../../delivery-and-ops/agent-path-to-production/README.md).
+- **Engineering-grade quality controls.** Offline and online evaluations, tracing, regression suites, and CI/CD gates. See the [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md).
 - **Proactive push.** The agent must start a conversation in Teams, such as a morning briefing or a deal-risk alert.
 - **Data-layer authorization.** Row-level or territory permissions must be enforced by downstream systems of record, such as Azure Databricks Unity Catalog or a CRM API, through OBO.
 - **The same business capability on several surfaces.** Teams chat, Microsoft 365 Copilot, scheduled or offline work, and supervised Microsoft 365 actions, without re-implementing business logic for each surface.
@@ -151,7 +151,7 @@ Further reading:
 4. **Build the engine.** Use Microsoft Agent Framework with a planner and specialists. Store conversation references and session state in Azure Cosmos DB.
 5. **Host and publish.** Deploy to a Foundry Hosted Agent and use one-click publishing to Teams and Microsoft 365 Copilot, or deploy to Azure Container Apps behind Azure Bot Service.
 6. **Add the declarative agent and Cowork** on the same MCP server for work-context and offline scenarios.
-7. **Gate quality and safety.** Apply evaluations, routing regression tests, and side-effect gate tests as described in [agent-path-to-production](../../delivery-and-ops/agent-path-to-production/README.md).
+7. **Gate quality and safety.** Apply evaluations, routing regression tests, and side-effect gate tests as described in the [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md).
 
 ## Security and responsible AI
 
@@ -193,7 +193,7 @@ Further reading:
 - [Evaluation and routing quality](docs/evaluation-and-routing-quality.md)
 - [ADR 0001: Surface and orchestration split](docs/decisions/0001-surface-and-orchestration-split.md)
 - [Reference Python implementations](samples/README.md)
-- [Agent path to production](../../delivery-and-ops/agent-path-to-production/README.md)
+- [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md)
 - [Microsoft 365 Copilot Integration with MCP via Plug-ins](../m365-mcp-plugin-integration/README.md)
 - [Enterprise Agent Security and Tool Governance](../../security-and-governance/agent-security-and-governance/README.md)
 - [Secured Microsoft Foundry Landing Zone for Enterprise Agents](../../landing-zones-and-infra/secured-foundry-landing-zone/README.md)

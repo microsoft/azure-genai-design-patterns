@@ -147,7 +147,7 @@ Significant decisions are recorded in [ADR 0001: Token-derived tenant identity](
 3. **Agree the tenant claim and directory schema.** Decide which token claim carries the tenant key and what a tenant record contains (status, cell, products, tools, tier, credential reference). Token issuance is covered in [MCP OAuth Front Door](../mcp-oauth-front-door/README.md).
 4. **Deploy the illustrative infrastructure in a sandbox.** Follow [infra/README.md](infra/README.md), including the known gaps, and adapt [the policies](infra/policies/mcp-tenant-pipeline.xml) to your claim names and directory.
 5. **Prove isolation before the first tenant.** Run the negative tests in [evaluation-and-troubleshooting.md](docs/evaluation-and-troubleshooting.md): spoofed tenant header, list-skipping `tools/call`, unknown and suspended tenants, rate limits, and missing tokens.
-6. **Onboard tenants through governance.** Register servers in API Center and use the onboarding runbook in [authentication-and-governance.md](docs/authentication-and-governance.md). Then follow [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md).
+6. **Onboard tenants through governance.** Register servers in API Center and use the onboarding runbook in [authentication-and-governance.md](docs/authentication-and-governance.md). Then follow the [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md).
 
 ## Related assets
 
@@ -158,9 +158,9 @@ Significant decisions are recorded in [ADR 0001: Token-derived tenant identity](
 | [Secured Foundry Landing Zone](../../landing-zones-and-infra/secured-foundry-landing-zone/README.md) | Hub network, DNS, private endpoints, and egress control the gateway depends on |
 | [Agent Security and Governance](../../security-and-governance/agent-security-and-governance/README.md) | Agent identity, guardrails, and governance controls that complement gateway enforcement |
 | [M365 MCP Plug-in Integration](../../m365-and-copilot/m365-mcp-plugin-integration/README.md) | Connecting Microsoft 365 Copilot and Copilot Studio agents to MCP servers such as this gateway |
-| [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md) | Release gates and operating model for the gateway and the agents that use it |
+| [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md) | Release gates and operating model for the gateway and the agents that use it |
 
-## P2P pillar mapping
+## Production-readiness pillar mapping
 
 | Pillar | How this asset contributes |
 |---|---|

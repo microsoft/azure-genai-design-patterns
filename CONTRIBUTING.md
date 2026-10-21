@@ -17,21 +17,21 @@ This repository is public. Before you open a pull request, make sure your contri
 - Personal data. Use synthetic data in samples and screenshots.
 - Third-party code or content whose license is not compatible with the MIT License.
 
-The validation workflow scans for common mistakes, but it cannot catch everything. You and the curator are responsible for what is published.
+The validation workflow scans for common mistakes, but it cannot catch everything. You and the reviewing maintainer are responsible for what is published.
 
 ## Adding an asset
 
-Read the **[Contribution & Pattern Standardization Guide](docs/contribution-guide.md)** for the generalization method, depth requirements by `kind`, and self-test standards, and **[Path to production](docs/path-to-production.md)** for how assets map to the six pillars.
+Read the **[Contribution & Pattern Standardization Guide](docs/contribution-guide.md)** for the generalization method, depth requirements by `kind`, and self-test standards, and the **[Production-readiness map](docs/production-readiness-map.md)** for how assets map to the six production-readiness pillars.
 
-1. **Propose it.** Open a **Pattern proposal** issue so a curator can confirm the scope, category, and pillars before you write content.
+1. **Propose it.** Open a **Pattern proposal** issue so a maintainer can confirm the scope, category, and pillars before you write content.
 2. **Choose the category (`<category>`)** under [`assets/`](assets/README.md):
-   - `delivery-and-ops` — Delivery playbooks, readiness gates, evaluation frameworks, and AgentOps
    - `m365-and-copilot` — Microsoft 365 Copilot, Teams, Declarative Agents, Custom Engine Agents, MCP plug-ins, and Cowork
    - `security-and-governance` — Entra Agent ID, tool governance, guardrails, Purview, and Sentinel observability
    - `landing-zones-and-infra` — Private Microsoft Foundry landing zones, Bicep/Terraform IaC, and CI/CD pipelines
    - `agent-runtime` — Prompt vs hosted agents, production hosted agents on Foundry, sessions, and sandboxed code execution
    - `ai-gateway` — API Management as the control plane for model, MCP tool, and agent traffic
    - `orchestration-and-workflows` — Governed agent harnesses, verification gates, multi-agent routers, and durable workflows
+   - `agentops-and-readiness` — Production-readiness guides, evidence-based readiness gates, evaluation frameworks, and AgentOps operating models
    - `data-and-tools` *(planned)* — Governed MCP servers, OBO data connectors, RAG grounding, and action safety gates
 
    Planned categories have no folder yet; the scaffolding command creates it with the first asset.
@@ -70,8 +70,8 @@ Bump `version` in `manifest.yaml` (semantic versioning), add a `CHANGELOG.md` en
 
 ## Review
 
-- A curator listed in [`.github/CODEOWNERS`](.github/CODEOWNERS) must approve every pull request. Contributors cannot approve their own contributions.
-- Curators check public safety, technical quality, reusability, overlap with existing assets, and that the manifest tags are accurate.
+- A maintainer listed in [`.github/CODEOWNERS`](.github/CODEOWNERS) must approve every pull request. Contributors cannot approve their own contributions.
+- Maintainers check public safety, technical quality, reusability, overlap with existing assets, and that the manifest tags are accurate.
 - The `validate` workflow must pass before merge.
 
 ## Contributor License Agreement

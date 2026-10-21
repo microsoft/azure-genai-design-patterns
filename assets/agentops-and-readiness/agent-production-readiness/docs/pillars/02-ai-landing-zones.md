@@ -35,10 +35,10 @@ Sub-topics:
 - **Platform operations.** Ownership of shared services, upgrade cadence, cost
   tagging, and a route for workload teams to request platform changes.
 
-## Field signals
+## Common signals
 
-These signals are generalized from delivery reviews; they describe recurring
-situations, not statistics.
+These signals are generalized from real-world implementations; they describe
+recurring situations, not statistics.
 
 - Teams commonly treat private networking and DNS as the entry gate for
   production. Pilots built on public endpoints stall when the workload must move
@@ -79,15 +79,16 @@ situations, not statistics.
 ## Approach and play
 
 Landing zone work supports [Play
-A](../runbook.md#play-a-choose-an-operable-agent-architecture) (step 3, data and
+A](../readiness-review.md#play-a-choose-an-operable-agent-architecture) (step 3, data and
 control flows) and [Play
-C](../runbook.md#play-c-secure-agent-to-tool-and-downstream-integration) (steps
+C](../readiness-review.md#play-c-secure-agent-to-tool-and-downstream-integration) (steps
 2 and 3, identity and constrained credentials). It rarely needs a separate play;
 it needs early evidence that the required paths and controls work in a
 representative environment.
 
 1. **Confirm the entry gate.** Identify the target landing zone and the platform
-   owner during [Triage and route](../runbook.md#2-triage-and-route). Record
+   owner while you [diagnose the principal
+   blocker](../readiness-review.md#2-diagnose-the-principal-blocker). Record
    which foundations exist and which are gaps.
 2. **Draw the deployment view.** Extend the Play A flow diagram with
    subscriptions, networks, private endpoints, DNS zones, egress paths, ingress
@@ -159,7 +160,7 @@ representative environment.
   runtime and hosting model the platform must support, such as a managed agent
   service or a custom container runtime.
 - **Roles:** platform and infrastructure, network, identity, application
-  engineering, and the platform owner. Platform specialists lead platform
+  engineering, and the platform owner. Platform engineers lead platform
   concerns; the workload team owns the application deployed on the platform.
 
 ## References

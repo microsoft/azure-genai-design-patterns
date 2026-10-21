@@ -29,10 +29,10 @@ Sub-topics:
   quality bar for each step, routing between models, and deciding when a
   deterministic tool is a better fit than a model call.
 
-## Field signals
+## Common signals
 
-These signals are generalized from delivery reviews; they describe recurring
-situations, not statistics.
+These signals are generalized from real-world implementations; they describe
+recurring situations, not statistics.
 
 - Teams commonly reach first for a larger or faster model when latency is too
   high, but the effective levers are usually elsewhere: pre-computing
@@ -75,9 +75,9 @@ situations, not statistics.
 ## Approach and play
 
 Optimization has no separate play in the
-[runbook](../runbook.md#3-unblock-with-a-bounded-play). Run it as a bounded
+[readiness review](../readiness-review.md#3-unblock-with-a-bounded-play). Run it as a bounded
 experiment on top of the [Play
-B](../runbook.md#play-b-make-quality-and-changes-observable) baseline, so every
+B](../readiness-review.md#play-b-make-quality-and-changes-observable) baseline, so every
 change is measured against the same evaluation set and released through the same
 gate.
 

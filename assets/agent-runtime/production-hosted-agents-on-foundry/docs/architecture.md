@@ -43,7 +43,7 @@ Choosing a hosted agent is a decision about **control**: your own orchestration 
 - Network topology, DNS zones, firewall design and the operator VNet (see the [landing zone architecture](../../../landing-zones-and-infra/secured-foundry-landing-zone/docs/architecture.md)).
 - Propagating the end user's identity to backends (see [Backend Identity Propagation](../../../ai-gateway/backend-identity-propagation/README.md)).
 - Running untrusted or model-generated code (see [Code Execution Sandboxes with Session Pools](../../code-execution-sandbox-session-pools/README.md)).
-- Evaluation methodology beyond release gates (see [Agent Path to Production](../../../delivery-and-ops/agent-path-to-production/README.md)).
+- Evaluation methodology beyond release gates (see the [Agent Production Readiness Guide](../../../agentops-and-readiness/agent-production-readiness/README.md)).
 
 ## 2. Invariants
 
@@ -675,7 +675,7 @@ The following are preview capabilities or behaviours observed while testing prev
 - [Backend Identity Propagation](../../../ai-gateway/backend-identity-propagation/README.md)
 - [Multi-Tenant MCP Gateway](../../../ai-gateway/multi-tenant-mcp-gateway/README.md)
 - [Code Execution Sandboxes with Session Pools](../../code-execution-sandbox-session-pools/README.md)
-- [Agent Path to Production](../../../delivery-and-ops/agent-path-to-production/README.md)
+- [Agent Production Readiness Guide](../../../agentops-and-readiness/agent-production-readiness/README.md)
 - [Hosted agents in Foundry Agent Service](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents)
 - [Agent networking deep dive](https://learn.microsoft.com/azure/foundry/agents/concepts/agents-networking-deep-dive)
 - [Set up CI/CD for a hosted agent](https://learn.microsoft.com/azure/foundry/agents/quickstarts/set-up-cicd-hosted-agent)

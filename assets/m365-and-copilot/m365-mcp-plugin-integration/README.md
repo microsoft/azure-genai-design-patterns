@@ -155,4 +155,4 @@ Prerequisites: a Microsoft 365 tenant with Copilot licenses and custom app uploa
 - [RFC 7636: Proof Key for Code Exchange](https://www.rfc-editor.org/rfc/rfc7636)
 - [RFC 7591: OAuth 2.0 Dynamic Client Registration](https://www.rfc-editor.org/rfc/rfc7591)
 - [RFC 9728: OAuth 2.0 Protected Resource Metadata](https://www.rfc-editor.org/rfc/rfc9728)
-- Related assets: [agent-path-to-production](../../delivery-and-ops/agent-path-to-production/README.md), [m365-azure-custom-agent](../m365-azure-custom-agent/README.md), [agent-security-and-governance](../../security-and-governance/agent-security-and-governance/README.md)
+- Related assets: [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md), [m365-azure-custom-agent](../m365-azure-custom-agent/README.md), [agent-security-and-governance](../../security-and-governance/agent-security-and-governance/README.md)

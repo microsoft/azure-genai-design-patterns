@@ -162,7 +162,7 @@ These decisions are recorded in [ADR 0001: Front-door shims at the gateway](docs
 3. **Design the resource and audience model.** One resource URI per MCP server, one API app registration or scope per server, and the `resource` to scope map ([section 11](docs/architecture.md#11-audience-binding-and-the-resource-to-scope-map)).
 4. **Register the clients.** Create the API and public client app registrations with the baseline in [authentication-and-governance.md](docs/authentication-and-governance.md), including exact loopback redirect URIs.
 5. **Adapt the illustrative policies.** Start from [`docs/policies/`](docs/policies/README.md), replace the named values, and keep the negative checks (missing PKCE, unknown client, unknown resource, non-loopback redirect).
-6. **Prove the negative cases, then hand off.** Run the release gates in the evaluation doc, then connect the validated route to the [multi-tenant MCP gateway](../multi-tenant-mcp-gateway/README.md) pipeline and follow [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md).
+6. **Prove the negative cases, then hand off.** Run the release gates in the evaluation doc, then connect the validated route to the [multi-tenant MCP gateway](../multi-tenant-mcp-gateway/README.md) pipeline and follow the [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md).
 
 ## Related assets
 
@@ -174,7 +174,7 @@ These decisions are recorded in [ADR 0001: Front-door shims at the gateway](docs
 | [Agent Security and Governance](../../security-and-governance/agent-security-and-governance/README.md) | Agent identity, consent governance and guardrails that complement the client allow-list |
 | [Secured Foundry Landing Zone](../../landing-zones-and-infra/secured-foundry-landing-zone/README.md) | The network and identity landing zone the gateway runs in |
 
-## P2P pillar mapping
+## Production-readiness pillar mapping
 
 | Pillar | How this asset contributes |
 |---|---|

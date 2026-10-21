@@ -197,7 +197,7 @@ stateDiagram-v2
 | [Multi-Tenant MCP Gateway on Azure API Management](../../ai-gateway/multi-tenant-mcp-gateway/README.md) | Fronts your own MCP tool for custom-container pools with tenant-aware policy |
 | [Backend Identity Propagation](../../ai-gateway/backend-identity-propagation/README.md) | How user identity reaches back ends; this asset deliberately keeps it out of the sandbox |
 
-## P2P pillar mapping
+## Production-readiness pillar mapping
 
 | Pillar | How this asset contributes |
 | --- | --- |

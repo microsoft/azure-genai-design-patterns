@@ -126,7 +126,7 @@ Recorded as ADRs:
 4. **Separate identities.** Give the generator, verifier, release service and approval channel their own workload identities, and map approver roles to tiers, following [authentication-and-governance.md](docs/authentication-and-governance.md).
 5. **Design the approval card.** Show what was verified as a checklist marked "do not re-check", the questions that need judgement, the diff from the previous version and links to evidence ([what the approver sees](docs/architecture.md#11-what-the-approver-sees)).
 6. **Bind and store.** Bind each decision to the artifact digest, receipt id and a single-use nonce, store every record write-once, and have the release service re-hash before it ships ([gate rules](docs/architecture.md#12-gate-rules)).
-7. **Gate the release of the pattern itself.** Work through the [production checklist](docs/architecture.md#18-production-checklist), then follow [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md).
+7. **Gate the release of the pattern itself.** Work through the [production checklist](docs/architecture.md#18-production-checklist), then follow the [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md).
 
 ## Files
 
@@ -147,11 +147,11 @@ Recorded as ADRs:
 |---|---|
 | [Governed Context-Aware Agent Harness](../governed-context-aware-agent-harness/README.md) | The full reference architecture this pattern is extracted from. The harness also covers context assembly, tool governance and memory; this asset goes deeper on verification, approval binding and the preview state ([architecture section 14](docs/architecture.md#14-relationship-to-the-governed-agent-harness)) |
 | [Agent Security and Governance](../../security-and-governance/agent-security-and-governance/README.md) | Agent identity, guardrails and governance controls that surround the verify and approve stages |
-| [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md) | Release gates and the operating model for shipping the agent and its verifier |
+| [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md) | Release gates and the operating model for shipping the agent and its verifier |
 | [Backend Identity Propagation](../../ai-gateway/backend-identity-propagation/README.md) | How the user's identity reaches back-end systems; complements the separation of agent, verifier and approver identities here |
 | [Choosing Prompt vs Hosted Agents](../../agent-runtime/choosing-prompt-vs-hosted-agents/README.md) | Where the generator runs; the verifier stays a separate component either way |
 
-## P2P pillar mapping
+## Production-readiness pillar mapping
 
 | Pillar | How this asset contributes |
 |---|---|

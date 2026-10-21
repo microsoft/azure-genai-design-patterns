@@ -35,7 +35,7 @@ last_reviewed: "2026-10-20"
 related:
   - verify-before-approve
   - choosing-prompt-vs-hosted-agents
-  - agent-path-to-production
+  - agent-production-readiness
   - agent-security-and-governance
 pillars:
   - agent-architecture-patterns

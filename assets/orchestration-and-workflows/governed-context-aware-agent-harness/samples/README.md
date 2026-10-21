@@ -238,5 +238,5 @@ integration. Verify Agent Framework API names against its current documentation.
 - [Verify before approve](../../verify-before-approve/README.md)
 - [Choosing prompt vs hosted agents](../../../agent-runtime/choosing-prompt-vs-hosted-agents/README.md)
 - [Production hosted agents on Foundry](../../../agent-runtime/production-hosted-agents-on-foundry/README.md)
-- [Agent path to production](../../../delivery-and-ops/agent-path-to-production/README.md)
+- [Agent Production Readiness Guide](../../../agentops-and-readiness/agent-production-readiness/README.md)
 - [Agent security and governance](../../../security-and-governance/agent-security-and-governance/README.md)

@@ -1,6 +1,6 @@
 # Evaluation and Troubleshooting
 
-This document covers release gates for hosted agent versions, negative tests that prove the security posture, session diagnostics, a troubleshooting runbook and an operational runbook for rotation, rollback, draining and orphan cleanup. Evaluation methodology beyond release gates (datasets, graders, online evaluation) is covered in [Agent Path to Production](../../../delivery-and-ops/agent-path-to-production/README.md).
+This document covers release gates for hosted agent versions, negative tests that prove the security posture, session diagnostics, a troubleshooting runbook and an operational runbook for rotation, rollback, draining and orphan cleanup. Evaluation methodology beyond release gates (datasets, graders, online evaluation) is covered in the [Agent Production Readiness Guide](../../../agentops-and-readiness/agent-production-readiness/README.md).
 
 Every command and API shape referenced here is a preview detail. Use the current SDK or REST reference from Microsoft Learn; the steps are expressed as intent, not as exact commands.
 
@@ -135,4 +135,4 @@ The simulator demonstrates the sweeper and the keep-warm detector in [`samples/h
 - [Authentication and governance](authentication-and-governance.md)
 - [Deployment and operations](deployment-and-operations.md)
 - [Secured Foundry Landing Zone: network and DNS troubleshooting](../../../landing-zones-and-infra/secured-foundry-landing-zone/docs/network-and-dns-troubleshooting.md)
-- [Agent Path to Production](../../../delivery-and-ops/agent-path-to-production/README.md)
+- [Agent Production Readiness Guide](../../../agentops-and-readiness/agent-production-readiness/README.md)

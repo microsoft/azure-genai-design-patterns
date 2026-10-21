@@ -181,4 +181,4 @@ Before a new verifier version is added to the trusted list:
 5. Sampled recent releases still verify with the new version, or any differences are explained.
 6. The previous version stays trusted until in-flight approvals that reference it have completed or expired.
 
-These map onto the evaluation stages in [agent path to production](../../../delivery-and-ops/agent-path-to-production/README.md).
+These map onto the evaluation stages in the [Agent Production Readiness Guide](../../../agentops-and-readiness/agent-production-readiness/README.md).

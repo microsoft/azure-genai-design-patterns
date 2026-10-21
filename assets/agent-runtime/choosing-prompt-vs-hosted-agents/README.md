@@ -138,7 +138,7 @@ Significant decisions are recorded in [ADR 0001: Default to prompt agents, escal
 3. **Review the recommendation with the matrix.** Read the rationale and warnings, then check them against the [decision matrix](docs/architecture.md#7-decision-matrix) and [anti-patterns](docs/architecture.md#17-anti-patterns). Record the outcome as an ADR in your own repository.
 4. **Design identity and network first.** Follow [authentication-and-governance.md](docs/authentication-and-governance.md) for the identities each runtime uses, the RBAC each needs, and how to restrict egress.
 5. **Build the smallest thing.** Start with a prompt agent, even if you expect to escalate. It becomes your evaluation baseline and your fallback.
-6. **Gate the release.** Use the evaluation scenarios and negative tests in [evaluation-and-troubleshooting.md](docs/evaluation-and-troubleshooting.md), then follow [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md).
+6. **Gate the release.** Use the evaluation scenarios and negative tests in [evaluation-and-troubleshooting.md](docs/evaluation-and-troubleshooting.md), then follow the [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md).
 
 ## Related assets
 
@@ -149,9 +149,9 @@ Significant decisions are recorded in [ADR 0001: Default to prompt agents, escal
 | [Secured Foundry Landing Zone](../../landing-zones-and-infra/secured-foundry-landing-zone/README.md) | The private network, DNS, and egress controls both runtimes depend on |
 | [Agent Security and Governance](../../security-and-governance/agent-security-and-governance/README.md) | Agent identity, guardrails, and governance controls that apply to both runtimes |
 | [M365 and Azure Custom Agent](../../m365-and-copilot/m365-azure-custom-agent/README.md) | Microsoft 365 front doors that call a Foundry agent |
-| [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md) | Release gates and operating model after the runtime is chosen |
+| [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md) | Release gates and operating model after the runtime is chosen |
 
-## P2P pillar mapping
+## Production-readiness pillar mapping
 
 | Pillar | How this asset contributes |
 |---|---|

@@ -160,7 +160,7 @@ These decisions are recorded in [ADR 0001: Never pass through client tokens](doc
 3. **Set up the gateway identity.** A managed identity for the gateway or MCP adapter, a federated identity credential on the app registration for Option A, and Key Vault access for Options B and C ([authentication-and-governance.md](docs/authentication-and-governance.md)).
 4. **Build the identity link (Option B).** Choose JIT linking, SCIM or admin mapping, key it on `tid` + `oid`, and define unlinking ([section 5.4](docs/architecture.md#54-identity-link-store)).
 5. **Adapt the illustrative policies or adapter code.** Start from [`docs/policies/`](docs/policies/README.md), replace the named values, and keep the negative checks: wrong audience, expired or replayed assertion, unlinked user, spoofed acting-user header.
-6. **Prove isolation, then release.** Run the two-user isolation tests and release gates in [evaluation-and-troubleshooting.md](docs/evaluation-and-troubleshooting.md), then follow [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md).
+6. **Prove isolation, then release.** Run the two-user isolation tests and release gates in [evaluation-and-troubleshooting.md](docs/evaluation-and-troubleshooting.md), then follow the [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md).
 
 ## Related assets
 
@@ -171,7 +171,7 @@ These decisions are recorded in [ADR 0001: Never pass through client tokens](doc
 | [Agent Security and Governance](../../security-and-governance/agent-security-and-governance/README.md) | Agent identity, least privilege and guardrails that complement the propagation options |
 | [Secured Foundry Landing Zone](../../landing-zones-and-infra/secured-foundry-landing-zone/README.md) | The network and identity landing zone (private endpoints, Key Vault, managed identities) the gateway runs in; its OAuth passthrough guide covers the client-to-MCP-server hop |
 
-## P2P pillar mapping
+## Production-readiness pillar mapping
 
 | Pillar | How this asset contributes |
 |---|---|

@@ -71,7 +71,7 @@ Significant architectural decisions are recorded as ADRs in [`docs/decisions/`](
    python assets/<category>/<asset-id>/samples/reference_sample.py --self-test
    ```
 3. **Configure identity and environment parameters.** Follow [`docs/authentication-and-governance.md`](docs/authentication-and-governance.md).
-4. **Apply release and evaluation gates.** Follow [`docs/evaluation-and-troubleshooting.md`](docs/evaluation-and-troubleshooting.md) and [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md).
+4. **Apply release and evaluation gates.** Follow [`docs/evaluation-and-troubleshooting.md`](docs/evaluation-and-troubleshooting.md) and the [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md).
 
 ## Security and responsible AI
 
@@ -91,5 +91,5 @@ Significant architectural decisions are recorded as ADRs in [`docs/decisions/`](
 - [Evaluation, release gates, and troubleshooting](docs/evaluation-and-troubleshooting.md)
 - [ADR 0001](docs/decisions/0001-decision-title.md)
 - [Samples guide](samples/README.md)
-- [Agent Path to Production](../../delivery-and-ops/agent-path-to-production/README.md)
+- [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md)
 - [Contribution & Standardization Guide](../../../docs/contribution-guide.md)

@@ -91,7 +91,7 @@ Gate details are in [evaluation-and-troubleshooting.md](evaluation-and-troublesh
 
 ## Step 7: Evaluate and promote
 
-1. Run the evaluation gate (see [Agent Path to Production](../../../delivery-and-ops/agent-path-to-production/README.md)).
+1. Run the evaluation gate (see the [Agent Production Readiness Guide](../../../agentops-and-readiness/agent-production-readiness/README.md)).
 2. In production, require an approval from someone other than the author.
 3. Switch the active version to the new version. New sessions are pinned to it.
 4. Drain sessions on the previous version per the business drain policy.

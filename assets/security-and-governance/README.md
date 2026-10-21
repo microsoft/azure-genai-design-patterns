@@ -18,4 +18,4 @@ Reference architectures, threat models, entitlement enforcement patterns, and ob
 
 - **Network isolation & private endpoints:** [`landing-zones-and-infra/secured-foundry-landing-zone`](../landing-zones-and-infra/secured-foundry-landing-zone/README.md)
 - **Server-side `R`/`W1`–`W4` action gate & OBO row-level isolation:** [`m365-and-copilot/m365-azure-custom-agent`](../m365-and-copilot/m365-azure-custom-agent/README.md)
-- **Delivery readiness gates (Pillar 1 & Pillar 4):** [`delivery-and-ops/agent-path-to-production`](../delivery-and-ops/agent-path-to-production/README.md)
+- **Production-readiness gates (Pillar 1 & Pillar 4):** [`agentops-and-readiness/agent-production-readiness`](../agentops-and-readiness/agent-production-readiness/README.md)

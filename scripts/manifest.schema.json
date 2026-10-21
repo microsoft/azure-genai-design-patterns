@@ -18,13 +18,13 @@
       "description": "Architectural category folder under assets/<category>/<id>/.",
       "type": "string",
       "enum": [
-        "delivery-and-ops",
         "m365-and-copilot",
         "security-and-governance",
         "landing-zones-and-infra",
         "agent-runtime",
         "ai-gateway",
         "orchestration-and-workflows",
+        "agentops-and-readiness",
         "data-and-tools"
       ]
     },
@@ -85,7 +85,7 @@
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
     },
     "pillars": {
-      "description": "Path-to-production pillars this asset supports.",
+      "description": "Production-readiness pillars this asset supports.",
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,

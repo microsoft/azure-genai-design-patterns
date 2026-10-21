@@ -35,10 +35,10 @@ Sub-topics:
   approvals, and security monitoring that detects misuse rather than only
   collecting logs.
 
-## Field signals
+## Common signals
 
-These signals are generalized from delivery reviews; they describe recurring
-situations, not statistics.
+These signals are generalized from real-world implementations; they describe
+recurring situations, not statistics.
 
 - Teams commonly get blocked on identity propagation: the agent can reach the
   tool, but the system of record cannot tell which user a request is for. The
@@ -83,7 +83,7 @@ situations, not statistics.
 ## Approach and play
 
 Security is the primary owner of [Play C: Secure agent-to-tool and downstream
-integration](../runbook.md#play-c-secure-agent-to-tool-and-downstream-integration).
+integration](../readiness-review.md#play-c-secure-agent-to-tool-and-downstream-integration).
 The steps below expand Play C and add detection and response.
 
 1. **Map the trust boundary** (Play C step 1). Enumerate tools, authorized

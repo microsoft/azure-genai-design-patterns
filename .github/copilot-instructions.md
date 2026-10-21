@@ -5,23 +5,23 @@ When creating, updating, or reviewing assets in `microsoft/agenticai-design-patt
 ## 1. Two-Level Category Hierarchy (`assets/<category>/<asset-id>/`)
 
 Never place an asset directly at `assets/<asset-id>/`. Every asset must reside inside one of the eight categories under `assets/`:
-- `delivery-and-ops`
 - `m365-and-copilot`
 - `security-and-governance`
 - `landing-zones-and-infra`
 - `agent-runtime`
 - `ai-gateway`
 - `orchestration-and-workflows`
+- `agentops-and-readiness`
 - `data-and-tools` (planned: the folder is created with the first asset)
 
-Before creating a new asset, check whether an existing asset should be extended instead; [`docs/path-to-production.md`](../docs/path-to-production.md) lists where planned-category topics live today.
+Before creating a new asset, check whether an existing asset should be extended instead; [`docs/production-readiness-map.md`](../docs/production-readiness-map.md) lists where planned-category topics live today.
 
 To scaffold a new asset from `templates/asset/`, run (add `--with-infra` or `--with-src` only when the asset needs those folders):
 ```bash
 python scripts/assets.py new --category <category> --id <asset-id> --kind <kind> --title "<Title>"
 ```
 
-Set `pillars:` in `manifest.yaml` to the path-to-production pillars the asset helps with (`coe-and-governance`, `landing-zones`, `agent-ops`, `security-and-observability`, `solution-optimization`, `agent-architecture-patterns`). The schema is [`scripts/manifest.schema.json`](../scripts/manifest.schema.json).
+Set `pillars:` in `manifest.yaml` to the production-readiness pillars the asset helps with (`coe-and-governance`, `landing-zones`, `agent-ops`, `security-and-observability`, `solution-optimization`, `agent-architecture-patterns`). The schema is [`scripts/manifest.schema.json`](../scripts/manifest.schema.json).
 
 ## 2. Domain-Agnostic Generalization ("Domain Packs")
 

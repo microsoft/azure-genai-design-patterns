@@ -35,7 +35,7 @@ source system. Prompt instructions are a usability aid, never a control.
 
 - Pure retrieval or chat agents with no tools and no access to sensitive data.
   Baseline content safety and Foundry RBAC are usually enough; see the
-  [agent path to production](../../delivery-and-ops/agent-path-to-production/README.md) playbook.
+  [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md).
 - Agents built entirely in Copilot Studio or Microsoft 365 Copilot extensibility
   with no custom tools. Governance is primarily tenant-admin configuration in
   Microsoft Agent 365 and the Microsoft 365 admin center.
@@ -277,4 +277,4 @@ Entra objects are not removed when you delete an Azure resource group.
 - [Microsoft Purview for Foundry](https://learn.microsoft.com/purview/ai-azure-foundry)
 - [Microsoft Agent Framework](https://learn.microsoft.com/agent-framework/overview/agent-framework-overview)
 - [Model Context Protocol](https://modelcontextprotocol.io/)
-- Related assets: [Agent path to production](../../delivery-and-ops/agent-path-to-production/README.md), [Microsoft 365 Integration with Azure Custom Engine Agent](../../m365-and-copilot/m365-azure-custom-agent/README.md), [Secured Microsoft Foundry Landing Zone](../../landing-zones-and-infra/secured-foundry-landing-zone/README.md)
+- Related assets: [Agent Production Readiness Guide](../../agentops-and-readiness/agent-production-readiness/README.md), [Microsoft 365 Integration with Azure Custom Engine Agent](../../m365-and-copilot/m365-azure-custom-agent/README.md), [Secured Microsoft Foundry Landing Zone](../../landing-zones-and-infra/secured-foundry-landing-zone/README.md)

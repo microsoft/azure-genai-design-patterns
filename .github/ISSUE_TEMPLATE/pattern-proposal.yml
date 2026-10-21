@@ -12,7 +12,7 @@ body:
     id: problem
     attributes:
       label: Recurring problem
-      description: What architectural problem does this solve, and why does it block teams on the path to production?
+      description: What architectural problem does this solve, and what stops teams from running it in production today?
     validations:
       required: true
   - type: textarea
@@ -27,13 +27,13 @@ body:
     attributes:
       label: Category
       options:
-        - delivery-and-ops
         - m365-and-copilot
         - security-and-governance
         - landing-zones-and-infra
         - agent-runtime
         - ai-gateway
         - orchestration-and-workflows
+        - agentops-and-readiness
         - data-and-tools
         - Not sure
     validations:
@@ -54,7 +54,7 @@ body:
   - type: checkboxes
     id: pillars
     attributes:
-      label: Path-to-production pillars
+      label: Production-readiness pillars
       description: Which pillars does this asset help with?
       options:
         - label: "1. AI CoE & Governance (coe-and-governance)"

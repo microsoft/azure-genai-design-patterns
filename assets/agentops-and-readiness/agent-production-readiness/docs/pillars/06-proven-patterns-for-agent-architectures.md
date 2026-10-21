@@ -33,10 +33,10 @@ Sub-topics:
 - **Scale and hosting.** Managed agent services versus custom runtimes,
   concurrency and long-running tasks, and isolated execution for generated code.
 
-## Field signals
+## Common signals
 
-These signals are generalized from delivery reviews; they describe recurring
-situations, not statistics.
+These signals are generalized from real-world implementations; they describe
+recurring situations, not statistics.
 
 - Teams commonly find that the move from prototype to production fails first on
   state. In-memory conversation state works in a demo and breaks under
@@ -81,7 +81,7 @@ situations, not statistics.
 ## Approach and play
 
 Architecture is the primary owner of [Play A: Choose an operable agent
-architecture](../runbook.md#play-a-choose-an-operable-agent-architecture). The
+architecture](../readiness-review.md#play-a-choose-an-operable-agent-architecture). The
 steps below expand Play A with a build-option decision and a handover to
 hardening.
 

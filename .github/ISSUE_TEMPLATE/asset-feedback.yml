@@ -11,7 +11,7 @@ body:
     id: asset
     attributes:
       label: Asset id
-      description: The folder name under assets/<category>/, for example agent-path-to-production.
+      description: The folder name under assets/<category>/, for example production-hosted-agents-on-foundry.
     validations:
       required: true
   - type: dropdown

@@ -779,7 +779,7 @@ flowchart LR
   [Sandboxed Code Execution with Session Pools](../../../agent-runtime/code-execution-sandbox-session-pools/README.md).
 - **Release path.** Treat skill packages, the verifier version, and the policy version as
   release artifacts. Change them through the stages in
-  [Agent Path to Production](../../../delivery-and-ops/agent-path-to-production/README.md),
+  [Agent Production Readiness Guide](../../../agentops-and-readiness/agent-production-readiness/README.md),
   with the self-test scenarios as gates.
 - **Security baseline.** Apply the controls in
   [Enterprise Agent Security and Tool Governance](../../../security-and-governance/agent-security-and-governance/README.md).
@@ -890,7 +890,7 @@ behind it (scenario ids in brackets).
   - [Choosing Prompt Agents vs Hosted Agents in Microsoft Foundry](../../../agent-runtime/choosing-prompt-vs-hosted-agents/README.md)
   - [Production Hosted Agents on Microsoft Foundry](../../../agent-runtime/production-hosted-agents-on-foundry/README.md)
   - [Sandboxed Code Execution with Session Pools](../../../agent-runtime/code-execution-sandbox-session-pools/README.md)
-  - [Agent Path to Production](../../../delivery-and-ops/agent-path-to-production/README.md)
+  - [Agent Production Readiness Guide](../../../agentops-and-readiness/agent-production-readiness/README.md)
   - [Enterprise Agent Security and Tool Governance](../../../security-and-governance/agent-security-and-governance/README.md)
 - External (check for the current versions):
   - Microsoft Agent Framework documentation on Microsoft Learn (agents, tools, middleware, context providers, observability)

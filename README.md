@@ -1,35 +1,12 @@
 # Agentic AI Design Patterns
 
-Field-proven design patterns, reference architectures, solution accelerators and delivery playbooks for taking agentic AI systems on Azure and Microsoft Foundry from pilot to production.
+An open catalog of agentic AI design patterns, reference architectures and solution accelerators for building production-grade agentic systems on Azure and Microsoft Foundry.
 
-Every asset is generalized from repeated field work into a domain-agnostic pattern, reviewed by a curator before merge, follows the same folder layout, and carries a machine-readable `manifest.yaml`, so you can browse it here or discover it through search tools.
-
-## Start here: path to production
-
-Most agentic projects stall between a working pilot and an operable production workload. The assets here are organized around six path-to-production pillars, so you can go from "what is blocking us" to the right pattern. Use the [path-to-production guide](docs/path-to-production.md) to frame a review, and the [Agent Path to Production playbook](assets/delivery-and-ops/agent-path-to-production/README.md) to run one.
-
-<!-- pillars:start -->
-| Pillar | Focus | Assets |
-|--------|-------|--------|
-| [1. AI CoE & Governance](assets/delivery-and-ops/agent-path-to-production/docs/pillars/01-ai-coe-and-governance.md) | Operating model, intake and graduation, responsible AI policy, agent inventory, cost accountability. | [Agent Path to Production](assets/delivery-and-ops/agent-path-to-production/README.md), [Enterprise Agent Security and Tool Governance](assets/security-and-governance/agent-security-and-governance/README.md), [Multi-Tenant MCP Gateway on Azure API Management](assets/ai-gateway/multi-tenant-mcp-gateway/README.md), [Verify Before Approve: Deterministic Verification Ahead of Human Approval](assets/orchestration-and-workflows/verify-before-approve/README.md) |
-| [2. AI Landing Zones](assets/delivery-and-ops/agent-path-to-production/docs/pillars/02-ai-landing-zones.md) | Network topology, private connectivity, identity and RBAC, policy, environments, regional design. | [Agent Path to Production](assets/delivery-and-ops/agent-path-to-production/README.md), [Secured Microsoft Foundry Landing Zone for Enterprise Agents](assets/landing-zones-and-infra/secured-foundry-landing-zone/README.md), [Production Hosted Agents on Microsoft Foundry](assets/agent-runtime/production-hosted-agents-on-foundry/README.md), [Backend Identity Propagation for MCP and Agent Gateways (OBO, Signed Assertions, Tenant Credentials)](assets/ai-gateway/backend-identity-propagation/README.md), [MCP OAuth Front Door (Protected Resource Metadata, Discovery and Client Registration Shims)](assets/ai-gateway/mcp-oauth-front-door/README.md), [Multi-Tenant MCP Gateway on Azure API Management](assets/ai-gateway/multi-tenant-mcp-gateway/README.md) |
-| [3. Agent Ops](assets/delivery-and-ops/agent-path-to-production/docs/pillars/03-agent-ops.md) | CI/CD, versioning, tracing, evaluation gates, monitoring, incident runbooks. | [Agent Path to Production](assets/delivery-and-ops/agent-path-to-production/README.md), [Microsoft 365 Integration with Azure Custom Engine Agent](assets/m365-and-copilot/m365-azure-custom-agent/README.md), [Enterprise Agent Security and Tool Governance](assets/security-and-governance/agent-security-and-governance/README.md), [Choosing Prompt Agents vs Hosted Agents in Microsoft Foundry](assets/agent-runtime/choosing-prompt-vs-hosted-agents/README.md), [Code Execution Sandboxes with Session Pools](assets/agent-runtime/code-execution-sandbox-session-pools/README.md), [Production Hosted Agents on Microsoft Foundry](assets/agent-runtime/production-hosted-agents-on-foundry/README.md), [Governed Context-Aware Agent Harness](assets/orchestration-and-workflows/governed-context-aware-agent-harness/README.md) |
-| [4. AI Security & Observability](assets/delivery-and-ops/agent-path-to-production/docs/pillars/04-ai-security-and-observability.md) | Agent and tool authorization, prompt-injection defenses, sensitive data, red teaming, audit trails. | [Agent Path to Production](assets/delivery-and-ops/agent-path-to-production/README.md), [Enterprise Agent Security and Tool Governance](assets/security-and-governance/agent-security-and-governance/README.md), [Choosing Prompt Agents vs Hosted Agents in Microsoft Foundry](assets/agent-runtime/choosing-prompt-vs-hosted-agents/README.md), [Code Execution Sandboxes with Session Pools](assets/agent-runtime/code-execution-sandbox-session-pools/README.md), [Production Hosted Agents on Microsoft Foundry](assets/agent-runtime/production-hosted-agents-on-foundry/README.md), [Backend Identity Propagation for MCP and Agent Gateways (OBO, Signed Assertions, Tenant Credentials)](assets/ai-gateway/backend-identity-propagation/README.md), [MCP OAuth Front Door (Protected Resource Metadata, Discovery and Client Registration Shims)](assets/ai-gateway/mcp-oauth-front-door/README.md), [Multi-Tenant MCP Gateway on Azure API Management](assets/ai-gateway/multi-tenant-mcp-gateway/README.md), [Governed Context-Aware Agent Harness](assets/orchestration-and-workflows/governed-context-aware-agent-harness/README.md), [Verify Before Approve: Deterministic Verification Ahead of Human Approval](assets/orchestration-and-workflows/verify-before-approve/README.md) |
-| [5. Solution Optimization](assets/delivery-and-ops/agent-path-to-production/docs/pillars/05-solution-optimization.md) | Performance, latency, cost, retrieval quality, semantic layers, scaling. | [Agent Path to Production](assets/delivery-and-ops/agent-path-to-production/README.md), [Microsoft 365 Integration with Azure Custom Engine Agent](assets/m365-and-copilot/m365-azure-custom-agent/README.md) |
-| [6. Proven Patterns for Agent Architectures](assets/delivery-and-ops/agent-path-to-production/docs/pillars/06-proven-patterns-for-agent-architectures.md) | Orchestration, quality controls, interoperability, state, front doors, scale. | [Agent Path to Production](assets/delivery-and-ops/agent-path-to-production/README.md), [Microsoft 365 Integration with Azure Custom Engine Agent](assets/m365-and-copilot/m365-azure-custom-agent/README.md), [Microsoft 365 Copilot Integration with MCP via Plug-ins](assets/m365-and-copilot/m365-mcp-plugin-integration/README.md), [Choosing Prompt Agents vs Hosted Agents in Microsoft Foundry](assets/agent-runtime/choosing-prompt-vs-hosted-agents/README.md), [Code Execution Sandboxes with Session Pools](assets/agent-runtime/code-execution-sandbox-session-pools/README.md), [Production Hosted Agents on Microsoft Foundry](assets/agent-runtime/production-hosted-agents-on-foundry/README.md), [Backend Identity Propagation for MCP and Agent Gateways (OBO, Signed Assertions, Tenant Credentials)](assets/ai-gateway/backend-identity-propagation/README.md), [MCP OAuth Front Door (Protected Resource Metadata, Discovery and Client Registration Shims)](assets/ai-gateway/mcp-oauth-front-door/README.md), [Multi-Tenant MCP Gateway on Azure API Management](assets/ai-gateway/multi-tenant-mcp-gateway/README.md), [Governed Context-Aware Agent Harness](assets/orchestration-and-workflows/governed-context-aware-agent-harness/README.md), [Verify Before Approve: Deterministic Verification Ahead of Human Approval](assets/orchestration-and-workflows/verify-before-approve/README.md) |
-<!-- pillars:end -->
+Each asset is generalized from real implementations into a domain-agnostic pattern, explains its trade-offs and when not to use it, ships runnable samples with an offline self-test, and carries a machine-readable `manifest.yaml`, so you can browse it here or discover it through search tools. A maintainer reviews every asset before merge.
 
 ## Catalog
 
 <!-- catalog:start -->
-### [Delivery and Operations](assets/delivery-and-ops/README.md) (`delivery-and-ops`)
-
-Playbooks, readiness gates, evaluation frameworks, and AgentOps operating models.
-
-| Asset | Kind | Maturity | Summary |
-|-------|------|----------|---------|
-| [Agent Path to Production](assets/delivery-and-ops/agent-path-to-production/README.md) | `playbook` | experimental | An evidence-led delivery playbook for taking an agentic application from early design or a pilot to an operable production workload, with specialist routing, readiness gates, and reusable learning. |
-
 ### [Microsoft 365 and Copilot Integration](assets/m365-and-copilot/README.md) (`m365-and-copilot`)
 
 Declarative agents, custom engine agents, MCP plug-ins, MCP Apps (`ui://`), Teams, and Cowork surfaces.
@@ -84,10 +61,37 @@ Governed agent harnesses, verification gates, multi-agent routers, planner-and-s
 | [Governed Context-Aware Agent Harness](assets/orchestration-and-workflows/governed-context-aware-agent-harness/README.md) | `reference-architecture` | preview | A reference architecture for the runtime harness around an LLM agent: mandatory plan-before-act policy, progressive skill disclosure, scoped memory, an independent deterministic verifier, an evidence ledger, separate human approval of the exact verified artifact, and a completion certificate - so a convincing answer is never mistaken for a correctly completed task. |
 | [Verify Before Approve: Deterministic Verification Ahead of Human Approval](assets/orchestration-and-workflows/verify-before-approve/README.md) | `design-pattern` | preview | Separates machine-checkable verification from human approval. A verifier independent of the generating model runs deterministic checks; only verified artifacts reach approvers, and each approval binds to the exact artifact sha256 and verification receipt. Failures drive bounded self-correction, then a labelled unverified preview, never silent approval. Approvers spend their attention on judgement, not arithmetic, and rubber-stamp approvals drop. |
 
-**Planned categories** (folder is created with the first asset): Data and Tools (`data-and-tools`). See [docs/path-to-production.md](docs/path-to-production.md) for related content today.
+### [AgentOps and Production Readiness](assets/agentops-and-readiness/README.md) (`agentops-and-readiness`)
+
+Production-readiness guides, evidence-based readiness gates, evaluation frameworks, and AgentOps operating models.
+
+| Asset | Kind | Maturity | Summary |
+|-------|------|----------|---------|
+| [Agent Production Readiness Guide](assets/agentops-and-readiness/agent-production-readiness/README.md) | `playbook` | experimental | An evidence-led production-readiness guide for taking an agentic application from early design or a pilot to an operable production workload, with six readiness pillars, three technical plays, and release gates. |
+
+**Planned categories** (folder is created with the first asset): Data and Tools (`data-and-tools`). See [docs/production-readiness-map.md](docs/production-readiness-map.md#planned-categories-where-to-look-today) for related content today.
 <!-- catalog:end -->
 
-The pillar map and catalog above are generated from each asset's `manifest.yaml` by `python scripts/assets.py catalog`. Do not edit them by hand.
+## Browse by production-readiness pillar
+
+Every asset is also tagged with the production-readiness pillars it supports, so you can start from a specific blocker (governance, environment, AgentOps, security, optimization or architecture) and find the patterns that address it. The [production-readiness map](docs/production-readiness-map.md) adds hand-picked deep links, and the [Agent Production Readiness Guide](assets/agentops-and-readiness/agent-production-readiness/README.md) offers an optional review method that uses the same pillars.
+
+<!-- pillars:start -->
+| Pillar | Focus | Assets |
+|--------|-------|--------|
+| [1. AI CoE & Governance](assets/agentops-and-readiness/agent-production-readiness/docs/pillars/01-ai-coe-and-governance.md) | Operating model, intake and graduation, responsible AI policy, agent inventory, cost accountability. | [Enterprise Agent Security and Tool Governance](assets/security-and-governance/agent-security-and-governance/README.md), [Multi-Tenant MCP Gateway on Azure API Management](assets/ai-gateway/multi-tenant-mcp-gateway/README.md), [Verify Before Approve: Deterministic Verification Ahead of Human Approval](assets/orchestration-and-workflows/verify-before-approve/README.md), [Agent Production Readiness Guide](assets/agentops-and-readiness/agent-production-readiness/README.md) |
+| [2. AI Landing Zones](assets/agentops-and-readiness/agent-production-readiness/docs/pillars/02-ai-landing-zones.md) | Network topology, private connectivity, identity and RBAC, policy, environments, regional design. | [Secured Microsoft Foundry Landing Zone for Enterprise Agents](assets/landing-zones-and-infra/secured-foundry-landing-zone/README.md), [Production Hosted Agents on Microsoft Foundry](assets/agent-runtime/production-hosted-agents-on-foundry/README.md), [Backend Identity Propagation for MCP and Agent Gateways (OBO, Signed Assertions, Tenant Credentials)](assets/ai-gateway/backend-identity-propagation/README.md), [MCP OAuth Front Door (Protected Resource Metadata, Discovery and Client Registration Shims)](assets/ai-gateway/mcp-oauth-front-door/README.md), [Multi-Tenant MCP Gateway on Azure API Management](assets/ai-gateway/multi-tenant-mcp-gateway/README.md), [Agent Production Readiness Guide](assets/agentops-and-readiness/agent-production-readiness/README.md) |
+| [3. Agent Ops](assets/agentops-and-readiness/agent-production-readiness/docs/pillars/03-agent-ops.md) | CI/CD, versioning, tracing, evaluation gates, monitoring, incident runbooks. | [Microsoft 365 Integration with Azure Custom Engine Agent](assets/m365-and-copilot/m365-azure-custom-agent/README.md), [Enterprise Agent Security and Tool Governance](assets/security-and-governance/agent-security-and-governance/README.md), [Choosing Prompt Agents vs Hosted Agents in Microsoft Foundry](assets/agent-runtime/choosing-prompt-vs-hosted-agents/README.md), [Code Execution Sandboxes with Session Pools](assets/agent-runtime/code-execution-sandbox-session-pools/README.md), [Production Hosted Agents on Microsoft Foundry](assets/agent-runtime/production-hosted-agents-on-foundry/README.md), [Governed Context-Aware Agent Harness](assets/orchestration-and-workflows/governed-context-aware-agent-harness/README.md), [Agent Production Readiness Guide](assets/agentops-and-readiness/agent-production-readiness/README.md) |
+| [4. AI Security & Observability](assets/agentops-and-readiness/agent-production-readiness/docs/pillars/04-ai-security-and-observability.md) | Agent and tool authorization, prompt-injection defenses, sensitive data, red teaming, audit trails. | [Enterprise Agent Security and Tool Governance](assets/security-and-governance/agent-security-and-governance/README.md), [Choosing Prompt Agents vs Hosted Agents in Microsoft Foundry](assets/agent-runtime/choosing-prompt-vs-hosted-agents/README.md), [Code Execution Sandboxes with Session Pools](assets/agent-runtime/code-execution-sandbox-session-pools/README.md), [Production Hosted Agents on Microsoft Foundry](assets/agent-runtime/production-hosted-agents-on-foundry/README.md), [Backend Identity Propagation for MCP and Agent Gateways (OBO, Signed Assertions, Tenant Credentials)](assets/ai-gateway/backend-identity-propagation/README.md), [MCP OAuth Front Door (Protected Resource Metadata, Discovery and Client Registration Shims)](assets/ai-gateway/mcp-oauth-front-door/README.md), [Multi-Tenant MCP Gateway on Azure API Management](assets/ai-gateway/multi-tenant-mcp-gateway/README.md), [Governed Context-Aware Agent Harness](assets/orchestration-and-workflows/governed-context-aware-agent-harness/README.md), [Verify Before Approve: Deterministic Verification Ahead of Human Approval](assets/orchestration-and-workflows/verify-before-approve/README.md), [Agent Production Readiness Guide](assets/agentops-and-readiness/agent-production-readiness/README.md) |
+| [5. Solution Optimization](assets/agentops-and-readiness/agent-production-readiness/docs/pillars/05-solution-optimization.md) | Performance, latency, cost, retrieval quality, semantic layers, scaling. | [Microsoft 365 Integration with Azure Custom Engine Agent](assets/m365-and-copilot/m365-azure-custom-agent/README.md), [Agent Production Readiness Guide](assets/agentops-and-readiness/agent-production-readiness/README.md) |
+| [6. Proven Patterns for Agent Architectures](assets/agentops-and-readiness/agent-production-readiness/docs/pillars/06-proven-patterns-for-agent-architectures.md) | Orchestration, quality controls, interoperability, state, front doors, scale. | [Microsoft 365 Integration with Azure Custom Engine Agent](assets/m365-and-copilot/m365-azure-custom-agent/README.md), [Microsoft 365 Copilot Integration with MCP via Plug-ins](assets/m365-and-copilot/m365-mcp-plugin-integration/README.md), [Choosing Prompt Agents vs Hosted Agents in Microsoft Foundry](assets/agent-runtime/choosing-prompt-vs-hosted-agents/README.md), [Code Execution Sandboxes with Session Pools](assets/agent-runtime/code-execution-sandbox-session-pools/README.md), [Production Hosted Agents on Microsoft Foundry](assets/agent-runtime/production-hosted-agents-on-foundry/README.md), [Backend Identity Propagation for MCP and Agent Gateways (OBO, Signed Assertions, Tenant Credentials)](assets/ai-gateway/backend-identity-propagation/README.md), [MCP OAuth Front Door (Protected Resource Metadata, Discovery and Client Registration Shims)](assets/ai-gateway/mcp-oauth-front-door/README.md), [Multi-Tenant MCP Gateway on Azure API Management](assets/ai-gateway/multi-tenant-mcp-gateway/README.md), [Governed Context-Aware Agent Harness](assets/orchestration-and-workflows/governed-context-aware-agent-harness/README.md), [Verify Before Approve: Deterministic Verification Ahead of Human Approval](assets/orchestration-and-workflows/verify-before-approve/README.md), [Agent Production Readiness Guide](assets/agentops-and-readiness/agent-production-readiness/README.md) |
+<!-- pillars:end -->
+
+The catalog and pillar map above are generated from each asset's `manifest.yaml` by `python scripts/assets.py catalog`. Do not edit them by hand.
+
+## How this repository is used
+
+This repository is a public technical reference. Architects and engineers use it directly, and teams and partners running path-to-production programs for agentic workloads use it as their technical reference. Program process such as intake, engagement and scheduling lives outside this repository; the assets here stay focused on reusable architecture, code and evidence.
 
 ## Asset kinds
 
@@ -96,7 +100,7 @@ The pillar map and catalog above are generated from each asset's `manifest.yaml`
 | `design-pattern` | A reusable approach to a recurring agentic design problem, with trade-offs and when (not) to use it. |
 | `reference-architecture` | An end-to-end architecture for a scenario, with components, data flows, identity, security and operations. |
 | `solution-accelerator` | Deployable code and infrastructure that implements a pattern or architecture. |
-| `playbook` | A step-by-step delivery or adoption guide. |
+| `playbook` | A step-by-step adoption or readiness guide. |
 | `sample` | A small, focused code sample that demonstrates one technique. |
 
 ## Repository layout
@@ -115,7 +119,7 @@ assets/                           the catalog: one folder per category, one fold
       infra/                      infrastructure as code (optional)
       src/                        source code (optional)
 docs/
-  path-to-production.md           pillar-by-pillar navigation into the catalog
+  production-readiness-map.md     pillar-by-pillar navigation into the catalog
   contribution-guide.md           generalization method, depth bar and public-safety rules
 scripts/                          maintenance tooling run locally and in CI
   assets.py                       scaffold, validate, catalog and scan assets
@@ -131,16 +135,16 @@ Assets are grouped into architectural categories under [`assets/`](assets/README
 
 | Category | Scope | Status |
 |----------|-------|--------|
-| [`delivery-and-ops`](assets/delivery-and-ops/README.md) | Delivery playbooks, readiness gates, evaluation and AgentOps | Published |
 | [`m365-and-copilot`](assets/m365-and-copilot/README.md) | Microsoft 365 Copilot, Teams, declarative and custom engine agents, MCP plug-ins | Published |
 | [`security-and-governance`](assets/security-and-governance/README.md) | Agent identity, tool governance, guardrails, audit | Published |
 | [`landing-zones-and-infra`](assets/landing-zones-and-infra/README.md) | Private Microsoft Foundry landing zones and infrastructure as code | Published |
 | [`agent-runtime`](assets/agent-runtime/README.md) | Prompt vs hosted agents, production hosted agents, sessions, sandboxed code execution | Published |
 | [`ai-gateway`](assets/ai-gateway/README.md) | API Management as the control plane for model, MCP tool, and agent traffic | Published |
 | [`orchestration-and-workflows`](assets/orchestration-and-workflows/README.md) | Governed agent harnesses, verification gates, multi-agent routing, durable workflows | Published |
+| [`agentops-and-readiness`](assets/agentops-and-readiness/README.md) | Production-readiness guides, readiness gates, evaluation and AgentOps | Published |
 | `data-and-tools` | Governed MCP servers, data connectors, grounding, action safety | Planned |
 
-Planned categories get a folder with their first asset. Until then, [docs/path-to-production.md](docs/path-to-production.md#planned-categories-where-to-look-today) shows where those topics are covered today.
+Planned categories get a folder with their first asset. Until then, the [production-readiness map](docs/production-readiness-map.md#planned-categories-where-to-look-today) shows where those topics are covered today.
 
 ## Using an asset
 
@@ -158,7 +162,7 @@ python scripts/assets.py validate
 python scripts/assets.py scan
 ```
 
-A curator reviews every contribution. Everything in this repository is public: do not commit customer names, customer data, internal links, unreleased product information, or secrets.
+A maintainer reviews every contribution. Everything in this repository is public: do not commit customer names, customer data, internal links, unreleased product information, or secrets.
 
 ## Earlier content
 

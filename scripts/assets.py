@@ -33,10 +33,6 @@ README = ROOT / "README.md"
 # Categories are fixed. A category folder is created with its first asset, so a category
 # can be "planned" (listed here and in the schema) without a folder in assets/.
 CATEGORIES: dict[str, dict[str, str]] = {
-    "delivery-and-ops": {
-        "title": "Delivery and Operations",
-        "description": "Playbooks, readiness gates, evaluation frameworks, and AgentOps operating models.",
-    },
     "m365-and-copilot": {
         "title": "Microsoft 365 and Copilot Integration",
         "description": "Declarative agents, custom engine agents, MCP plug-ins, MCP Apps (`ui://`), Teams, and Cowork surfaces.",
@@ -61,13 +57,17 @@ CATEGORIES: dict[str, dict[str, str]] = {
         "title": "Orchestration and Workflows",
         "description": "Governed agent harnesses, verification gates, multi-agent routers, planner-and-specialist handoffs, durable state/caching, and workflow engines.",
     },
+    "agentops-and-readiness": {
+        "title": "AgentOps and Production Readiness",
+        "description": "Production-readiness guides, evidence-based readiness gates, evaluation frameworks, and AgentOps operating models.",
+    },
     "data-and-tools": {
         "title": "Data and Tools",
         "description": "Governed MCP server patterns, On-Behalf-Of (OBO) data connectors, RAG grounding, and action safety gates.",
     },
 }
 
-PILLAR_DOCS = "assets/delivery-and-ops/agent-path-to-production/docs/pillars"
+PILLAR_DOCS = "assets/agentops-and-readiness/agent-production-readiness/docs/pillars"
 PILLARS: dict[str, dict[str, str]] = {
     "coe-and-governance": {
         "title": "1. AI CoE & Governance",
@@ -113,7 +113,7 @@ TEXT_SUFFIXES = {
 }
 
 # Heuristics for content that must not be published. They catch common mistakes; they do
-# not replace curator review or GitHub secret scanning.
+# not replace maintainer review or GitHub secret scanning.
 BLOCKED_PATTERNS = {
     "internal SharePoint URL": re.compile(r"https?://[a-z0-9-]+(?:-my)?\.sharepoint\.com/", re.I),
     "internal corpnet host": re.compile(r"\b[a-z0-9.-]+\.corp\.microsoft\.com\b", re.I),
@@ -395,7 +395,7 @@ def render_catalog(entries: list[tuple[str, Path, dict]]) -> str:
         names = ", ".join(f"{CATEGORIES[c]['title']} (`{c}`)" for c in planned)
         body += (
             f"\n\n**Planned categories** (folder is created with the first asset): {names}. "
-            "See [docs/path-to-production.md](docs/path-to-production.md) for related content today."
+            "See [docs/production-readiness-map.md](docs/production-readiness-map.md#planned-categories-where-to-look-today) for related content today."
         )
     return body
 

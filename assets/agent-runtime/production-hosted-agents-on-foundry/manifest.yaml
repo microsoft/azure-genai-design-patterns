@@ -40,7 +40,7 @@ related:
   - code-execution-sandbox-session-pools
   - multi-tenant-mcp-gateway
   - backend-identity-propagation
-  - agent-path-to-production
+  - agent-production-readiness
 pillars:
   - agent-ops
   - landing-zones

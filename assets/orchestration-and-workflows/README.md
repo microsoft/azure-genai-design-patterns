@@ -41,4 +41,4 @@ flowchart TD
 - **Durable conversation state and gated actions:** [`m365-and-copilot/m365-azure-custom-agent`](../m365-and-copilot/m365-azure-custom-agent/README.md)
 - **Tool-call policy enforcement, approvals and Entra Agent ID:** [`security-and-governance/agent-security-and-governance`](../security-and-governance/agent-security-and-governance/README.md)
 - **Where the harness runs in production:** [`agent-runtime/production-hosted-agents-on-foundry`](../agent-runtime/production-hosted-agents-on-foundry/README.md)
-- **Pillar 6, proven patterns for agent architectures:** [`delivery-and-ops/agent-path-to-production/docs/pillars/06-proven-patterns-for-agent-architectures.md`](../delivery-and-ops/agent-path-to-production/docs/pillars/06-proven-patterns-for-agent-architectures.md)
+- **Pillar 6, proven patterns for agent architectures:** [`agentops-and-readiness/agent-production-readiness/docs/pillars/06-proven-patterns-for-agent-architectures.md`](../agentops-and-readiness/agent-production-readiness/docs/pillars/06-proven-patterns-for-agent-architectures.md)

@@ -34,7 +34,7 @@ last_reviewed: "2026-10-20"
 related:
   - governed-context-aware-agent-harness
   - agent-security-and-governance
-  - agent-path-to-production
+  - agent-production-readiness
   - backend-identity-propagation
 pillars:
   - agent-architecture-patterns

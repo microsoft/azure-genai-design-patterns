@@ -150,4 +150,4 @@ The [runtime selector](../samples/runtime_selector.py) has a `--self-test` that 
 - [Agent development lifecycle in Microsoft Foundry](https://learn.microsoft.com/azure/foundry/agents/concepts/development-lifecycle)
 - [Hosted agents in Foundry Agent Service](https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents)
 - [Application Insights overview](https://learn.microsoft.com/azure/azure-monitor/app/app-insights-overview)
-- [Agent Path to Production](../../../delivery-and-ops/agent-path-to-production/README.md)
+- [Agent Production Readiness Guide](../../../agentops-and-readiness/agent-production-readiness/README.md)
